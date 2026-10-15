@@ -20,7 +20,7 @@ CoLeaf: Word-style editing of a repo's `.md` files, with simple Git and (later) 
 - UI mockups: [docs/ui/](docs/ui/)
 - Current phase: **Stage 1a: prove the core** (see "Work plan" in the plan).
 
-The files in `docs/` are exports of the owner's living docs. Don't edit them unless asked; suggest changes instead.
+`docs/` is the source of truth for what we build and how. Keep [docs/plan.md](docs/plan.md) current: tick a work-plan item (`- [x]`) once it is done and verified. Ask before changing any decision, requirement or design text in `docs/`.
 
 ## Stack (confirmed)
 
@@ -34,6 +34,7 @@ The files in `docs/` are exports of the owner's living docs. Don't edit them unl
 | Diffs | jsdiff, shown as highlights on the formatted page (never raw text) |
 | Git | dugite (bundled Git) |
 | GitHub | GitHub App (device flow) + Octokit; token in Electron `safeStorage` |
+| Tooling | Vitest, ESLint + Prettier, `@electron-toolkit/*` (utils, tsconfig, ESLint configs), `@fontsource/ibm-plex-sans` |
 
 Don't add libraries outside this list without approval. Not used: Monaco, TipTap typed-Markdown input rules.
 
@@ -66,10 +67,21 @@ Full planned tree: [docs/architecture.md](docs/architecture.md#repo-layout).
 
 ## Commands
 
-To be filled in once the app is scaffolded (dev, test, build).
+| Command | Does |
+| --- | --- |
+| `npm install` | Installs dependencies and downloads Electron |
+| `npm run dev` | Starts the app with hot reload; Chromium remote debugging on port 9222. If it crashes with `reading 'isPackaged'`, unset `ELECTRON_RUN_AS_NODE` first (VS Code's extension host sets it, and Electron then runs as plain Node) |
+| `npm run check` | Typecheck + lint + tests. Must pass before a change is finished |
+| `npm run typecheck` | TypeScript for both the background and the window |
+| `npm run lint` | ESLint |
+| `npm run test` / `npm run test:watch` | Vitest, once / on every change |
+| `npm run format` | Prettier on the repo (Markdown is never formatted, see `.prettierignore`) |
+| `npm run build` | Typecheck + production build to `out/` |
+| `npm run start` | Runs the production build |
 
 ## Testing
 
 - Any change to Markdown reading or saving must pass the round-trip tests: golden `.md` files in `tests/roundtrip/`, where open + save must be byte-identical.
 - Every Markdown bug fixed gets a new golden file.
 - Git features are tested against temporary repos, never the real one.
+- `npm run check` must pass before a change is finished. Claude Code runs it automatically through the hooks in `.claude/settings.json` (Prettier after every edit, `npm run check` when a turn ends); other agents run it themselves.

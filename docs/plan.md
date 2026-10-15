@@ -118,7 +118,7 @@ Its own sidebar view (Sync icon in the left icon bar) for sharing work through G
 
 Build this first and see it work; then review and detail 1b.
 
-- [ ] Set up the desktop app project
+- [x] Set up the desktop app project
 - [ ] Open a repo folder and show a file tree of `.md` files
 - [ ] Add the editor with Markdown read and write (remark + bridge) and basic keyboard shortcuts
 - [ ] Save: never rewrite untouched files; save edited files in one consistent style; test the round-trip (open and save with no edits = no git diff)
