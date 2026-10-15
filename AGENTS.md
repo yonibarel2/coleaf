@@ -1,0 +1,75 @@
+# AGENTS.md
+
+Instructions for any AI coding agent working in this repo (Claude Code, Codex, Cursor and others).
+
+## How to work with the owner
+
+- Answers: max 100 words. No intros, recaps or "let me know" endings.
+- Yes/no questions: answer only "Yes" or "No". If "No", add one short line on what's wrong. Explain only when asked "why".
+- Prefer a small table or list over paragraphs.
+- Step-by-step tasks: one step at a time, then wait.
+- Unclear or missing info: ask in one line instead of guessing.
+- Before big changes (new library, new folder, refactor, large rewrite): propose a short plan and wait for approval.
+
+## Project
+
+CoLeaf: Word-style editing of a repo's `.md` files, with simple Git and (later) AI, for people who'd rather not touch code.
+
+- What we build, by stage: [docs/plan.md](docs/plan.md)
+- How it's built: [docs/architecture.md](docs/architecture.md)
+- UI mockups: [docs/ui/](docs/ui/)
+- Current phase: **Stage 1a: prove the core** (see "Work plan" in the plan).
+
+The files in `docs/` are exports of the owner's living docs. Don't edit them unless asked; suggest changes instead.
+
+## Stack (confirmed)
+
+| Part | Pick |
+| --- | --- |
+| App shell | Electron + electron-vite |
+| Screen | React + TypeScript |
+| Editor | TipTap v3 (ProseMirror) |
+| Markdown | remark + remark-gfm + `@handlewithcare/remark-prosemirror` |
+| Diagrams | Mermaid |
+| Diffs | jsdiff, shown as highlights on the formatted page (never raw text) |
+| Git | dugite (bundled Git) |
+| GitHub | GitHub App (device flow) + Octokit; token in Electron `safeStorage` |
+
+Don't add libraries outside this list without approval. Not used: Monaco, TipTap typed-Markdown input rules.
+
+## Rules
+
+1. **Save rule:** an untouched file is never rewritten (open + save with no edits = no git diff). Edited files are saved in one consistent, Prettier-compatible Markdown style. Never add hard line breaks.
+2. **Plain Markdown only:** files stay GitHub-flavored Markdown. No CoLeaf-only syntax or hidden metadata in `.md` files.
+3. **Embedded HTML:** shown as a block, saved back unchanged, never executed.
+4. **Editable files:** only `.md` and `.markdown`.
+5. **Security:** the window has no Node access (`contextIsolation` on, `nodeIntegration` off). All disk and Git work goes through the preload's allowlisted IPC messages.
+6. **Left-to-right only:** no RTL support.
+7. **No AI features** before Stage 3.
+8. **Look:** Leaf palette (accent `#2F7D32`, ground `#F3F3F1`, ink `#171717`), IBM Plex Sans for the app UI, the system font for documents. See `docs/ui/style.png`. All colors, fonts, sizes and spacing come from one tokens file in `src/renderer/styles/`; never hard-code them in components, so the whole look can be redesigned in one place (Stage 4).
+9. **English** for code, comments and commits. Small commits with clear messages.
+10. **Tool-neutral context:** shared agent rules live in this file, not in tool-specific files.
+11. **Keep the repo clean:** follow the layout below. No new top-level files or folders, and no new dependencies, without approval. No scratch, debug or backup files in the repo; delete temporary files before finishing. Reuse existing helpers instead of adding near-duplicates. One small slice per change, ready to review as a single diff.
+
+## Layout
+
+Standard electron-vite layout:
+
+| Folder | Holds |
+| --- | --- |
+| `src/main/` | Background (Node.js): files, Git, later AI |
+| `src/preload/` | The safe bridge: the only allowed IPC messages |
+| `src/renderer/` | The window (React): everything the user sees |
+| `tests/` | Round-trip, Git and end-to-end tests |
+
+Full planned tree: [docs/architecture.md](docs/architecture.md#repo-layout).
+
+## Commands
+
+To be filled in once the app is scaffolded (dev, test, build).
+
+## Testing
+
+- Any change to Markdown reading or saving must pass the round-trip tests: golden `.md` files in `tests/roundtrip/`, where open + save must be byte-identical.
+- Every Markdown bug fixed gets a new golden file.
+- Git features are tested against temporary repos, never the real one.
