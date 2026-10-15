@@ -1,0 +1,35 @@
+/* Base styles for the app shell. Every value comes from tokens.css. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-size: var(--text-ui);
+  line-height: var(--line-height-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  display: grid;
+  place-items: center;
+  height: 100%;
+}
+
+.app__name {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: var(--text-display);
+  font-weight: var(--weight-semibold);
+}

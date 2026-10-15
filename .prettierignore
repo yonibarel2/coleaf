@@ -1,0 +1,12 @@
+node_modules
+out
+dist
+
+# Markdown is never reformatted: docs/ stays a clean diff and round-trip golden files stay byte-exact.
+**/*.md
+**/*.markdown
+
+# Not ours to format.
+.claude/skills/
+skills-lock.json
+package-lock.json

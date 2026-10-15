@@ -1,0 +1,45 @@
+/*
+ * Design tokens: the one place for every color, font, size and spacing value.
+ * Components only ever use these variables (AGENTS.md rule 8), so the whole look
+ * can be redesigned here in Stage 4. Values from docs/ui/style.png (Leaf palette).
+ * The dark theme comes in Stage 4 as styles/themes/dark.css.
+ */
+:root {
+  /* Leaf palette, light theme */
+  --color-ground: #f3f3f1;
+  --color-surface: #ffffff;
+  --color-line: #e6e6e1;
+  --color-ink: #171717;
+  --color-muted: #5f5f5a;
+  --color-accent: #2f7d32;
+  --color-on-accent: #ffffff;
+
+  /* Fonts: IBM Plex Sans for the app UI, the system font for documents */
+  --font-ui: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-doc: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, Consolas, 'Courier New', monospace;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  /* Sizes */
+  --text-label: 11px;
+  --text-ui: 13px;
+  --text-ui-lg: 14px;
+  --text-display: 40px;
+  --line-height-ui: 1.4;
+  --line-height-doc: 1.6;
+
+  /* Spacing on a 4 px grid */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* Radii: 10 px controls, 16 px cards and dialogs */
+  --radius-control: 10px;
+  --radius-card: 16px;
+}
