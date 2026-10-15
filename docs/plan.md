@@ -48,13 +48,13 @@ Always visible, with or without a project open.
 | Part | No project open | Project open |
 | --- | --- | --- |
 | Menu bar | File, Help | File, Help |
-| Left sidebar | "No project open" with Open project and Clone from GitHub buttons | Header "Explorer – branch name". Three collapsible sections: Project (folder structure), History (commits of the focused file, this branch only), Sync. Opens or closes with one click |
+| Left sidebar | "No project open" with Open project and Clone from GitHub buttons | One view at a time, picked from the left icon bar, like VS Code. **Explorer view:** header "Explorer" + grey branch name; sections Project (folder structure) and History (commits of the focused file, this branch only). **Sync view:** see Sync view below. Clicking the active icon hides the sidebar |
 | Tab bar | Welcome tab (the opening screen) | One tab per open `.md` file |
 | Account (bottom-left, above the gear) | Signed out: "Sign in with GitHub". Signed in: your GitHub picture; click for Sign out | Same |
 | Settings (gear, bottom-left) | Light theme (dark comes in Stage 4) | Same |
 | Window controls (top-right) | Minimize, maximize, close | Same; closing with unsaved changes asks "Save?", like Word |
 | App icon | Simple placeholder (window, taskbar, installer); final logo in Stage 4 | Same |
-| Left icon bar | One Files icon at the top (opens/closes the sidebar); account and gear at the bottom | Same |
+| Left icon bar | Explorer icon at the top; account and gear at the bottom | Explorer and Sync icons at the top, each opening its own sidebar view; Sync shows a badge with the number of changed files. Account and gear at the bottom |
 | Search (top bar, center) | Hidden | Search box across all .md files in the project. Inside a document: Find / Replace (Ctrl+F) in the ribbon |
 
 **Menu bar**
@@ -101,9 +101,9 @@ Shown after opening a project or a single file.
 | Editing like Word | Blinking cursor; select with mouse or Shift+arrows (highlighted in the accent tint); Ctrl+C/X/V, Ctrl+A, Ctrl+Z/Y; double-click selects a word, triple-click a paragraph. Pasting from Word or the web keeps what Markdown supports (bold, lists, links, tables) and drops the rest (fonts, colors) |
 | Outline (TOC) | Slim column at the left edge of the page, built automatically from the headings, like Word's Navigation pane; one button shows or hides it; click a heading to jump. Follows the focused tab. Nothing is written to the file |
 
-#### Sync section
+#### Sync view
 
-The sidebar section for sharing work through Git, in plain words.
+Its own sidebar view (Sync icon in the left icon bar) for sharing work through Git, in plain words.
 
 | Part | What it does |
 | --- | --- |
@@ -165,7 +165,7 @@ Word-like permissions per `.md` file (read only, comment, write), with comments 
 ### Requirements
 
 1. **Branches:** create, switch and merge branches.
-2. **Branches view:** the branches drawn as an actual tree (graph); click a commit to see its changes.
+2. **Branches view:** its own sidebar view (Branches icon in the left icon bar), with the branches drawn as an actual tree (graph); click a commit to see its changes.
 3. **Ownership per file:** a `.md` file can have one owner or several; others get view-only or comment access.
 4. **Comments like Word:** a sidebar where each comment points to the exact text, shows the commenter's name, an @ for the person it's addressed to, and the comment.
 5. **Discussion threads:** people reply under a comment; anyone with edit permission can close (resolve) the thread.
@@ -214,7 +214,7 @@ A full-window, Word-like workspace with modern styling, working side by side wit
 
 ### Design
 
-TODO
+- [ ] If the redesign needs a real designer, design it in Figma and connect the Figma MCP so Claude builds from those designs.
 
 ### Work plan
 
