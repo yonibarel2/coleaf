@@ -151,6 +151,11 @@
   text-decoration: underline dotted var(--color-muted);
 }
 
+/* Selected text is highlighted in the accent tint, like Word's selection color. */
+.document ::selection {
+  background: var(--color-accent-tint);
+}
+
 .document .ProseMirror-selectednode {
   outline: 2px solid var(--color-accent);
 }
