@@ -13,7 +13,9 @@
   ],
   "exceptions": {
     "lightningcss*": "dev-only build tool, not shipped",
-    "caniuse-lite": "dev-only build tool, not shipped"
+    "caniuse-lite": "dev-only build tool, not shipped",
+    "spdx-exceptions": "dev-only data of the license checker, not shipped",
+    "spdx-ranges": "dev-only data of the license checker, not shipped"
   },
   "shipped": ["electron"],
   "owners": ["Yehonatan Barel", "CoLeaf"]
