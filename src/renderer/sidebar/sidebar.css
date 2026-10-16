@@ -99,6 +99,12 @@
   cursor: default;
 }
 
+.tree__row--active,
+.tree__row--active:hover {
+  background: var(--color-accent-tint);
+  color: var(--color-ink);
+}
+
 .tree__chevron {
   display: grid;
   flex: none;

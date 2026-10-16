@@ -54,4 +54,18 @@
   --icon-size-lg: 20px;
   --tree-row-height: 26px;
   --tree-indent: 12px;
+  --tab-height: 36px;
+
+  /* Documents: a sheet about A4 wide, GitHub-like type scale */
+  --doc-width: 800px;
+  --sheet-gap: 24px;
+  --sheet-padding: 48px;
+  --text-doc: 16px;
+  --text-doc-code: 14px;
+  --text-doc-h1: 32px;
+  --text-doc-h2: 24px;
+  --text-doc-h3: 20px;
+  --text-doc-h4: 16px;
+  --text-doc-h5: 14px;
+  --text-doc-h6: 13px;
 }

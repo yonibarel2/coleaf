@@ -3,14 +3,20 @@ import { useState, type CSSProperties, type JSX } from 'react'
 import type { TreeEntry } from '../../preload/contract'
 import { useProjectTree, type ProjectTree } from './useProjectTree'
 
+interface ProjectSectionProps {
+  activePath: string | null
+  onOpenFile: (path: string) => void
+}
+
 /**
  * The Project section: a collapsible header with the "Only .md" tick, and the folder tree.
  * Mounted once per project (keyed on the root by the Explorer), so its state starts fresh.
  */
-export function ProjectSection(): JSX.Element {
+export function ProjectSection({ activePath, onOpenFile }: ProjectSectionProps): JSX.Element {
   const [open, setOpen] = useState(true)
   const [onlyMarkdown, setOnlyMarkdown] = useState(false)
   const tree = useProjectTree()
+  const rows: RowsContext = { tree, onlyMarkdown, activePath, onOpenFile }
 
   return (
     <section className="section">
@@ -33,33 +39,33 @@ export function ProjectSection(): JSX.Element {
       </div>
       {open && (
         <ul className="tree">
-          <TreeRows path="" depth={0} tree={tree} onlyMarkdown={onlyMarkdown} />
+          <TreeRows path="" depth={0} context={rows} />
         </ul>
       )}
     </section>
   )
 }
 
+interface RowsContext {
+  tree: ProjectTree
+  onlyMarkdown: boolean
+  activePath: string | null
+  onOpenFile: (path: string) => void
+}
+
 interface TreeRowsProps {
   path: string
   depth: number
-  tree: ProjectTree
-  onlyMarkdown: boolean
+  context: RowsContext
 }
 
-function TreeRows({ path, depth, tree, onlyMarkdown }: TreeRowsProps): JSX.Element {
-  const entries = tree.entries[path] ?? []
-  const shown = onlyMarkdown ? entries.filter(showsMarkdown) : entries
+function TreeRows({ path, depth, context }: TreeRowsProps): JSX.Element {
+  const entries = context.tree.entries[path] ?? []
+  const shown = context.onlyMarkdown ? entries.filter(showsMarkdown) : entries
   return (
     <>
       {shown.map((entry) => (
-        <TreeRow
-          key={entry.path}
-          entry={entry}
-          depth={depth}
-          tree={tree}
-          onlyMarkdown={onlyMarkdown}
-        />
+        <TreeRow key={entry.path} entry={entry} depth={depth} context={context} />
       ))}
     </>
   )
@@ -68,11 +74,11 @@ function TreeRows({ path, depth, tree, onlyMarkdown }: TreeRowsProps): JSX.Eleme
 interface TreeRowProps {
   entry: TreeEntry
   depth: number
-  tree: ProjectTree
-  onlyMarkdown: boolean
+  context: RowsContext
 }
 
-function TreeRow({ entry, depth, tree, onlyMarkdown }: TreeRowProps): JSX.Element {
+function TreeRow({ entry, depth, context }: TreeRowProps): JSX.Element {
+  const { tree, activePath, onOpenFile } = context
   const isDir = entry.kind === 'dir'
   const expanded = isDir && tree.expanded.has(entry.path)
   // Greyed: a file that isn't Markdown, or a folder known to hold none (still expandable).
@@ -80,20 +86,24 @@ function TreeRow({ entry, depth, tree, onlyMarkdown }: TreeRowProps): JSX.Elemen
   const classes = ['tree__row']
   if (muted) classes.push('tree__row--muted')
   if (!isDir && muted) classes.push('tree__row--static')
+  if (entry.path === activePath) classes.push('tree__row--active')
+  const onClick = isDir
+    ? () => tree.toggle(entry.path)
+    : entry.isMarkdown
+      ? () => onOpenFile(entry.path)
+      : undefined
   return (
     <>
       <li
         className={classes.join(' ')}
         style={{ '--depth': depth } as CSSProperties}
         title={entry.path}
-        onClick={isDir ? () => tree.toggle(entry.path) : undefined}
+        onClick={onClick}
       >
         <span className="tree__chevron">{isDir && <Chevron open={expanded} />}</span>
         <span className="tree__name">{entry.name}</span>
       </li>
-      {expanded && (
-        <TreeRows path={entry.path} depth={depth + 1} tree={tree} onlyMarkdown={onlyMarkdown} />
-      )}
+      {expanded && <TreeRows path={entry.path} depth={depth + 1} context={context} />}
     </>
   )
 }
