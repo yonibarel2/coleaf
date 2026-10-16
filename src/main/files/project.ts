@@ -32,25 +32,38 @@ export function compareEntries(a: TreeEntry, b: TreeEntry): number {
 }
 
 /**
- * Turns a tree path into an absolute path, or throws when it would leave the project folder.
- * The real paths are compared too, so a link inside the project cannot point outside it.
+ * Turns a tree path into an absolute path, or throws when it would leave the project folder or
+ * enter `.git`. The real paths are checked too, so a link inside the project cannot point
+ * outside it or into Git's own folder.
  */
 export async function resolveInside(root: string, path: string): Promise<string> {
-  const outside = new Error(`Path is outside the project: ${path}`)
-  if (isAbsolute(path) || path.split(/[\\/]/).includes('..')) throw outside
+  const segments = path.split(/[\\/]/)
+  if (isAbsolute(path) || segments.includes('..')) throw outside(path)
+  if (segments.some(isGitDir)) throw gitInternals(path)
   const target = resolve(root, path)
   const [realRoot, realTarget] = await Promise.all([realpath(root), realpath(target)])
-  if (!isInside(realRoot, realTarget)) throw outside
+  const between = ignoresCase
+    ? relative(realRoot.toLowerCase(), realTarget.toLowerCase())
+    : relative(realRoot, realTarget)
+  if (isAbsolute(between) || between === '..' || between.startsWith(`..${sep}`)) {
+    throw outside(path)
+  }
+  if (between.split(sep).some(isGitDir)) throw gitInternals(path)
   return target
 }
 
-function isInside(root: string, target: string): boolean {
-  const between = ignoresCase
-    ? relative(root.toLowerCase(), target.toLowerCase())
-    : relative(root, target)
-  return (
-    between === '' || (!isAbsolute(between) && between !== '..' && !between.startsWith(`..${sep}`))
-  )
+// Git's own folder is never read, whatever the letter case: it is hidden in the tree and rejected
+// as a path.
+function isGitDir(segment: string): boolean {
+  return segment.toLowerCase() === '.git'
+}
+
+function outside(path: string): Error {
+  return new Error(`Path is outside the project: ${path}`)
+}
+
+function gitInternals(path: string): Error {
+  return new Error(`Path is inside .git: ${path}`)
 }
 
 /** Lists one folder of the project: hidden entries removed, folders first. */

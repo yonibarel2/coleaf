@@ -34,6 +34,7 @@ beforeAll(async () => {
   await mkdir(join(base, 'proj-other'))
   await symlink(join(base, 'proj-other'), join(root, 'escape'), linkType)
   await symlink(join(root, 'docs'), join(root, 'docs-link'), linkType)
+  await symlink(join(root, '.git'), join(root, 'git-link'), linkType)
 })
 
 afterAll(() => rm(base, { recursive: true, force: true }))
@@ -45,6 +46,7 @@ describe('listDirectory', () => {
       'dir:docs',
       'dir:docs-link',
       'dir:escape',
+      'dir:git-link',
       'dir:images',
       'dir:src',
       'file:package.json',
@@ -78,6 +80,14 @@ describe('listDirectory', () => {
   it('follows a link that stays inside the project', async () => {
     const names = (await listDirectory(root, 'docs-link')).map((e) => e.name)
     expect(names).toEqual(['notes.markdown', 'plan.md'])
+  })
+
+  it('never reads .git: not directly, not through a link, in any letter case', async () => {
+    await expect(listDirectory(root, '.git')).rejects.toThrow(/\.git/)
+    await expect(listDirectory(root, '.GIT')).rejects.toThrow(/\.git/)
+    await expect(resolveInside(root, '.git/HEAD')).rejects.toThrow(/\.git/)
+    await expect(resolveInside(root, 'docs/../.git')).rejects.toThrow()
+    await expect(listDirectory(root, 'git-link')).rejects.toThrow(/\.git/)
   })
 })
 
