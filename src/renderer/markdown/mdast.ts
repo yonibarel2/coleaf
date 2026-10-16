@@ -27,12 +27,23 @@ declare module 'mdast' {
   interface CoLeafFrontMatter extends Literal {
     type: 'coleafFrontMatter'
   }
+  /** Inline HTML tags paired around their content (`<sub>2</sub>`), see inlineHtml.ts. */
+  interface CoLeafHtmlWrap extends Parent {
+    type: 'coleafHtmlWrap'
+    open: string
+    close: string
+    /** How many wraps with the same tags enclose this one. */
+    depth: number
+    children: PhrasingContent[]
+  }
   interface RootContentMap {
     coleafRaw: CoLeafRaw
     coleafFrontMatter: CoLeafFrontMatter
+    coleafHtmlWrap: CoLeafHtmlWrap
   }
   interface PhrasingContentMap {
     coleafRaw: CoLeafRaw
+    coleafHtmlWrap: CoLeafHtmlWrap
   }
   interface LinkData {
     /** How the file wrote the link; null when it was made in the editor. */

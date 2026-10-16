@@ -86,6 +86,7 @@ const nodeHandlers: Options['nodeHandlers'] = {
     title: node.attrs['title'] ?? null
   }),
   htmlBlock: (node) => ({ type: 'html', value: node.attrs['html'] }),
+  htmlInline: (node) => ({ type: 'html', value: node.attrs['html'] }),
   // Untouched since it was opened: written back exactly as the file had it (see toDoc.ts).
   table: (node, _parent, state) => {
     const source = node.attrs['source']
@@ -122,7 +123,14 @@ const markHandlers: Options['markHandlers'] = {
     // A bare URL (GFM autolink literal) is written as its text; GitHub links it again.
     if (node.type === 'link' && node.data?.['literal']) return children as Nodes[]
     return { ...node, children } as PhrasingContent
-  }
+  },
+  // The two tags go back around the text, as the file had them.
+  htmlMark: (mark, _parent, children) =>
+    [
+      { type: 'html', value: mark.attrs['open'] },
+      ...children,
+      { type: 'html', value: mark.attrs['close'] }
+    ] as Nodes[]
 }
 
 /**

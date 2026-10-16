@@ -2,6 +2,9 @@ import { Mark, Node } from '@tiptap/core'
 import { ReactNodeViewRenderer } from '@tiptap/react'
 import { emojiOf } from '../markdown/emoji'
 import { FrontMatterView } from './FrontMatterView'
+import { inlineElement } from './html'
+import { HtmlBlockView } from './HtmlBlockView'
+import { HtmlInlineView } from './HtmlInlineView'
 import { MathInlineView } from './MathInlineView'
 
 // Markdown the editor cannot edit yet is carried through as-is and written back unchanged: as
@@ -32,18 +35,86 @@ const markdownAttribute = {
   renderHTML: (): Record<string, never> => ({})
 }
 
-/** A block of raw HTML from the file. */
-export const HtmlBlock = Node.create({
+export interface HtmlBlockOptions {
+  /** Tree path of the document, which pictures in the HTML resolve against. */
+  documentPath: string
+  /** Ctrl+click on a link in the HTML: the app follows it. */
+  onActivateLink: (href: string) => void
+}
+
+/** A block of HTML from the file: shown sanitized (HtmlBlockView.tsx), saved as it was. */
+export const HtmlBlock = Node.create<HtmlBlockOptions>({
   name: 'htmlBlock',
   group: 'block',
   atom: true,
+  addOptions: () => ({ documentPath: '', onActivateLink: () => {} }),
   addAttributes: () => ({ html: markdownAttribute }),
   parseHTML: () => [{ tag: 'pre[data-html-block]' }],
   renderHTML: ({ node }) => [
     'pre',
     { 'data-html-block': '', class: 'raw raw--block raw--html' },
     String(node.attrs['html'])
-  ]
+  ],
+  addNodeView() {
+    return ReactNodeViewRenderer(HtmlBlockView)
+  }
+})
+
+export interface HtmlInlineOptions {
+  /** Tree path of the document, which a picture's path resolves against. */
+  documentPath: string
+}
+
+/** One inline HTML tag or comment with no text inside it (HtmlInlineView.tsx), saved as it was. */
+export const HtmlInline = Node.create<HtmlInlineOptions>({
+  name: 'htmlInline',
+  group: 'inline',
+  inline: true,
+  atom: true,
+  addOptions: () => ({ documentPath: '' }),
+  addAttributes: () => ({ html: markdownAttribute }),
+  parseHTML: () => [{ tag: 'code[data-html-inline]' }],
+  renderHTML: ({ node }) => [
+    'code',
+    { 'data-html-inline': '', class: 'raw raw--inline' },
+    String(node.attrs['html'])
+  ],
+  addNodeView() {
+    return ReactNodeViewRenderer(HtmlInlineView)
+  }
+})
+
+/**
+ * Text between an inline opening tag and its closing tag (`H<sub>2</sub>O`): shown as that
+ * element when it is one that belongs inside a line, as a marked span otherwise; the text
+ * stays editable and the two tags are written back around it.
+ */
+export const HtmlMark = Mark.create({
+  name: 'htmlMark',
+  excludes: '',
+  addAttributes: () => ({
+    open: {
+      default: '',
+      parseHTML: (element: HTMLElement): string => element.getAttribute('data-html-open') ?? '',
+      renderHTML: (): Record<string, never> => ({})
+    },
+    close: {
+      default: '',
+      parseHTML: (element: HTMLElement): string => element.getAttribute('data-html-close') ?? '',
+      renderHTML: (): Record<string, never> => ({})
+    },
+    // Wraps with the same tags inside one another (inlineHtml.ts) stay distinct marks.
+    depth: { default: 0, rendered: false }
+  }),
+  parseHTML: () => [{ tag: '[data-html-open]' }],
+  renderHTML: ({ mark }) => {
+    const open = String(mark.attrs['open'])
+    const data = { 'data-html-open': open, 'data-html-close': String(mark.attrs['close']) }
+    const element = inlineElement(open)
+    return element
+      ? [element.tag, { ...element.attrs, ...data }, 0]
+      : ['span', { ...data, class: 'raw raw--mark', title: open }, 0]
+  }
 })
 
 /** YAML front matter (`---` lines at the top): shown as a table (FrontMatterView.tsx), saved as it was. */
@@ -81,7 +152,7 @@ export const RawBlock = Node.create({
   ]
 })
 
-/** An inline leaf the editor does not edit yet: inline HTML, image or footnote reference… */
+/** An inline leaf the editor does not edit yet: a reference image or a footnote reference. */
 export const RawInline = Node.create({
   name: 'rawInline',
   group: 'inline',

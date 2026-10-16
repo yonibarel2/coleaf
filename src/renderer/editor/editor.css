@@ -347,12 +347,48 @@
   color: var(--color-caution);
 }
 
-/* Inline math (MathInlineView.tsx): a formula; selected, a field with its TeX. */
-.document .math-inline[data-selected] {
-  outline: 2px solid var(--color-accent);
-  border-radius: var(--space-1);
+/* HTML from the file (HtmlBlockView.tsx, HtmlInlineView.tsx): shown sanitized, like GitHub. */
+.document .html-block {
+  position: relative;
 }
 
+.document .html-block__content > :first-child {
+  margin-top: 0;
+}
+
+.document .html-block__content > :last-child {
+  margin-bottom: 0;
+}
+
+.document .html-block__content summary {
+  cursor: pointer;
+}
+
+.document .html-block__code,
+.document .html-inline--chip {
+  font-family: var(--font-mono);
+  font-size: var(--text-doc-code);
+  color: var(--color-muted);
+}
+
+.document .html-block__code {
+  padding: var(--space-2) var(--space-4);
+  border: 1px dashed var(--color-line);
+  background: transparent;
+  white-space: pre-wrap;
+}
+
+.document .html-inline--chip {
+  padding: 0 var(--space-1);
+  border-radius: var(--space-1);
+  background: var(--color-ground);
+}
+
+.document .html-inline--comment {
+  font-style: italic;
+}
+
+.document .html-inline__code,
 .document .math-inline__code {
   width: calc(var(--sidebar-width) - var(--space-8));
   padding: 0 var(--space-1);
@@ -361,9 +397,25 @@
   font-family: var(--font-mono);
   font-size: var(--text-doc-code);
   color: var(--color-ink);
-  outline: none;
+  outline: 2px solid var(--color-accent);
+  outline-offset: -1px;
 }
 
+.document kbd {
+  padding: 0 var(--space-1);
+  border: 1px solid var(--color-line);
+  border-radius: var(--space-1);
+  background: var(--color-ground);
+  font-family: var(--font-mono);
+  font-size: var(--text-doc-code);
+}
+
+/* GitHub's light/dark picture pairs: only the light one shows until the dark theme (Stage 4). */
+.document img[data-theme-only='dark'] {
+  display: none;
+}
+
+/* Inline math (MathInlineView.tsx): a formula; selected, a field with its TeX. */
 .document .math-pending {
   font-family: var(--font-mono);
   font-size: var(--text-doc-code);

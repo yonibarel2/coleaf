@@ -5,13 +5,14 @@ import {
   type RemarkProseMirrorOptions
 } from '@handlewithcare/remark-prosemirror'
 import type { Parent, PhrasingContent, Root, RootContent } from 'mdast'
-import type { Node as PmNode, Schema } from 'prosemirror-model'
+import type { Mark, Node as PmNode, Schema } from 'prosemirror-model'
 import type { Position } from 'unist'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import remarkParse from 'remark-parse'
 import { unified } from 'unified'
 import { splitEmoji } from './emoji'
+import { pairInlineHtml } from './inlineHtml'
 import {
   gfmOptions,
   markdownOfBlock,
@@ -31,6 +32,7 @@ export function markdownToDoc(text: string, schema: Schema): PmNode {
     .use(remarkGfm, gfmOptions)
     .use(remarkMath)
     .use(() => (tree: Root) => keepRawBlocks(tree, body, frontMatter))
+    .use(() => pairInlineHtml)
     .use(remarkProseMirror, { schema, handlers: createHandlers(schema, body) })
     .processSync(body)
   return file.result as PmNode
@@ -115,8 +117,18 @@ const phrasingParents = new Set([
   'delete',
   'link',
   'linkReference',
-  'tableCell'
+  'tableCell',
+  'coleafHtmlWrap'
 ])
+
+// A mark added around marks of its own kind (an HTML wrap around another) goes first among
+// them: the writer nests by the first mark of a text node, and ProseMirror would put it last.
+function outermost(mark: Mark, set: readonly Mark[]): Mark[] {
+  const added = mark.addToSet(set)
+  const first = added.findIndex((other) => other.type === mark.type)
+  const others = added.filter((other) => other !== mark)
+  return [...others.slice(0, first), mark, ...others.slice(first)]
+}
 
 function createHandlers(schema: Schema, text: string): Handlers {
   const nodes = schema.nodes
@@ -126,7 +138,7 @@ function createHandlers(schema: Schema, text: string): Handlers {
   const rawBlock = (node: RootContent): PmNode =>
     nodes.rawBlock.create({ markdown: markdownOfBlock(node), node: withoutPositions(node) })
   const rawInline = (node: PhrasingContent): PmNode => {
-    const source = node.type === 'html' ? node.value : sourceOf(node, text)
+    const source = sourceOf(node, text)
     return source != null && !source.includes('\n')
       ? nodes.rawInline.create({ markdown: source, source })
       : nodes.rawInline.create({ markdown: markdownOfInline(node), node: withoutPositions(node) })
@@ -199,8 +211,12 @@ function createHandlers(schema: Schema, text: string): Handlers {
     },
     html: (node, parent) =>
       phrasingParents.has(parent.type)
-        ? rawInline(node)
+        ? nodes.htmlInline.create({ html: node.value })
         : nodes.htmlBlock.create({ html: node.value }),
+    coleafHtmlWrap: (node, _, state) => {
+      const mark = marks.htmlMark.create({ open: node.open, close: node.close, depth: node.depth })
+      return state.all(node).map((child) => child.mark(outermost(mark, child.marks)))
+    },
     coleafRaw: (node) => nodes.rawBlock.create({ markdown: node.value, source: node.value }),
     coleafFrontMatter: (node) => nodes.frontMatter.create({ source: node.value }),
     text: (node) => textNodes(node.value),

@@ -24,12 +24,15 @@ import {
   Emoji,
   FrontMatter,
   HtmlBlock,
+  HtmlInline,
+  HtmlMark,
   MathInline,
   RawBlock,
   RawInline,
   RawMark,
   SoftBreak
 } from './nodes'
+import { inlineElement } from './html'
 import { imageUrl } from './paths'
 import { CoLeafPictures } from './pictures'
 import { CoLeafSearch } from './search'
@@ -195,8 +198,13 @@ const CoLeafLink = Link.extend<CoLeafLinkOptions>({
             if (!(event.ctrlKey || event.metaKey)) return false
             const node = view.state.doc.nodeAt(pos)
             const href = node?.marks.find((mark) => mark.type.name === 'link')?.attrs['href']
-            if (typeof href !== 'string') return false
-            this.options.onActivate(href)
+            // An inline HTML `<a href>` is a link too.
+            const html = node?.marks.find((mark) => mark.type.name === 'htmlMark')
+            const anchor = html ? inlineElement(String(html.attrs['open'])) : null
+            const target =
+              typeof href === 'string' ? href : anchor?.tag === 'a' ? anchor.attrs['href'] : null
+            if (typeof target !== 'string') return false
+            this.options.onActivate(target)
             return true
           }
         }
@@ -226,7 +234,10 @@ const CoLeafImage = Image.extend<CoLeafImageOptions>({
           element.getAttribute('data-src') ?? element.getAttribute('src'),
         renderHTML: (attributes: Record<string, unknown>) => {
           const src = typeof attributes['src'] === 'string' ? attributes['src'] : null
-          return { 'data-src': src, src: imageUrl(documentPath, src) }
+          // GitHub's `#gh-dark-mode-only` / `#gh-light-mode-only`: the dark one is hidden
+          // while the app has only its light theme (editor.css).
+          const theme = /#gh-(dark|light)-mode-only$/.exec(src ?? '')?.[1] ?? null
+          return { 'data-src': src, src: imageUrl(documentPath, src), 'data-theme-only': theme }
         }
       }
     }
@@ -308,6 +319,7 @@ export function createExtensions(options: EditorOptions): Extensions {
     // Marks, outermost first: a link around bold or code is written `[**text**](url)` and
     // `` [`code`](url) ``; the other way round, the link would be lost inside the code span.
     RawMark,
+    HtmlMark,
     CoLeafLink.configure({ onActivate: options.onActivateLink }),
     Bold,
     Italic,
@@ -329,7 +341,11 @@ export function createExtensions(options: EditorOptions): Extensions {
     CoLeafUndoRedo,
     Dropcursor,
     Gapcursor,
-    HtmlBlock,
+    HtmlBlock.configure({
+      documentPath: options.documentPath,
+      onActivateLink: options.onActivateLink
+    }),
+    HtmlInline.configure({ documentPath: options.documentPath }),
     FrontMatter,
     RawBlock,
     RawInline,
