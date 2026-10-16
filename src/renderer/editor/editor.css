@@ -112,6 +112,28 @@
   background: transparent;
 }
 
+/* A code block's language picker sits in its corner (CodeBlockView.tsx). */
+.document .code-block {
+  position: relative;
+}
+
+.document .code-block__language {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  padding: 0 var(--space-1);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-small);
+  background: var(--color-surface);
+  font-family: var(--font-ui);
+  font-size: var(--text-label);
+  color: var(--color-muted);
+}
+
+.document .code-block__language:focus {
+  outline: 2px solid var(--color-accent);
+}
+
 .document hr {
   height: 1px;
   margin: var(--space-6) 0;

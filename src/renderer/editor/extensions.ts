@@ -16,6 +16,8 @@ import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table
 import Text from '@tiptap/extension-text'
 import { Dropcursor, Gapcursor, UndoRedo } from '@tiptap/extensions'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
+import { ReactNodeViewRenderer } from '@tiptap/react'
+import { CodeBlockView } from './CodeBlockView'
 import { HtmlBlock, RawBlock, RawInline, RawMark, SoftBreak } from './nodes'
 import { imageUrl } from './paths'
 import { CoLeafSearch } from './search'
@@ -82,6 +84,9 @@ const CoLeafCodeBlock = CodeBlock.extend({
     const keys = this.parent?.() ?? {}
     delete keys['Mod-Alt-c']
     return keys
+  },
+  addNodeView() {
+    return ReactNodeViewRenderer(CodeBlockView)
   }
 })
 
