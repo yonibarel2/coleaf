@@ -104,6 +104,30 @@ describe('Markdown ⇄ editor document', () => {
     expect(roundTrip(nested)).toBe('- item\n\n  | a | b |\n  | - | - |\n  | 1 | 2 |\n')
   })
 
+  it('tells front matter from a file that merely starts with a rule', () => {
+    expect(roundTrip('---\n\n> a\n\n- item\n')).toBe('---\n\n> a\n\n- item\n')
+    expect(markdownToDoc('---\n\n> a\n', schema).child(1).type.name).toBe('blockquote')
+    const withFrontMatter = markdownToDoc('---\ntitle: x\n---\n\n# Title\n', schema)
+    expect(withFrontMatter.firstChild?.type.name).toBe('rawBlock')
+    expect(withFrontMatter.firstChild?.attrs['source']).toBe('---\ntitle: x\n---')
+    expect(roundTrip('+++\ntitle = "x"\n+++\n\ntext\n')).toBe('+++\ntitle = "x"\n+++\n\ntext\n')
+  })
+
+  it('writes an item loose when a nested list starting past 1 follows its paragraph', () => {
+    const { nodes } = schema
+    const nested = nodes.orderedList.create({ start: 2 }, [
+      nodes.listItem.create(null, nodes.paragraph.create(null, schema.text('b')))
+    ])
+    const doc = nodes.doc.create(null, [
+      nodes.bulletList.create(null, [
+        nodes.listItem.create(null, [nodes.paragraph.create(null, schema.text('a')), nested])
+      ])
+    ])
+    const markdown = docToMarkdown(doc)
+    expect(markdown).toBe('- a\n\n  2. b\n')
+    expect(markdownToDoc(markdown, schema).firstChild?.firstChild?.childCount).toBe(2)
+  })
+
   it('escapes what a user could type as Markdown', () => {
     const doc = markdownToDoc('plain\n', schema)
     const typed = schema.nodes.paragraph.create(null, schema.text('# not a heading *nor* em'))

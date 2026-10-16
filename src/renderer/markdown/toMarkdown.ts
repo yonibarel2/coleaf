@@ -4,11 +4,23 @@ import {
   fromProseMirror,
   type FromProseMirrorOptions
 } from '@handlewithcare/remark-prosemirror'
-import type { PhrasingContent, RootContent } from 'mdast'
+import type { ListItem, Nodes, PhrasingContent, RootContent } from 'mdast'
 import type { Node as PmNode } from 'prosemirror-model'
-import { mergeText, stringifyMdast } from './mdast'
+import { mergeText, parseMarkdown, sameShape, stringifyMdast } from './mdast'
 
 type Options = FromProseMirrorOptions<string, string>
+
+// Only a list starting at 1 may follow a paragraph without a blank line (CommonMark); a nested
+// list starting elsewhere needs the item written loose, or it would read as paragraph text.
+function needsBlankLine(children: ListItem['children']): boolean {
+  return children.some(
+    (child, index) =>
+      child.type === 'paragraph' &&
+      children[index + 1]?.type === 'list' &&
+      (children[index + 1] as { start?: number | null }).start != null &&
+      (children[index + 1] as { start?: number | null }).start !== 1
+  )
+}
 
 // A raw node goes back as its exact source when it has one, else as the mdast node it kept.
 function rawContent(node: PmNode): RootContent {
@@ -34,7 +46,15 @@ const nodeHandlers: Options['nodeHandlers'] = {
     start: node.attrs['start'],
     spread: node.attrs['spread']
   })),
-  listItem: fromPmNode('listItem', (node) => ({ spread: node.attrs['spread'], checked: null })),
+  listItem: (node, _parent, state) => {
+    const children = state.all(node) as ListItem['children']
+    return {
+      type: 'listItem',
+      spread: node.attrs['spread'] || needsBlankLine(children),
+      checked: null,
+      children
+    }
+  },
   hardBreak: () => ({ type: 'break' }),
   softBreak: () => ({ type: 'text', value: '\n' }),
   image: (node) => ({
@@ -59,12 +79,26 @@ const markHandlers: Options['markHandlers'] = {
     url: mark.attrs['href'],
     title: mark.attrs['title'] ?? null
   })),
-  rawMark: (mark, _parent, children) =>
-    ({ ...(structuredClone(mark.attrs['node']) as PhrasingContent), children }) as PhrasingContent
+  rawMark: (mark, _parent, children) => {
+    const node = structuredClone(mark.attrs['node']) as PhrasingContent
+    // A bare URL (GFM autolink literal) is written as its text; GitHub links it again.
+    if (node.type === 'link' && node.data?.['literal']) return children as Nodes[]
+    return { ...node, children } as PhrasingContent
+  }
 }
 
-/** Turns an editor document into Markdown text in CoLeaf's style. */
+/**
+ * Turns an editor document into Markdown text in CoLeaf's style. Text is escaped as little as
+ * possible, so syntax other tools rely on survives; when that would change what the file means
+ * (a typed `*word*` would become italic), the whole file is written with full escaping instead.
+ */
 export function docToMarkdown(doc: PmNode): string {
-  const root = fromProseMirror(doc, { schema: doc.type.schema, nodeHandlers, markHandlers })
-  return stringifyMdast(mergeText(root))
+  const root = mergeText(
+    fromProseMirror(doc, { schema: doc.type.schema, nodeHandlers, markHandlers })
+  )
+  const minimal = stringifyMdast(root, 'minimal')
+  const full = stringifyMdast(root, 'full')
+  if (minimal === full) return minimal
+  const same = sameShape(mergeText(parseMarkdown(minimal)), mergeText(parseMarkdown(full)))
+  return same ? minimal : full
 }

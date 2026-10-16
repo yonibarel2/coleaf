@@ -6,23 +6,30 @@ import {
 } from '@handlewithcare/remark-prosemirror'
 import type { Parent, PhrasingContent, Root, RootContent } from 'mdast'
 import type { Node as PmNode, Schema } from 'prosemirror-model'
-import remarkFrontmatter from 'remark-frontmatter'
+import type { Position } from 'unist'
 import remarkGfm from 'remark-gfm'
 import remarkParse from 'remark-parse'
 import { unified } from 'unified'
-import { markdownOfBlock, markdownOfInline, sourceOf, withoutPositions } from './mdast'
+import {
+  gfmOptions,
+  markdownOfBlock,
+  markdownOfInline,
+  sourceOf,
+  splitFrontMatter,
+  withoutPositions
+} from './mdast'
 
 type Handlers = RemarkProseMirrorOptions['handlers']
 
 /** Turns Markdown text into an editor document. Nothing the parser produces is dropped. */
 export function markdownToDoc(text: string, schema: Schema): PmNode {
+  const { frontMatter, body } = splitFrontMatter(text)
   const file = unified()
     .use(remarkParse)
-    .use(remarkGfm)
-    .use(remarkFrontmatter, ['yaml', 'toml'])
-    .use(() => (tree: Root) => keepRawBlocks(tree, text))
-    .use(remarkProseMirror, { schema, handlers: createHandlers(schema, text) })
-    .processSync(text)
+    .use(remarkGfm, gfmOptions)
+    .use(() => (tree: Root) => keepRawBlocks(tree, body, frontMatter))
+    .use(remarkProseMirror, { schema, handlers: createHandlers(schema, body) })
+    .processSync(body)
   return file.result as PmNode
 }
 
@@ -32,8 +39,6 @@ function isRawBlock(node: RootContent): boolean {
     case 'definition':
     case 'footnoteDefinition':
     case 'table':
-    case 'yaml':
-    case 'toml':
       return true
     case 'list':
       return node.children.some((item) => item.checked != null) // task list
@@ -44,11 +49,13 @@ function isRawBlock(node: RootContent): boolean {
 
 /**
  * Top-level raw blocks keep their exact source text, and neighbours with no blank line between
- * them (typically link definitions) become one block, so nothing is restyled on save. Nested raw
- * blocks are re-written from their mdast instead: their source carries the container's prefixes.
+ * them (link definitions, HTML comments) become one block, so nothing is restyled on save.
+ * Nested raw blocks are re-written from their mdast instead: their source carries the
+ * container's prefixes. Front matter, split off before parsing, comes first.
  */
-function keepRawBlocks(tree: Root, text: string): void {
+function keepRawBlocks(tree: Root, text: string, frontMatter: string | null): void {
   const children: RootContent[] = []
+  if (frontMatter !== null) children.push({ type: 'coleafRaw', value: frontMatter })
   let run: RootContent[] = []
   const flush = (): void => {
     if (run.length === 0) return
@@ -56,19 +63,14 @@ function keepRawBlocks(tree: Root, text: string): void {
     const last = run[run.length - 1]
     const start = first.position?.start.offset
     const end = last.position?.end.offset
-    if (start != null && end != null) {
-      children.push({
-        type: 'coleafRaw',
-        value: text.slice(start, end),
-        position: { start: first.position!.start, end: last.position!.end }
-      })
-    } else {
-      children.push(...run)
-    }
+    // A lone HTML block stays an HTML block; it is raw by itself.
+    const keepAsIs = start == null || end == null || (run.length === 1 && first.type === 'html')
+    if (keepAsIs) children.push(...run)
+    else children.push({ type: 'coleafRaw', value: text.slice(start, end) })
     run = []
   }
   for (const node of tree.children) {
-    if (!isRawBlock(node)) {
+    if (!isRawBlock(node) && node.type !== 'html') {
       flush()
       children.push(node)
       continue
@@ -82,6 +84,20 @@ function keepRawBlocks(tree: Root, text: string): void {
   }
   flush()
   tree.children = children
+}
+
+// Loose (blank lines between the parts) is read off the source lines: remark's own `spread`
+// flag also turns on for a trailing blank line inside a blockquote, which is no blank line
+// between anything and would make the next save write the list loose.
+function isLoose(
+  children: { position?: Position }[],
+  fallback: boolean | null | undefined
+): boolean {
+  if (children.some((child) => !child.position)) return fallback ?? false
+  return children.some(
+    (child, index) =>
+      index > 0 && child.position!.start.line > children[index - 1].position!.end.line + 1
+  )
 }
 
 // Inline (phrasing) content lives under these mdast parents.
@@ -119,8 +135,7 @@ function createHandlers(schema: Schema, text: string): Handlers {
     const result: PmNode[] = []
     value.split('\n').forEach((line, index) => {
       if (index > 0) result.push(nodes.softBreak.create())
-      const trimmed = index > 0 ? line.replace(/^[ \t]+/, '') : line
-      if (trimmed) result.push(schema.text(trimmed))
+      if (line) result.push(schema.text(line))
     })
     return result
   }
@@ -138,12 +153,15 @@ function createHandlers(schema: Schema, text: string): Handlers {
     list: (node, _, state) => {
       if (isRawBlock(node)) return rawBlock(node) // a nested task list
       const type = node.ordered ? nodes.orderedList : nodes.bulletList
-      const spread = node.spread ?? false
+      const spread = isLoose(node.children, node.spread)
       const attrs = node.ordered ? { start: node.start ?? 1, spread } : { spread }
       return type.createAndFill(attrs, state.all(node))
     },
     listItem: (node, _, state) =>
-      nodes.listItem.createAndFill({ spread: node.spread ?? false }, state.all(node)),
+      nodes.listItem.createAndFill(
+        { spread: isLoose(node.children, node.spread) },
+        state.all(node)
+      ),
     html: (node, parent) =>
       phrasingParents.has(parent.type)
         ? rawInline(node)
@@ -153,15 +171,22 @@ function createHandlers(schema: Schema, text: string): Handlers {
     emphasis: toPmMark(marks.italic),
     strong: toPmMark(marks.bold),
     inlineCode: (node) => schema.text(node.value, [marks.code.create()]),
-    link: toPmMark(marks.link, (node) => ({ href: node.url, title: node.title ?? null })),
+    link: (node, _, state) => {
+      // A bare URL, www. address or email (GFM autolink literal) is kept literally, as a
+      // raw mark; anything written as [text](url) or <url> becomes a real link.
+      const source = sourceOf(node, text)
+      if (source != null && !source.startsWith('[') && !source.startsWith('<')) {
+        return rawMark({ ...node, data: { ...node.data, literal: true } }, state.all(node))
+      }
+      const mark = marks.link.create({ href: node.url, title: node.title ?? null })
+      return state.all(node).map((child) => child.mark(mark.addToSet(child.marks)))
+    },
     image: (node) =>
       nodes.image.create({ src: node.url, alt: node.alt ?? null, title: node.title ?? null }),
     break: () => nodes.hardBreak.create(),
     definition: rawBlock,
     footnoteDefinition: rawBlock,
     table: rawBlock,
-    yaml: rawBlock,
-    toml: rawBlock,
     footnoteReference: rawInline,
     imageReference: rawInline,
     linkReference: (node, _, state) => rawMark(node, state.all(node)),
