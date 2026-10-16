@@ -122,7 +122,7 @@ Build this first and see it work; then review and detail 1b. Stage 1 rows of [ma
 - [x] Open a repo folder and show a file tree of `.md` files
 - [x] Add the editor with Markdown read and write (remark + bridge) and basic keyboard shortcuts
 - [x] Save: never rewrite untouched files; save edited files in one consistent style; test the round-trip (open and save with no edits = no git diff)
-- [ ] Test on real repo files
+- [x] Test on real repo files
 
 **Stage 1b – Complete Stage 1**
 
