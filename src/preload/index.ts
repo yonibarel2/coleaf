@@ -1,5 +1,12 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { channels, type ProjectInfo, type SaveChoice, type TreeEntry } from './contract'
+import {
+  channels,
+  type DocumentFormat,
+  type DocumentText,
+  type ProjectInfo,
+  type SaveChoice,
+  type TreeEntry
+} from './contract'
 
 // Subscribes to a one-way message from the background and returns the unsubscribe function.
 // The window only ever sees the payload, never ipcRenderer itself.
@@ -23,10 +30,11 @@ const api = {
       subscribe(channels.projectDirChanged, callback)
   },
   file: {
-    /** The text of a Markdown file of the open project. */
-    read: (path: string): Promise<string> => ipcRenderer.invoke(channels.fileRead, path),
-    write: (path: string, text: string): Promise<void> =>
-      ipcRenderer.invoke(channels.fileWrite, path, text)
+    /** A Markdown file of the open project: its text and how it is stored. */
+    read: (path: string): Promise<DocumentText> => ipcRenderer.invoke(channels.fileRead, path),
+    /** Writes the text back in the file's original format. */
+    write: (path: string, text: string, format: DocumentFormat): Promise<void> =>
+      ipcRenderer.invoke(channels.fileWrite, path, text, format)
   },
   dialog: {
     askSave: (name: string): Promise<SaveChoice> => ipcRenderer.invoke(channels.dialogAskSave, name)

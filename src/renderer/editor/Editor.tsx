@@ -15,6 +15,11 @@ interface EditorProps {
 export function Editor({ tab, linkDraft, onLinkDone }: EditorProps): JSX.Element {
   return (
     <div className="editor">
+      {tab.readOnly && (
+        <p className="notice">
+          This file is not UTF-8 text. It is shown read-only and will never be rewritten.
+        </p>
+      )}
       {linkDraft && (
         <LinkPanel
           draft={linkDraft}

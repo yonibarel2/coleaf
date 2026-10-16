@@ -1,9 +1,19 @@
 import { BrowserWindow, dialog, ipcMain } from 'electron'
-import { channels, type SaveChoice } from '../../preload/contract'
+import { channels, type DocumentFormat, type SaveChoice } from '../../preload/contract'
 import { readDocument, writeDocument } from '../files/document'
 import type { ProjectSession } from '../files/session'
 
 const saveChoices: SaveChoice[] = ['save', 'discard', 'cancel']
+
+function isFormat(value: unknown): value is DocumentFormat {
+  if (typeof value !== 'object' || value === null) return false
+  const format = value as Record<string, unknown>
+  return (
+    (format['eol'] === 'lf' || format['eol'] === 'crlf') &&
+    typeof format['bom'] === 'boolean' &&
+    typeof format['finalNewline'] === 'boolean'
+  )
+}
 
 /** Wires the file and dialog messages of the preload allowlist. */
 export function registerFileIpc(session: ProjectSession): void {
@@ -17,10 +27,11 @@ export function registerFileIpc(session: ProjectSession): void {
     return readDocument(root(), path)
   })
 
-  ipcMain.handle(channels.fileWrite, (_event, path: unknown, text: unknown) => {
-    if (typeof path !== 'string' || typeof text !== 'string')
-      throw new Error('Expected a path and text')
-    return writeDocument(root(), path, text)
+  ipcMain.handle(channels.fileWrite, (_event, path: unknown, text: unknown, format: unknown) => {
+    if (typeof path !== 'string' || typeof text !== 'string' || !isFormat(format)) {
+      throw new Error('Expected a path, text and format')
+    }
+    return writeDocument(root(), path, text, format)
   })
 
   ipcMain.handle(channels.dialogAskSave, async (event, name: unknown): Promise<SaveChoice> => {

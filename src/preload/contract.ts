@@ -19,6 +19,20 @@ export const channels = {
 /** The answer to "Save changes?" */
 export type SaveChoice = 'save' | 'discard' | 'cancel'
 
+/** How a file is stored on disk; kept so that saving changes nothing but the text. */
+export interface DocumentFormat {
+  eol: 'lf' | 'crlf'
+  bom: boolean
+  finalNewline: boolean
+}
+
+/** A Markdown file as read: its text with `\n` line endings, plus how it is stored. */
+export interface DocumentText extends DocumentFormat {
+  text: string
+  /** Not valid UTF-8: shown as well as possible, never written. */
+  readOnly: boolean
+}
+
 /** The folder currently open in CoLeaf. */
 export interface ProjectInfo {
   /** Absolute path of the folder. */
