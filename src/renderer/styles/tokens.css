@@ -20,6 +20,13 @@
   --color-toolbar: #eaeae6; /* the ribbon: a little darker than the ground */
   --color-backdrop: rgba(23, 23, 23, 0.3); /* ink, behind a dialog */
 
+  /* GitHub alerts: the edge and label of a [!NOTE], [!TIP], [!IMPORTANT], [!WARNING], [!CAUTION] quote */
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-important: #8250df;
+  --color-warning: #9a6700;
+  --color-caution: #cf222e;
+
   /* Fonts: IBM Plex Sans for the app UI, the system font for documents */
   --font-ui: 'IBM Plex Sans', system-ui, sans-serif;
   --font-doc: system-ui, -apple-system, 'Segoe UI', sans-serif;

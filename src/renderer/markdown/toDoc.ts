@@ -10,6 +10,7 @@ import type { Position } from 'unist'
 import remarkGfm from 'remark-gfm'
 import remarkParse from 'remark-parse'
 import { unified } from 'unified'
+import { splitEmoji } from './emoji'
 import {
   gfmOptions,
   markdownOfBlock,
@@ -129,12 +130,15 @@ function createHandlers(schema: Schema, text: string): Handlers {
     return children.map((child) => child.mark(mark.addToSet(child.marks)))
   }
 
-  // A text node's line breaks become softBreak nodes, so the file keeps its wrapping.
+  // A text node's line breaks become softBreak nodes, so the file keeps its wrapping, and its
+  // emoji shortcodes become emoji nodes.
   const textNodes = (value: string): PmNode[] => {
     const result: PmNode[] = []
     value.split('\n').forEach((line, index) => {
       if (index > 0) result.push(nodes.softBreak.create())
-      if (line) result.push(schema.text(line))
+      for (const part of splitEmoji(line)) {
+        result.push(typeof part === 'string' ? schema.text(part) : nodes.emoji.create(part))
+      }
     })
     return result
   }

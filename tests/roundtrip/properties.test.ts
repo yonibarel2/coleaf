@@ -14,12 +14,17 @@ import { docToMarkdown } from '../../src/renderer/markdown/toMarkdown'
 const { nodes, marks } = schema
 
 // Words from letters, digits and every punctuation mark Markdown gives a meaning to, except `@`:
-// GitHub turns a typed email into a link whatever the escaping, and so does a reopen.
+// GitHub turns a typed email into a link whatever the escaping, and so does a reopen. The same
+// goes for an emoji shortcode (`:a:`, `:+1:`), so lines holding one are left out.
 const alphabet = 'abcXYZ019' + '*_#>[]()<>`~|$&%+=\\{}-.!:;,?\'"/'
+const shortcode = /:[a-z0-9_+-]+:/
 const word = fc
   .array(fc.constantFrom(...alphabet), { minLength: 1, maxLength: 8 })
   .map((chars) => chars.join(''))
-const line = fc.array(word, { minLength: 1, maxLength: 6 }).map((words) => words.join(' '))
+const line = fc
+  .array(word, { minLength: 1, maxLength: 6 })
+  .map((words) => words.join(' '))
+  .filter((text) => !shortcode.test(text))
 const codeText = fc.stringMatching(/^[a-z0-9][a-z0-9 ]{0,8}[a-z0-9]$/)
 
 const inlineMarks = fc
@@ -147,6 +152,7 @@ describe('properties', () => {
             else tr.addMark(from, to, marks.bold.create())
             doc = tr.doc
           }
+          fc.pre(!shortcode.test(doc.textContent))
           const markdown = docToMarkdown(doc)
           const reopened = markdownToDoc(markdown, schema)
           expect(docToMarkdown(reopened), markdown).toBe(markdown)

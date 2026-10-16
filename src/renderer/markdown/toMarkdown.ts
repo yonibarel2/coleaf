@@ -74,6 +74,7 @@ const nodeHandlers: Options['nodeHandlers'] = {
   },
   hardBreak: () => ({ type: 'break' }),
   softBreak: () => ({ type: 'text', value: '\n' }),
+  emoji: (node) => ({ type: 'text', value: `:${node.attrs['name']}:` }),
   image: (node) => ({
     type: 'image',
     url: node.attrs['src'],

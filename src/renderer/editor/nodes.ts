@@ -1,4 +1,5 @@
 import { Mark, Node } from '@tiptap/core'
+import { emojiOf } from '../markdown/emoji'
 
 // Markdown the editor cannot edit yet is carried through as-is and written back unchanged: as
 // its exact source text when it has one, else as the mdast node it came from. Shown as code for
@@ -89,6 +90,26 @@ export const RawMark = Mark.create({
     { ...HTMLAttributes, 'data-raw-mark': '', class: 'raw raw--mark' },
     0
   ]
+})
+
+/** An emoji shortcode (`:smile:`): shown as the emoji, saved as the shortcode. */
+export const Emoji = Node.create({
+  name: 'emoji',
+  group: 'inline',
+  inline: true,
+  atom: true,
+  addAttributes: () => ({
+    name: {
+      default: '',
+      parseHTML: (element: HTMLElement): string => element.getAttribute('data-emoji') ?? '',
+      renderHTML: (): Record<string, never> => ({})
+    }
+  }),
+  parseHTML: () => [{ tag: 'span[data-emoji]' }],
+  renderHTML: ({ node }) => {
+    const name = String(node.attrs['name'])
+    return ['span', { 'data-emoji': name, class: 'emoji', title: `:${name}:` }, emojiOf(name) ?? '']
+  }
 })
 
 /**

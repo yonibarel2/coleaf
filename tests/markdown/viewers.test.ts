@@ -1,7 +1,9 @@
 import { Transform } from '@tiptap/pm/transform'
 import type { Node as PmNode } from 'prosemirror-model'
 import { describe, expect, it } from 'vitest'
+import { findAlerts } from '../../src/renderer/editor/alerts'
 import { schema } from '../../src/renderer/editor/extensions'
+import { emojiOf } from '../../src/renderer/markdown/emoji'
 import { markdownToDoc } from '../../src/renderer/markdown/toDoc'
 import { docToMarkdown } from '../../src/renderer/markdown/toMarkdown'
 
@@ -39,6 +41,43 @@ describe('task lists', () => {
 
   it('keeps the escape of an item starting with a parenthesis', () => {
     expect(roundTrip('- [ ] \\(Optional)\n')).toBe('- [ ] \\(Optional)\n')
+  })
+})
+
+describe('emoji', () => {
+  it('shows the shortcodes GitHub knows as emoji and saves them as written', () => {
+    const text = ':smile: and :+1:, not :nope: or :Smile:\n'
+    const paragraph = markdownToDoc(text, schema).firstChild!
+    const parts = [] as string[]
+    paragraph.forEach((node) => parts.push(node.isText ? node.text! : `<${node.attrs['name']}>`))
+    expect(parts).toEqual(['<smile>', ' and ', '<+1>', ', not :nope: or :Smile:'])
+    expect(emojiOf('smile')).toBe('😄')
+    expect(emojiOf('nope')).toBeNull()
+    expect(emojiOf('constructor')).toBeNull()
+    expect(roundTrip(text)).toBe(text)
+  })
+
+  it('leaves code alone', () => {
+    const text = '`:smile:`\n\n```\n:smile:\n```\n'
+    expect(nodesOf(markdownToDoc(text, schema), 'emoji')).toEqual([])
+    expect(roundTrip(text)).toBe(text)
+  })
+})
+
+describe('alerts', () => {
+  it('finds the GitHub alerts and nothing else', () => {
+    const text =
+      '> [!NOTE]\n> Useful information.\n\n> [!WARNING]\n> Careful.\n\n' +
+      '> [!note]-\n> Folded (Obsidian).\n\n> [!TIP] on one line\n\n> plain\n'
+    const doc = markdownToDoc(text, schema)
+    const alerts = findAlerts(doc)
+    expect(alerts.map((alert) => alert.kind)).toEqual(['note', 'warning'])
+    expect(alerts.map((alert) => doc.textBetween(alert.markerFrom, alert.markerTo))).toEqual([
+      '[!NOTE]',
+      '[!WARNING]'
+    ])
+    expect(doc.nodeAt(alerts[0].from)?.type.name).toBe('blockquote')
+    expect(roundTrip(text)).toBe(text)
   })
 })
 

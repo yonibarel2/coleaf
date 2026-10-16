@@ -119,6 +119,43 @@
   color: var(--color-muted);
 }
 
+/* GitHub alerts (alerts.ts): the quote takes its kind's color, the [!KIND] marker shows as a label. */
+.document .alert {
+  border-left-color: var(--color-alert);
+  color: var(--color-ink);
+}
+
+.document .alert--note {
+  --color-alert: var(--color-note);
+}
+
+.document .alert--tip {
+  --color-alert: var(--color-tip);
+}
+
+.document .alert--important {
+  --color-alert: var(--color-important);
+}
+
+.document .alert--warning {
+  --color-alert: var(--color-warning);
+}
+
+.document .alert--caution {
+  --color-alert: var(--color-caution);
+}
+
+.document .alert__marker {
+  font-size: 0;
+}
+
+.document .alert__marker::before {
+  content: attr(data-label);
+  font-size: var(--text-doc);
+  font-weight: var(--weight-semibold);
+  color: var(--color-alert);
+}
+
 .document code {
   font-family: var(--font-mono);
   font-size: var(--text-doc-code);

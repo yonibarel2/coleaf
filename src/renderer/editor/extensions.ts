@@ -17,8 +17,9 @@ import Text from '@tiptap/extension-text'
 import { Dropcursor, Gapcursor, UndoRedo } from '@tiptap/extensions'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { ReactNodeViewRenderer } from '@tiptap/react'
+import { CoLeafAlerts } from './alerts'
 import { CodeBlockView } from './CodeBlockView'
-import { HtmlBlock, RawBlock, RawInline, RawMark, SoftBreak } from './nodes'
+import { Emoji, HtmlBlock, RawBlock, RawInline, RawMark, SoftBreak } from './nodes'
 import { imageUrl } from './paths'
 import { CoLeafPictures } from './pictures'
 import { CoLeafSearch } from './search'
@@ -314,6 +315,8 @@ export function createExtensions(options: EditorOptions): Extensions {
     RawBlock,
     RawInline,
     SoftBreak,
+    Emoji,
+    CoLeafAlerts,
     CoLeafPictures.configure({
       documentPath: options.documentPath,
       savePicture: options.savePicture
