@@ -1,22 +1,25 @@
-import { useEffect, useState, type JSX } from 'react'
-import type { ProjectInfo } from '../../preload/contract'
+import { useEffect, useMemo, useState, type JSX } from 'react'
+import type { GitStatus, ProjectInfo } from '../../preload/contract'
 import { Editor } from '../editor/Editor'
 import { jumpToHeading, linkDraftFor, resolveLink } from '../editor/link'
 import type { LinkDraft } from '../editor/LinkPanel'
 import { insertPictures } from '../editor/pictures'
 import { Ribbon } from '../ribbon/Ribbon'
 import { Explorer } from '../sidebar/Explorer'
+import { SyncView } from '../sidebar/SyncView'
 import { TabBar } from '../tabs/TabBar'
 import { useTabs } from '../tabs/useTabs'
+import type { SidebarView } from './IconBar'
 import { readFlag, writeFlag } from './settings'
 
 interface ProjectViewProps {
   project: ProjectInfo
-  explorerOpen: boolean
+  view: SidebarView | null
+  status: GitStatus | null
 }
 
-/** Everything that belongs to one open project: the Explorer and the tabs. Keyed on the root. */
-export function ProjectView({ project, explorerOpen }: ProjectViewProps): JSX.Element {
+/** Everything that belongs to one open project: the sidebar and the tabs. Keyed on the root. */
+export function ProjectView({ project, view, status }: ProjectViewProps): JSX.Element {
   // The panels belong to the document they were opened on: shown only while it is the active tab.
   const [linkDraft, setLinkDraft] = useState<{ path: string; draft: LinkDraft } | null>(null)
   const [find, setFind] = useState<{ path: string; replace: boolean } | null>(null)
@@ -28,6 +31,10 @@ export function ProjectView({ project, explorerOpen }: ProjectViewProps): JSX.El
   })
   const { open, saveActive } = tabs
   const active = tabs.active
+  const unsavedPaths = useMemo(
+    () => tabs.tabs.filter((tab) => tab.dirty).map((tab) => tab.path),
+    [tabs.tabs]
+  )
 
   // Ctrl+click on a link: a web address opens in the browser (through the background's
   // window-open handler), a Markdown file of the project in a tab, at its heading if named.
@@ -48,12 +55,16 @@ export function ProjectView({ project, explorerOpen }: ProjectViewProps): JSX.El
 
   return (
     <>
-      {explorerOpen && (
+      {view === 'explorer' && (
         <Explorer
           project={project}
+          branch={status?.branch ?? null}
           activePath={tabs.active?.path ?? null}
           onOpenFile={(path) => void tabs.open(path)}
         />
+      )}
+      {view === 'sync' && (
+        <SyncView status={status} unsavedPaths={unsavedPaths} onBeforeSync={tabs.saveAll} />
       )}
       <main className="workspace">
         <TabBar

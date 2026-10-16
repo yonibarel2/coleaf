@@ -18,7 +18,21 @@
 }
 
 .sidebar__header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
   padding: var(--space-4) var(--space-4) var(--space-3);
+}
+
+/* The Git branch next to the view's title, in grey and plain case. */
+.sidebar__branch {
+  overflow: hidden;
+  font-weight: var(--weight-regular);
+  letter-spacing: 0;
+  text-transform: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-muted);
 }
 
 .sidebar__empty {
@@ -116,4 +130,119 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+/* The Sync view (SyncView.tsx): changed files with ticks, the message and the button. */
+.sync {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+.sync__label {
+  color: var(--color-muted);
+}
+
+.sync__note {
+  margin: 0;
+  padding: 0 var(--space-4);
+  color: var(--color-muted);
+}
+
+.sync .sync__note {
+  padding: 0;
+}
+
+.sync__files {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sync__file {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tree-row-height);
+}
+
+.sync__tick {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  cursor: pointer;
+}
+
+.sync__tick input {
+  flex: none;
+  margin: 0;
+  accent-color: var(--color-accent);
+}
+
+.sync__path {
+  overflow-wrap: anywhere;
+}
+
+.sync__kind {
+  flex: none;
+  font-size: var(--text-label);
+  color: var(--color-muted);
+}
+
+.sync__kind--conflict {
+  font-weight: var(--weight-semibold);
+  color: var(--color-danger);
+}
+
+.sync__message,
+.sync__input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  font: inherit;
+  color: var(--color-ink);
+  resize: vertical;
+}
+
+.sync__input {
+  height: var(--control-height);
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.sync__message:focus,
+.sync__input:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -1px;
+}
+
+.sync__button {
+  width: 100%;
+}
+
+.sync__button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.sync__caption,
+.sync__outcome {
+  margin: 0;
+  font-size: var(--text-label);
+  color: var(--color-muted);
+}
+
+.sync__outcome--error {
+  color: var(--color-danger);
+}
+
+.sync__identity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }

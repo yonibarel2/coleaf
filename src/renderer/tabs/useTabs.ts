@@ -29,6 +29,8 @@ export interface Tabs {
   activate: (path: string) => void
   close: (path: string) => Promise<void>
   saveActive: () => Promise<void>
+  /** Saves every document with unsaved changes (before a Sync). */
+  saveAll: () => Promise<void>
 }
 
 export interface TabsOptions {
@@ -153,6 +155,10 @@ export function useTabs(options: TabsOptions): Tabs {
     if (tab) await save(tab)
   }, [activePath, save])
 
+  const saveAll = useCallback(async () => {
+    for (const tab of tabsRef.current.filter((t) => t.dirty)) await save(tab)
+  }, [save])
+
   // The background asks before the window closes or the project changes.
   useEffect(
     () =>
@@ -181,6 +187,7 @@ export function useTabs(options: TabsOptions): Tabs {
     open,
     activate: setActivePath,
     close,
-    saveActive
+    saveActive,
+    saveAll
   }
 }

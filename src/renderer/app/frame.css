@@ -23,6 +23,7 @@
 }
 
 .icon-button {
+  position: relative;
   display: grid;
   place-items: center;
   width: var(--icon-button-size);
@@ -52,6 +53,23 @@
 .icon-button:disabled {
   cursor: default;
   opacity: 0.5;
+}
+
+/* The number of changed files, on the Sync icon. */
+.icon-button__badge {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  min-width: var(--icon-size);
+  height: var(--icon-size);
+  padding: 0 var(--space-1);
+  border-radius: calc(var(--icon-size) / 2);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: var(--text-label);
+  font-weight: var(--weight-semibold);
+  line-height: var(--icon-size);
+  text-align: center;
 }
 
 .workspace {
