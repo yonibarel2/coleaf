@@ -18,7 +18,12 @@ export const channels = {
   appOpenFile: 'app:open-file',
   appShowShortcuts: 'app:show-shortcuts',
   imagePick: 'image:pick',
-  imageSave: 'image:save'
+  imageSave: 'image:save',
+  gitStatus: 'git:status',
+  gitChanged: 'git:changed',
+  gitCommit: 'git:commit',
+  gitIdentity: 'git:identity',
+  gitSetIdentity: 'git:set-identity'
 } as const
 
 /** The answer to "Save changes?" */
@@ -58,4 +63,31 @@ export interface TreeEntry {
    * are never scanned (`node_modules`, git-ignored); `undefined` while the background scan runs.
    */
   hasMarkdown?: boolean
+}
+
+/** How a file differs from the last version Git holds. */
+export type ChangeKind = 'new' | 'modified' | 'deleted' | 'renamed' | 'conflict'
+
+/** One row of the Sync view's "Changed files". */
+export interface ChangedFile {
+  /** Tree path, `/`-separated. */
+  path: string
+  kind: ChangeKind
+  /** Renamed: where the file was before. */
+  from?: string
+}
+
+/** The Git state of the open project, kept current by the background. */
+export interface GitStatus {
+  /** `false` when the project folder is not inside a Git repository. */
+  repo: boolean
+  /** The current branch, as Git names it; `null` without a repository. */
+  branch: string | null
+  changes: ChangedFile[]
+}
+
+/** The name and email Git puts on each version. */
+export interface GitIdentity {
+  name: string
+  email: string
 }

@@ -1,6 +1,7 @@
 import { basename, join } from 'node:path'
 import { BrowserWindow, dialog, type BaseWindow } from 'electron'
 import { channels, type ProjectInfo, type TreeEntry } from '../../preload/contract'
+import { GitTracker } from '../git/tracker'
 import { ProjectIgnore } from './ignore'
 import { MarkdownIndex } from './markdown-index'
 import { kindOf, listDirectory } from './project'
@@ -16,6 +17,8 @@ export class ProjectSession {
   // Folders the window has listed: the ones to tell about changes.
   private readonly listed = new Set<string>()
   private readonly watcher = new ProjectWatcher((dir, paths) => void this.handleChanges(dir, paths))
+  /** The project's Git status, refreshed after every change on disk. */
+  readonly git = new GitTracker((status) => this.send(channels.gitChanged, status))
 
   get current(): ProjectInfo | null {
     return this.project
@@ -37,6 +40,7 @@ export class ProjectSession {
     const index = new MarkdownIndex(root, new ProjectIgnore(root))
     this.index = index
     this.watcher.watch(root)
+    this.git.open(root)
     void index.scan().then(() => {
       if (this.index === index) this.notifyListed()
     })
@@ -67,13 +71,16 @@ export class ProjectSession {
 
   private reset(): void {
     this.watcher.close()
+    this.git.close()
     this.index?.cancel()
     this.index = undefined
     this.listed.clear()
   }
 
-  // Keeps the Markdown index current, then tells the window which listed folders to re-read.
+  // Keeps the Git status and the Markdown index current, then tells the window which listed
+  // folders to re-read. Changes under `.git` (a commit, a branch switch) reach the status too.
   private async handleChanges(dir: string, paths: string[]): Promise<void> {
+    this.git.touch()
     const index = this.index
     if (!index || !this.project) return
     if (!index.ignore.isSkipped(dir)) {

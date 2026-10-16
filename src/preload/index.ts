@@ -3,6 +3,8 @@ import {
   channels,
   type DocumentFormat,
   type DocumentText,
+  type GitIdentity,
+  type GitStatus,
   type ProjectInfo,
   type SaveChoice,
   type TreeEntry
@@ -46,6 +48,21 @@ const api = {
     /** A pasted or dropped picture, stored under `images/`. Returns its tree path. */
     save: (documentPath: string, name: string, bytes: Uint8Array): Promise<string> =>
       ipcRenderer.invoke(channels.imageSave, documentPath, name, bytes)
+  },
+  git: {
+    /** The branch and the changed files of the open project, looked up now. */
+    status: (): Promise<GitStatus> => ipcRenderer.invoke(channels.gitStatus),
+    /** The status changed on disk (a save, a commit, another program). */
+    onChanged: (callback: (status: GitStatus) => void): (() => void) =>
+      subscribe(channels.gitChanged, callback),
+    /** Saves a version with these files only; new and deleted files included. */
+    commit: (paths: string[], message: string): Promise<void> =>
+      ipcRenderer.invoke(channels.gitCommit, paths, message),
+    /** The name and email on each version; empty strings when Git has none yet. */
+    identity: (): Promise<GitIdentity> => ipcRenderer.invoke(channels.gitIdentity),
+    /** Saves the name and email in the user's Git configuration, for every repository. */
+    setIdentity: (identity: GitIdentity): Promise<void> =>
+      ipcRenderer.invoke(channels.gitSetIdentity, identity)
   },
   app: {
     /** How many open documents have unsaved changes. */

@@ -5,6 +5,7 @@ import { imagePathOf, imageScheme, readImage } from './files/images'
 import { ProjectSession } from './files/session'
 import { guardClose, registerAppIpc } from './ipc/app'
 import { registerFileIpc } from './ipc/file'
+import { registerGitIpc } from './ipc/git'
 import { registerImageIpc } from './ipc/images'
 import { registerProjectIpc } from './ipc/project'
 import { applyMenu } from './menu'
@@ -81,6 +82,7 @@ app.whenReady().then(() => {
   registerProjectIpc(session)
   registerFileIpc(session)
   registerImageIpc(session)
+  registerGitIpc(session)
   registerAppIpc()
   applyMenu(session)
   session.onChange(() => applyMenu(session))
