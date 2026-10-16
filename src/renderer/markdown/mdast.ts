@@ -22,6 +22,19 @@ declare module 'mdast' {
   /** Markdown kept exactly as it was in the file: shown, never edited, written back verbatim. */
   interface CoLeafRaw extends Literal {
     type: 'coleafRaw'
+    data?: CoLeafRawData
+  }
+  interface CoLeafRawData extends Data {
+    /** What the raw text holds, when it is all of one kind: link reference definitions. */
+    coleafKind?: 'definitions'
+  }
+  interface LinkReferenceData {
+    /** The address its definition gives, for showing it as a link; null when there is none. */
+    coleafUrl?: string | null
+  }
+  interface ImageReferenceData {
+    /** The address its definition gives, for showing the picture; null when there is none. */
+    coleafUrl?: string | null
   }
   /** YAML front matter, with its `---` lines: shown as a table, written back verbatim. */
   interface CoLeafFrontMatter extends Literal {

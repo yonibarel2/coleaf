@@ -4,7 +4,7 @@ import {
   toPmNode,
   type RemarkProseMirrorOptions
 } from '@handlewithcare/remark-prosemirror'
-import type { Parent, PhrasingContent, Root, RootContent } from 'mdast'
+import type { Nodes, Parent, PhrasingContent, Root, RootContent } from 'mdast'
 import type { Mark, Node as PmNode, Schema } from 'prosemirror-model'
 import type { Position } from 'unist'
 import remarkGfm from 'remark-gfm'
@@ -27,20 +27,32 @@ type Handlers = RemarkProseMirrorOptions['handlers']
 /** Turns Markdown text into an editor document. Nothing the parser produces is dropped. */
 export function markdownToDoc(text: string, schema: Schema): PmNode {
   const { frontMatter, body } = splitFrontMatter(text)
+  const definitions = new Map<string, string>()
   const file = unified()
     .use(remarkParse)
     .use(remarkGfm, gfmOptions)
     .use(remarkMath)
-    .use(() => (tree: Root) => keepRawBlocks(tree, body, frontMatter))
+    .use(() => (tree: Root) => {
+      collectDefinitions(tree, definitions) // before the definitions turn into raw text
+      keepRawBlocks(tree, body, frontMatter)
+    })
     .use(() => pairInlineHtml)
-    .use(remarkProseMirror, { schema, handlers: createHandlers(schema, body) })
+    .use(remarkProseMirror, { schema, handlers: createHandlers(schema, body, definitions) })
     .processSync(body)
   return file.result as PmNode
 }
 
-// Blocks the editor does not edit yet (docs/markdown-spec.md: Later and Kept as-is).
+// Blocks the editor does not edit yet (docs/markdown-spec.md: Kept as-is).
 function isRawBlock(node: RootContent): boolean {
-  return node.type === 'definition' || node.type === 'footnoteDefinition'
+  return node.type === 'definition'
+}
+
+/** The addresses the file's link reference definitions give, by identifier. */
+function collectDefinitions(node: Nodes, found = new Map<string, string>()): Map<string, string> {
+  if (node.type === 'definition' && !found.has(node.identifier))
+    found.set(node.identifier, node.url)
+  if ('children' in node) for (const child of node.children) collectDefinitions(child, found)
+  return found
 }
 
 /**
@@ -67,7 +79,14 @@ function keepRawBlocks(tree: Root, text: string, frontMatter: string | null): vo
     // A lone HTML block stays an HTML block; it is raw by itself.
     const keepAsIs = start == null || end == null || (run.length === 1 && first.type === 'html')
     if (keepAsIs) children.push(...run)
-    else children.push({ type: 'coleafRaw', value: text.slice(start, end) })
+    else {
+      const definitions = run.every((node) => node.type === 'definition')
+      children.push({
+        type: 'coleafRaw',
+        value: text.slice(start, end),
+        data: definitions ? { coleafKind: 'definitions' } : undefined
+      })
+    }
     run = []
   }
   for (const node of tree.children) {
@@ -130,19 +149,24 @@ function outermost(mark: Mark, set: readonly Mark[]): Mark[] {
   return [...others.slice(0, first), mark, ...others.slice(first)]
 }
 
-function createHandlers(schema: Schema, text: string): Handlers {
+function createHandlers(schema: Schema, text: string, definitions: Map<string, string>): Handlers {
   const nodes = schema.nodes
   const marks = schema.marks
 
-  // Raw blocks and inlines keep their source when it is exact, else their mdast node.
+  // Raw blocks and inlines keep their source when it is exact, else their mdast node; an
+  // inline keeps its node as well, for showing it.
   const rawBlock = (node: RootContent): PmNode =>
     nodes.rawBlock.create({ markdown: markdownOfBlock(node), node: withoutPositions(node) })
   const rawInline = (node: PhrasingContent): PmNode => {
     const source = sourceOf(node, text)
-    return source != null && !source.includes('\n')
-      ? nodes.rawInline.create({ markdown: source, source })
-      : nodes.rawInline.create({ markdown: markdownOfInline(node), node: withoutPositions(node) })
+    const exact = source != null && !source.includes('\n')
+    return nodes.rawInline.create({
+      markdown: exact ? source : markdownOfInline(node),
+      source: exact ? source : null,
+      node: withoutPositions(node)
+    })
   }
+  const urlOf = (identifier: string): string | null => definitions.get(identifier) ?? null
   const rawMark = (node: Parent & PhrasingContent, children: PmNode[]): PmNode[] => {
     const mark = marks.rawMark.create({ node: withoutPositions({ ...node, children: [] }) })
     return children.map((child) => child.mark(mark.addToSet(child.marks)))
@@ -217,7 +241,12 @@ function createHandlers(schema: Schema, text: string): Handlers {
       const mark = marks.htmlMark.create({ open: node.open, close: node.close, depth: node.depth })
       return state.all(node).map((child) => child.mark(outermost(mark, child.marks)))
     },
-    coleafRaw: (node) => nodes.rawBlock.create({ markdown: node.value, source: node.value }),
+    coleafRaw: (node) =>
+      nodes.rawBlock.create({
+        markdown: node.value,
+        source: node.value,
+        kind: node.data?.coleafKind ?? null
+      }),
     coleafFrontMatter: (node) => nodes.frontMatter.create({ source: node.value }),
     text: (node) => textNodes(node.value),
     emphasis: toPmMark(marks.italic),
@@ -238,10 +267,27 @@ function createHandlers(schema: Schema, text: string): Handlers {
       nodes.image.create({ src: node.url, alt: node.alt ?? null, title: node.title ?? null }),
     break: () => nodes.hardBreak.create(),
     definition: rawBlock,
-    footnoteDefinition: rawBlock,
-    footnoteReference: rawInline,
-    imageReference: rawInline,
-    linkReference: (node, _, state) => rawMark(node, state.all(node)),
+    // Footnotes: the reference is a superscript, the note a block of its own with its text
+    // editable; both are written back as `[^label]`.
+    footnoteReference: (node) =>
+      nodes.footnoteRef.create({
+        identifier: node.identifier,
+        label: node.label ?? node.identifier
+      }),
+    footnoteDefinition: (node, _, state) =>
+      nodes.footnoteDef.createAndFill(
+        { identifier: node.identifier, label: node.label ?? node.identifier },
+        state.all(node)
+      ),
+    // References keep their form; the address their definition gives is carried along, so the
+    // link looks like one and the picture shows.
+    imageReference: (node) =>
+      rawInline({ ...node, data: { ...node.data, coleafUrl: urlOf(node.identifier) } }),
+    linkReference: (node, _, state) =>
+      rawMark(
+        { ...node, data: { ...node.data, coleafUrl: urlOf(node.identifier) } },
+        state.all(node)
+      ),
     delete: toPmMark(marks.strike)
   }
 }

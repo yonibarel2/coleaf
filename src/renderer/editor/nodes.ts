@@ -1,11 +1,13 @@
 import { Mark, Node } from '@tiptap/core'
 import { ReactNodeViewRenderer } from '@tiptap/react'
+import type { Mark as PmMark } from 'prosemirror-model'
 import { emojiOf } from '../markdown/emoji'
 import { FrontMatterView } from './FrontMatterView'
 import { inlineElement } from './html'
 import { HtmlBlockView } from './HtmlBlockView'
 import { HtmlInlineView } from './HtmlInlineView'
 import { MathInlineView } from './MathInlineView'
+import { imageUrl } from './paths'
 
 // Markdown the editor cannot edit yet is carried through as-is and written back unchanged: as
 // its exact source text when it has one, else as the mdast node it came from. Shown as code for
@@ -134,7 +136,7 @@ export const FrontMatter = Node.create({
   }
 })
 
-/** Any other block the editor does not edit yet: footnote, link definition, TOML front matter… */
+/** Any other block the editor does not edit yet: link definitions, TOML front matter… */
 export const RawBlock = Node.create({
   name: 'rawBlock',
   group: 'block',
@@ -142,45 +144,180 @@ export const RawBlock = Node.create({
   addAttributes: () => ({
     markdown: markdownAttribute,
     source: sourceAttribute,
-    node: mdastAttribute
+    node: mdastAttribute,
+    // What the block holds, when known: 'definitions' for link reference definitions, which
+    // GitHub does not show at all and CoLeaf shows small and muted.
+    kind: {
+      default: null,
+      parseHTML: (element: HTMLElement): string | null => element.getAttribute('data-kind'),
+      renderHTML: (attributes: Record<string, unknown>): Record<string, string> =>
+        typeof attributes['kind'] === 'string' ? { 'data-kind': attributes['kind'] } : {}
+    }
   }),
   parseHTML: () => [{ tag: 'pre[data-raw-block]' }],
   renderHTML: ({ node, HTMLAttributes }) => [
     'pre',
-    { ...HTMLAttributes, 'data-raw-block': '', class: 'raw raw--block' },
+    {
+      ...HTMLAttributes,
+      'data-raw-block': '',
+      class: `raw raw--block${node.attrs['kind'] === 'definitions' ? ' raw--definitions' : ''}`
+    },
     String(node.attrs['markdown'])
   ]
 })
 
-/** An inline leaf the editor does not edit yet: a reference image or a footnote reference. */
-export const RawInline = Node.create({
+interface MdastReference {
+  type?: string
+  url?: string
+  alt?: string | null
+  label?: string | null
+  data?: { coleafUrl?: string | null; literal?: boolean }
+}
+
+export interface RawInlineOptions {
+  /** Tree path of the document, which a reference picture's path resolves against. */
+  documentPath: string
+}
+
+/** An inline leaf the editor does not edit yet: a reference image (`![alt][label]`), shown as its picture. */
+export const RawInline = Node.create<RawInlineOptions>({
   name: 'rawInline',
   group: 'inline',
   inline: true,
   atom: true,
+  addOptions: () => ({ documentPath: '' }),
   addAttributes: () => ({
     markdown: markdownAttribute,
     source: sourceAttribute,
     node: mdastAttribute
   }),
-  parseHTML: () => [{ tag: 'code[data-raw-inline]' }],
-  renderHTML: ({ node, HTMLAttributes }) => [
-    'code',
-    { ...HTMLAttributes, 'data-raw-inline': '', class: 'raw raw--inline' },
-    String(node.attrs['markdown'])
-  ]
+  parseHTML: () => [{ tag: '[data-raw-inline]' }],
+  renderHTML({ node, HTMLAttributes }) {
+    const mdast = node.attrs['node'] as MdastReference | null
+    const url = mdast?.type === 'imageReference' ? mdast.data?.coleafUrl : null
+    if (typeof url === 'string') {
+      const src = imageUrl(this.options.documentPath, url)
+      return [
+        'img',
+        {
+          ...HTMLAttributes,
+          'data-raw-inline': '',
+          src,
+          alt: mdast?.alt ?? '',
+          title: node.attrs['markdown']
+        }
+      ]
+    }
+    return [
+      'code',
+      { ...HTMLAttributes, 'data-raw-inline': '', class: 'raw raw--inline' },
+      String(node.attrs['markdown'])
+    ]
+  }
 })
 
-/** An inline wrapper the editor does not edit yet (reference link, strikethrough): its text stays editable. */
+/** The address a mark points at: a link, an inline HTML `<a href>`, a reference link or a bare URL. */
+export function hrefOfMark(mark: PmMark): string | null {
+  if (mark.type.name === 'link') {
+    return typeof mark.attrs['href'] === 'string' ? mark.attrs['href'] : null
+  }
+  if (mark.type.name === 'htmlMark') {
+    const element = inlineElement(String(mark.attrs['open']))
+    return element?.tag === 'a' ? (element.attrs['href'] ?? null) : null
+  }
+  if (mark.type.name === 'rawMark') {
+    const mdast = mark.attrs['node'] as MdastReference | null
+    if (mdast?.type === 'link') return mdast.url ?? null
+    if (mdast?.type === 'linkReference') return mdast.data?.coleafUrl ?? null
+  }
+  return null
+}
+
+/**
+ * An inline wrapper the editor does not edit yet: a reference link (`[text][label]`) or a
+ * bare URL, shown as a link; its text stays editable and it is written back as it was.
+ */
 export const RawMark = Mark.create({
   name: 'rawMark',
   addAttributes: () => ({ node: mdastAttribute }),
-  parseHTML: () => [{ tag: 'span[data-raw-mark]' }],
-  renderHTML: ({ HTMLAttributes }) => [
-    'span',
-    { ...HTMLAttributes, 'data-raw-mark': '', class: 'raw raw--mark' },
-    0
-  ]
+  parseHTML: () => [{ tag: '[data-raw-mark]' }],
+  renderHTML: ({ mark, HTMLAttributes }) => {
+    const href = hrefOfMark(mark)
+    return href === null
+      ? ['span', { ...HTMLAttributes, 'data-raw-mark': '', class: 'raw raw--mark' }, 0]
+      : ['a', { ...HTMLAttributes, 'data-raw-mark': '', class: 'raw raw--link', href }, 0]
+  }
+})
+
+/** A footnote reference (`Text[^1]`): a superscript label, written back as it was. */
+export const FootnoteRef = Node.create({
+  name: 'footnoteRef',
+  group: 'inline',
+  inline: true,
+  atom: true,
+  addAttributes: () => ({
+    identifier: { default: '', rendered: false },
+    label: {
+      default: '',
+      parseHTML: (element: HTMLElement): string => element.getAttribute('data-footnote') ?? '',
+      renderHTML: (): Record<string, never> => ({})
+    }
+  }),
+  parseHTML: () => [{ tag: 'sup[data-footnote]' }],
+  renderHTML: ({ node }) => {
+    const label = String(node.attrs['label'])
+    return [
+      'sup',
+      { 'data-footnote': label, class: 'footnote-ref', title: `Footnote ${label}` },
+      label
+    ]
+  }
+})
+
+/** A footnote's text (`[^1]: The note.`): a small block with its label; the text is editable. */
+export const FootnoteDef = Node.create({
+  name: 'footnoteDef',
+  group: 'block',
+  content: 'block+',
+  defining: true,
+  isolating: true,
+  addAttributes: () => ({
+    identifier: { default: '', rendered: false },
+    label: {
+      default: '',
+      parseHTML: (element: HTMLElement): string => element.getAttribute('data-footnote-def') ?? '',
+      renderHTML: (attributes: Record<string, unknown>): Record<string, string> => ({
+        'data-footnote-def': String(attributes['label'])
+      })
+    }
+  }),
+  parseHTML: () => [{ tag: 'div[data-footnote-def]' }],
+  renderHTML: ({ HTMLAttributes }) => ['div', { ...HTMLAttributes, class: 'footnote' }, 0],
+  addNodeView() {
+    return ({ node }) => {
+      const dom = document.createElement('div')
+      dom.className = 'footnote'
+      const label = document.createElement('span')
+      label.className = 'footnote__label'
+      label.contentEditable = 'false'
+      const content = document.createElement('div')
+      content.className = 'footnote__content'
+      dom.append(label, content)
+      const apply = (current: typeof node): void => {
+        label.textContent = String(current.attrs['label'])
+      }
+      apply(node)
+      return {
+        dom,
+        contentDOM: content,
+        update: (updated) => {
+          if (updated.type !== node.type) return false
+          apply(updated)
+          return true
+        }
+      }
+    }
+  }
 })
 
 /** An inline formula (`$E = mc^2$`): drawn with KaTeX (MathInlineView.tsx), saved as its TeX. */

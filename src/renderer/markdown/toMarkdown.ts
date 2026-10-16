@@ -4,7 +4,15 @@ import {
   fromProseMirror,
   type FromProseMirrorOptions
 } from '@handlewithcare/remark-prosemirror'
-import type { AlignType, ListItem, Nodes, PhrasingContent, RootContent, TableRow } from 'mdast'
+import type {
+  AlignType,
+  FootnoteDefinition,
+  ListItem,
+  Nodes,
+  PhrasingContent,
+  RootContent,
+  TableRow
+} from 'mdast'
 import type { Node as PmNode } from 'prosemirror-model'
 import { mergeText, parseMarkdown, sameShape, stringifyMdast } from './mdast'
 
@@ -102,7 +110,26 @@ const nodeHandlers: Options['nodeHandlers'] = {
   tableHeader: tableCell,
   rawBlock: rawContent,
   rawInline: (node) => rawContent(node) as PhrasingContent,
-  frontMatter: (node) => ({ type: 'coleafFrontMatter', value: node.attrs['source'] })
+  frontMatter: (node) => ({ type: 'coleafFrontMatter', value: node.attrs['source'] }),
+  footnoteRef: (node) => ({
+    type: 'footnoteReference',
+    identifier: footnoteIdentifier(node),
+    label: node.attrs['label']
+  }),
+  footnoteDef: (node, _parent, state) => ({
+    type: 'footnoteDefinition',
+    identifier: footnoteIdentifier(node),
+    label: node.attrs['label'],
+    children: state.all(node) as FootnoteDefinition['children']
+  })
+}
+
+// A pasted footnote has only its label; the identifier is the label, lowercased, as remark makes it.
+function footnoteIdentifier(node: PmNode): string {
+  const identifier = node.attrs['identifier']
+  return typeof identifier === 'string' && identifier !== ''
+    ? identifier
+    : String(node.attrs['label']).toLowerCase()
 }
 
 const markHandlers: Options['markHandlers'] = {

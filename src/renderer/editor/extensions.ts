@@ -22,7 +22,10 @@ import { CodeBlockView } from './CodeBlockView'
 import { highlighter } from './highlight'
 import {
   Emoji,
+  FootnoteDef,
+  FootnoteRef,
   FrontMatter,
+  hrefOfMark,
   HtmlBlock,
   HtmlInline,
   HtmlMark,
@@ -32,7 +35,6 @@ import {
   RawMark,
   SoftBreak
 } from './nodes'
-import { inlineElement } from './html'
 import { imageUrl } from './paths'
 import { CoLeafPictures } from './pictures'
 import { CoLeafSearch } from './search'
@@ -196,15 +198,11 @@ const CoLeafLink = Link.extend<CoLeafLinkOptions>({
         props: {
           handleClick: (view, pos, event) => {
             if (!(event.ctrlKey || event.metaKey)) return false
+            // A Markdown link, an inline HTML `<a href>`, a reference link or a bare URL.
             const node = view.state.doc.nodeAt(pos)
-            const href = node?.marks.find((mark) => mark.type.name === 'link')?.attrs['href']
-            // An inline HTML `<a href>` is a link too.
-            const html = node?.marks.find((mark) => mark.type.name === 'htmlMark')
-            const anchor = html ? inlineElement(String(html.attrs['open'])) : null
-            const target =
-              typeof href === 'string' ? href : anchor?.tag === 'a' ? anchor.attrs['href'] : null
-            if (typeof target !== 'string') return false
-            this.options.onActivate(target)
+            const href = node?.marks.map(hrefOfMark).find((target) => target !== null)
+            if (typeof href !== 'string') return false
+            this.options.onActivate(href)
             return true
           }
         }
@@ -347,8 +345,10 @@ export function createExtensions(options: EditorOptions): Extensions {
     }),
     HtmlInline.configure({ documentPath: options.documentPath }),
     FrontMatter,
+    FootnoteDef,
+    FootnoteRef,
     RawBlock,
-    RawInline,
+    RawInline.configure({ documentPath: options.documentPath }),
     SoftBreak,
     Emoji,
     MathInline,
