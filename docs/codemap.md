@@ -1,6 +1,6 @@
 # CoLeaf – Code map
 
-Oct 16, 2026 · Updated at the end of every slice.
+Oct 17, 2026 · Updated at the end of every slice.
 
 One line per folder and module, then how data flows through them. [architecture.md](architecture.md) says why it is built this way; this file says where things are.
 
@@ -17,24 +17,28 @@ One line per folder and module, then how data flows through them. [architecture.
 | `files/watch.ts` | One recursive watcher on the project root; changes reported per folder |
 | `files/document.ts` | Reads and writes `.md` files, keeping BOM, line endings and final newline |
 | `files/images.ts` | Pictures under `images/` (one folder per document) and the image scheme's lookup |
-| `ipc/*.ts` | One file per area (app, project, file, images): the handlers behind the preload's allowlist |
+| `git/run.ts` | Runs the bundled Git (dugite): no prompts, no credential helpers, no optional locks; Git's wording as the error |
+| `git/repo.ts` | Status (porcelain v2 → branch and changed files), commit of the ticked files only, the identity in Git's config |
+| `git/tracker.ts` | The project's status, refreshed after every change on disk (debounced, one run at a time), reported when it differs |
+| `ipc/*.ts` | One file per area (app, project, file, images, git): the handlers behind the preload's allowlist |
 
 ## Bridge (`src/preload/`)
 
 | Module | Does |
 | --- | --- |
 | `contract.ts` | Channel names and the data they carry; both sides import it |
-| `index.ts` | Exposes `window.coleaf` (project, file, dialog, app, images): the allowlist, nothing more |
+| `index.ts` | Exposes `window.coleaf` (project, file, dialog, app, images, git): the allowlist, nothing more |
 
 ## Window (`src/renderer/`, React)
 
 | Folder / module | Does |
 | --- | --- |
 | `main.tsx`, `styles/` | Entry point; `tokens.css` holds every color, font, size and spacing, `app.css` the shell |
-| `app/App.tsx`, `IconBar.tsx`, `ProjectView.tsx` | The frame: icon bar, Explorer, tabs, ribbon and editor; `ProjectView` also follows Ctrl+clicked links |
-| `app/useProject.ts`, `settings.ts`, `ShortcutsDialog.tsx` | The open project mirrored from the background; small window preferences; Help › Keyboard Shortcuts |
-| `sidebar/` | The Explorer: the lazy folder tree (`useProjectTree.ts`), its rows and the "Only .md" tick |
-| `tabs/useTabs.ts` | One TipTap editor per open file, the unsaved dot and the save rule (`saveRule.ts`: an untouched document is never written) |
+| `app/App.tsx`, `IconBar.tsx`, `ProjectView.tsx` | The frame: icon bar (Explorer, Sync with its badge), one sidebar view at a time, tabs, ribbon and editor; `ProjectView` also follows Ctrl+clicked links |
+| `app/useProject.ts`, `useGit.ts`, `settings.ts`, `ShortcutsDialog.tsx` | The open project and its Git status mirrored from the background; small window preferences; Help › Keyboard Shortcuts |
+| `sidebar/Explorer.tsx`, `ProjectSection.tsx`, `useProjectTree.ts` | The Explorer with the branch in its header: the lazy folder tree, its rows and the "Only .md" tick |
+| `sidebar/SyncView.tsx`, `IdentityForm.tsx` | The Sync view: changed files with ticks (unsaved documents listed too), the required message, Sync; name and email asked once |
+| `tabs/useTabs.ts` | One TipTap editor per open file, the unsaved dot, save all before a Sync, and the save rule (`saveRule.ts`: an untouched document is never written) |
 | `ribbon/Ribbon.tsx` | The five groups of buttons above the document and the Styles menu |
 | `editor/extensions.ts` | The schema: TipTap's extensions tuned to the spec (shortcuts, attributes) plus CoLeaf's own nodes and marks |
 | `editor/nodes.ts` | CoLeaf's nodes and marks: HTML block, inline and mark, front matter, footnotes, raw block, inline and mark, emoji, inline math, soft break; `hrefOfMark` |
@@ -59,6 +63,7 @@ One line per folder and module, then how data flows through them. [architecture.
 | `markdown/` | The bridge, escaping, the viewers, inline HTML, footnotes and references |
 | `editor/` | Links and paths, the shortcut list, code highlighting |
 | `files/`, `realfiles/`, `tabs/` | Background file work on temporary folders; the repo's own docs; the save rule |
+| `git/` | Status, commit, identity and the tracker on temporary repositories, with Git's configuration isolated (`temp-repo.ts`) |
 | `tokens.test.ts`, `compliance/` | The palette lives only in `tokens.css`; the license checker |
 
 ## How data flows
@@ -68,3 +73,5 @@ One line per folder and module, then how data flows through them. [architecture.
 3. **Save:** Ctrl+S → menu → `app:save` → `docToMarkdown`: the bridge turns the document into mdast, remark writes it with minimal escaping, and the full-escaping form is used when the two would read differently → `window.coleaf.file.write` → `files/document.ts` keeps the file's line endings and BOM. An untouched document is never written.
 4. **Pictures:** paste, drop or Insert › Picture → `images.save` → a file under `images/` → an image node with a relative path, shown through `coleaf-image://`.
 5. **Links:** Ctrl+click → `hrefOfMark` (Markdown link, inline HTML `<a>`, reference link or bare URL) → `ProjectView.followLink` → `resolveLink` → a tab (with a jump to the heading) or the browser.
+6. **Git status:** any change on disk (a save, a commit, another program) → the watcher → `GitTracker.touch` → `git status` through `git/run.ts` → `git:changed` when it differs → `useGitStatus` → the badge, the branch in the headers, the Sync view's list.
+7. **Sync (local for now):** the Sync button → `useTabs.saveAll` → a fresh `git:status` → `git:commit` with the ticked files → `git/repo.ts` adds and commits those paths only → the tracker reports the cleared status. Without a name and email in Git's config, the Sync view asks once and saves them with `git:set-identity`.
