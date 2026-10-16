@@ -35,15 +35,7 @@ export function markdownToDoc(text: string, schema: Schema): PmNode {
 
 // Blocks the editor does not edit yet (docs/markdown-spec.md: Later and Kept as-is).
 function isRawBlock(node: RootContent): boolean {
-  switch (node.type) {
-    case 'definition':
-    case 'footnoteDefinition':
-      return true
-    case 'list':
-      return node.children.some((item) => item.checked != null) // task list
-    default:
-      return false
-  }
+  return node.type === 'definition' || node.type === 'footnoteDefinition'
 }
 
 /**
@@ -158,7 +150,6 @@ function createHandlers(schema: Schema, text: string): Handlers {
         node.value ? schema.text(node.value) : undefined
       ),
     list: (node, _, state) => {
-      if (isRawBlock(node)) return rawBlock(node) // a nested task list
       const type = node.ordered ? nodes.orderedList : nodes.bulletList
       const spread = isLoose(node.children, node.spread)
       const attrs = node.ordered ? { start: node.start ?? 1, spread } : { spread }
@@ -166,7 +157,7 @@ function createHandlers(schema: Schema, text: string): Handlers {
     },
     listItem: (node, _, state) =>
       nodes.listItem.createAndFill(
-        { spread: isLoose(node.children, node.spread) },
+        { spread: isLoose(node.children, node.spread), checked: node.checked ?? null },
         state.all(node)
       ),
     // The first row is the header; a cell is one paragraph of inline content, aligned as its
@@ -217,6 +208,6 @@ function createHandlers(schema: Schema, text: string): Handlers {
     footnoteReference: rawInline,
     imageReference: rawInline,
     linkReference: (node, _, state) => rawMark(node, state.all(node)),
-    delete: (node, _, state) => rawMark(node, state.all(node))
+    delete: toPmMark(marks.strike)
   }
 }

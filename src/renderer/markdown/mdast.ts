@@ -223,14 +223,34 @@ export function stringWidth(text: string): number {
 // A backslash at the end of a text run, or right before its last letter, is written as `\\`:
 // remark may encode that last letter as `&#x61;` next to an emphasis marker, and a marker or
 // line end may follow the run, none of which may turn a literal backslash into an escape or a
-// hard break. `\\` is a literal backslash in every case.
+// hard break. `\\` is a literal backslash in every case. A task item whose text starts with a
+// parenthesis gets it escaped (`- [ ] \(Optional)`), as GitHub asks; the text node is marked
+// beforehand by markTaskItemParentheses, since the handler cannot see the item.
 const backslashAtEnd = /\\([\p{L}\p{N}]?)$/u
-function withSafeEnd(handle: Handle): Handle {
+function withSafeEnds(handle: Handle): Handle {
   return (node: Text, parent, state, info) => {
-    const match = backslashAtEnd.exec(node.value)
-    if (!match) return handle(node, parent, state, info)
-    const head = node.value.slice(0, node.value.length - match[0].length)
-    return handle({ ...node, value: head }, parent, state, info) + '\\\\' + match[1]
+    const escapeParenthesis = (node.data as { coleafTaskStart?: boolean } | undefined)
+      ?.coleafTaskStart
+    const value = escapeParenthesis ? node.value.slice(1) : node.value
+    const prefix = escapeParenthesis ? '\\(' : ''
+    const match = backslashAtEnd.exec(value)
+    if (!match) return prefix + handle({ ...node, value }, parent, state, info)
+    const head = value.slice(0, value.length - match[0].length)
+    return prefix + handle({ ...node, value: head }, parent, state, info) + '\\\\' + match[1]
+  }
+}
+
+function markTaskItemParentheses(node: Nodes): void {
+  if (!('children' in node)) return
+  for (const child of (node as Parent).children) {
+    if (child.type === 'listItem' && child.checked != null) {
+      const paragraph = child.children[0]
+      const text = paragraph?.type === 'paragraph' ? paragraph.children[0] : undefined
+      if (text?.type === 'text' && text.value.startsWith('(')) {
+        text.data = { ...text.data, coleafTaskStart: true }
+      }
+    }
+    markTaskItemParentheses(child)
   }
 }
 
@@ -241,7 +261,7 @@ export function stringifyOptions(escaping: Escaping): StringifyOptions {
     emphasis,
     link,
     table,
-    text: withSafeEnd(escaping === 'minimal' ? minimalText : defaultHandlers.text)
+    text: withSafeEnds(escaping === 'minimal' ? minimalText : defaultHandlers.text)
   }
   return {
     bullet: '-',
@@ -263,6 +283,7 @@ export function parseMarkdown(text: string): Root {
 /** Writes mdast as Markdown in CoLeaf's style. */
 export function stringifyMdast(root: Root, escaping: Escaping = 'full'): string {
   chooseEmphasisMarkers(root)
+  markTaskItemParentheses(root)
   return unified()
     .use(remarkGfm, gfmOptions)
     .use(remarkStringify, stringifyOptions(escaping))

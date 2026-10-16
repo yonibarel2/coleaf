@@ -1,4 +1,4 @@
-import { Extension, getSchema, type Extensions } from '@tiptap/core'
+import { Extension, getSchema, Mark, type Extensions } from '@tiptap/core'
 import Blockquote from '@tiptap/extension-blockquote'
 import Bold from '@tiptap/extension-bold'
 import Code from '@tiptap/extension-code'
@@ -22,6 +22,7 @@ import { HtmlBlock, RawBlock, RawInline, RawMark, SoftBreak } from './nodes'
 import { imageUrl } from './paths'
 import { CoLeafPictures } from './pictures'
 import { CoLeafSearch } from './search'
+import { listItemView } from './taskItem'
 
 // Keyboard shortcuts follow docs/markdown-spec.md exactly. The TipTap defaults that are not in
 // the spec are removed here; tests/editor/shortcuts.test.ts checks the full list.
@@ -64,10 +65,48 @@ const CoLeafOrderedList = OrderedList.extend({
   addKeyboardShortcuts: () => ({})
 })
 
+// A GFM task box on the item: true for `[x]`, false for `[ ]`, null for a plain item. Shown
+// as a checkbox (taskItem.ts); pasted GitHub HTML brings its box along.
+const checkedAttribute = {
+  default: null,
+  keepOnSplit: false,
+  parseHTML: (element: HTMLElement): boolean | null => {
+    const value = element.getAttribute('data-checked')
+    if (value === 'true' || value === 'false') return value === 'true'
+    const box = element.querySelector(':scope > input[type=checkbox], :scope > label > input')
+    return box instanceof HTMLInputElement && box.type === 'checkbox' ? box.checked : null
+  },
+  renderHTML: (attributes: Record<string, unknown>): Record<string, string> =>
+    typeof attributes['checked'] === 'boolean'
+      ? { 'data-checked': String(attributes['checked']) }
+      : {}
+}
+
 const CoLeafListItem = ListItem.extend({
   addAttributes() {
-    return { ...this.parent?.(), ...spreadAttribute }
-  }
+    return { ...this.parent?.(), ...spreadAttribute, checked: checkedAttribute }
+  },
+  addKeyboardShortcuts() {
+    return {
+      ...this.parent?.(),
+      // Enter in a task item starts a new, unticked task item; elsewhere a plain item.
+      Enter: () => {
+        const { $from } = this.editor.state.selection
+        const item = $from.depth > 0 ? $from.node(-1) : null
+        const checked = item?.type === this.type ? item.attrs['checked'] : null
+        const next = typeof checked === 'boolean' ? false : null
+        return this.editor.commands.splitListItem(this.name, { checked: next })
+      }
+    }
+  },
+  addNodeView: () => listItemView
+})
+
+/** `~~text~~`: shown struck through; no button or key yet (docs/markdown-spec.md: Later). */
+const Strike = Mark.create({
+  name: 'strike',
+  parseHTML: () => [{ tag: 's' }, { tag: 'del' }, { tag: 'strike' }],
+  renderHTML: ({ HTMLAttributes }) => ['s', HTMLAttributes, 0]
 })
 
 const CoLeafBlockquote = Blockquote.extend({ addKeyboardShortcuts: () => ({}) })
@@ -253,6 +292,7 @@ export function createExtensions(options: EditorOptions): Extensions {
     CoLeafLink.configure({ onActivate: options.onActivateLink }),
     Bold,
     Italic,
+    Strike,
     CoLeafCode,
     CoLeafCodeBlock,
     CoLeafBlockquote,

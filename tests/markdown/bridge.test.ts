@@ -103,7 +103,7 @@ describe('Markdown ⇄ editor document', () => {
     )
   })
 
-  it('keeps a nested kept-as-is block by re-writing its mdast', () => {
+  it('gives a nested task list the house bullet', () => {
     expect(roundTrip('- item\n  * [x] done\n')).toBe('- item\n  - [x] done\n')
   })
 

@@ -68,7 +68,7 @@ const nodeHandlers: Options['nodeHandlers'] = {
     return {
       type: 'listItem',
       spread: node.attrs['spread'] || needsBlankLine(children),
-      checked: null,
+      checked: typeof node.attrs['checked'] === 'boolean' ? node.attrs['checked'] : null,
       children
     }
   },
@@ -101,6 +101,7 @@ const nodeHandlers: Options['nodeHandlers'] = {
 const markHandlers: Options['markHandlers'] = {
   bold: fromPmMark('strong'),
   italic: fromPmMark('emphasis'),
+  strike: fromPmMark('delete'),
   code: (_mark, _parent, children) => ({
     type: 'inlineCode',
     value: children.map((child) => ('value' in child ? child.value : '')).join('')

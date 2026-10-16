@@ -81,6 +81,37 @@
   margin-top: var(--space-2);
 }
 
+/* Task lists (taskItem.ts): a checkbox where the bullet would be; the text stays editable. */
+.document li[data-checked] {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  list-style: none;
+}
+
+.document li[data-checked] > .list-item__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.document .task-box {
+  display: inline-flex;
+  justify-content: center;
+  width: var(--space-6);
+  margin-left: calc(var(--space-6) * -1);
+  padding-top: calc((var(--line-height-doc) * var(--text-doc) - var(--text-doc)) / 2);
+}
+
+.document .task-box input {
+  margin: 0;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.document s {
+  text-decoration: line-through;
+}
+
 .document blockquote {
   margin: 0;
   padding-left: var(--space-4);
