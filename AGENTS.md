@@ -51,6 +51,7 @@ Don't add libraries outside this list without approval. Not used: Monaco, TipTap
 9. **English** for code, comments and commits. Small commits with clear messages.
 10. **Tool-neutral context:** shared agent rules live in this file, not in tool-specific files.
 11. **Keep the repo clean:** follow the layout below. No new top-level files or folders, and no new dependencies, without approval. No scratch, debug or backup files in the repo; delete temporary files before finishing. Reuse existing helpers instead of adding near-duplicates. One small slice per change, ready to review as a single diff.
+12. **Our own code only:** never copy code from other projects, especially GPL ones such as OpenKnowledge; read for ideas, write it fresh. At the end of every stage run `npm run compliance -- --stage <id>` and commit its report; when a full stage is complete (Stage 1, 2, …) add `--release`, which also runs ScanCode. Dependency licenses must be on the allow list in `compliance/policy.json`; exceptions are for dev-only packages, never for anything shipped.
 
 ## Layout
 
@@ -62,6 +63,7 @@ Standard electron-vite layout:
 | `src/preload/` | The safe bridge: the only allowed IPC messages |
 | `src/renderer/` | The window (React): everything the user sees |
 | `tests/` | Round-trip, Git and end-to-end tests |
+| `compliance/` | License and code-origin checks; one report per stage in `reports/` |
 
 Full planned tree: [docs/architecture.md](docs/architecture.md#repo-layout).
 
@@ -78,6 +80,7 @@ Full planned tree: [docs/architecture.md](docs/architecture.md#repo-layout).
 | `npm run format` | Prettier on the repo (Markdown is never formatted, see `.prettierignore`) |
 | `npm run build` | Typecheck + production build to `out/` |
 | `npm run start` | Runs the production build |
+| `npm run compliance -- --stage <id>` | Checks dependency licenses against `compliance/policy.json` and writes `compliance/reports/stage-<id>.md`; `--release` adds the ScanCode pass (needs Python and pipx) |
 
 ## Testing
 

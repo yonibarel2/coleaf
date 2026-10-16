@@ -124,24 +124,30 @@ Build this first and see it work; then review and detail 1b. Stage 1 rows of [ma
 - [x] Save: never rewrite untouched files; save edited files in one consistent style; test the round-trip (open and save with no edits = no git diff)
 - [x] Test on real repo files
 - [x] Tables, links, images: GFM tables shown formatted and edited in place (type in cells, Tab between cells, add and remove rows and columns; alignment and HTML tables stay Later); Ctrl+click on a link to a `.md` file in the repo opens it in a tab and jumps to its `#heading`, web links open in the system browser, links to other repo files do nothing; pictures from the repo (path-safe, inside the project only) and `https` images are shown like GitHub
+- [ ] Compliance check
 
 **Stage 1b – Complete Stage 1**
 
 **Part A – Formatting spec**
 
-- [ ] Map every supported Markdown syntax in one table: Description | Markdown | Toolbar button | Shortcut
-- [ ] Decide which items get a toolbar button and which get a default shortcut (common ones: bold, italic, headings, lists)
-- [ ] Define custom shortcuts: users bind their own keys to any syntax
-- [ ] Toolbar design: a mockup of the layout and button groups
+- [x] Map every supported Markdown syntax in one table → [markdown-spec.md](markdown-spec.md)
+- [x] Decide which items get a toolbar button and which get a default shortcut → the How and Shortcut columns of the spec
+- [ ] Define custom shortcuts: users bind their own keys to any syntax → Later (decided Oct 16, 2026); Help › Keyboard Shortcuts lists the keys for now
+- [x] Toolbar design: a mockup of the layout and button groups → [ribbon.png](ui/ribbon.png), [ribbon-panels.png](ui/ribbon-panels.png)
 
 **Part B – Build**
 
-- [ ] Ribbon and shortcuts for the Stage 1 rows (from Part A)
-- [ ] Formatted read-only views of all other rows: tables, task lists, strikethrough, alerts, footnotes, Mermaid, math and common HTML (`<img>`, `<details>`, `<sub>`/`<sup>`, `<kbd>`, `<br>`, …); libraries to approve first (KaTeX, a safe HTML sanitizer)
-- [ ] Git: Sync button (commit, pull, push) with friendly conflicts
-- [ ] History and Restore
-- [ ] Frame: Welcome tab; Help › User Guide and Keyboard Shortcuts; File › Open for a single `.md` file; outside changes (Keep mine / Reload)
+Six slices in this order, each with its own commits, a green `npm run check`, a check in the running app and a tick here. Libraries approved on Oct 16, 2026: prosemirror-search, mermaid, katex + remark-math, dompurify, lowlight + @tiptap/extension-code-block-lowlight, yaml, gemoji.
+
+- [ ] Ribbon and shortcuts: the five groups of ribbon.png plus a Table button in Insert, per tab, collapsible, on a slightly darker bar; Styles menu (Heading 1–6 with keys); Find / Replace; code block language picker; Insert › Picture (file picker, paste and drag, saved under `images/`); Help › Keyboard Shortcuts lists all keys; spell-check suggestions on right-click
+- [ ] Viewers: task lists, strikethrough, alerts, footnotes, reference links and images, Mermaid (strict), math (KaTeX), code highlighting, front matter as a table, emoji, light/dark images; HTML blocks and inline tags shown sanitized with an "Edit code" button; scripts and styles never run
+- [ ] Git, local: dugite; branch name in the Explorer header; Sync icon with badge; Sync view (changed files with ticks, required message, commit); no git identity: asked once in the Sync view, saved to git config; tests on temporary repos
+- [ ] Git, remote: Sync = commit → pull → push, pull only when clean; Sign in with GitHub (device flow, token in safeStorage), account picture and Sign out; HTTPS remotes (SSH: Later); friendly conflicts: `.md` parts Mine / Theirs / Both on the formatted page, other files per file; messages with Learn more. Needs the GitHub App client ID from the owner
+- [ ] History and Restore: commits of the focused file; click one for a read-only view with the changes highlighted (jsdiff); right-click → Restore with Override / Commit and restore / Cancel
+- [ ] Frame: Welcome tab (Open project, Clone from GitHub, Open file, New file, New folder, Recent); single-file mode; outside changes (Keep mine / Reload); Help › User Guide (bundled, read-only, text reviewed by the owner); settings gear: light theme. Publish (create the GitHub repo + first push): Later
+- [ ] Outline, side by side (up to 3 panes), search across `.md` files
 - [ ] Test on real repo files
+- [ ] Compliance check (with ScanCode: Stage 1 complete)
 
 ## Release 1 – First public version
 
@@ -159,6 +165,8 @@ Ship Stage 1 to testers and the public as a signed app that updates itself.
 ### Work plan
 
 TODO
+
+- [ ] Compliance check, last (with ScanCode when the stage is complete)
 
 ## Stage 2 – Co-Work
 
@@ -183,6 +191,8 @@ TODO
 
 TODO
 
+- [ ] Compliance check, last (with ScanCode when the stage is complete)
+
 ## Stage 3 – AI integration
 
 ### Goal
@@ -202,6 +212,8 @@ Integrate AI into CoLeaf so it works on our `.md` files like Claude Code works o
 ### Work plan
 
 TODO
+
+- [ ] Compliance check, last (with ScanCode when the stage is complete)
 
 ## Stage 4 – UI
 
@@ -227,6 +239,8 @@ A full-window, Word-like workspace with modern styling, working side by side wit
 
 TODO
 
+- [ ] Compliance check, last (with ScanCode when the stage is complete)
+
 ## Stage 5 – Full source preservation
 
 ### Goal
@@ -245,6 +259,8 @@ TODO
 
 TODO
 
+- [ ] Compliance check, last (with ScanCode when the stage is complete)
+
 ## Ideas for later stages
 
 - **Diagram creator:** drag-and-drop diagram editing for non-developers, saved as text inside the `.md` (Mermaid) so Git shows changes and AI can read and edit it. A key differentiator.
@@ -260,7 +276,7 @@ TODO
 - [x] Web research on the best tools, libraries and AI services for the build → see [architecture.md](architecture.md)
 - [x] Review the repo description
 - [x] Confirm the tech stack → confirmed (see Architecture); first slice tests the Markdown bridge
-- [ ] Stage 1 Part A: formatting table + toolbar mockup
+- [x] Stage 1 Part A: formatting table + toolbar mockup
 - [x] Add `AGENTS.md` to the repo
 - [ ] Co-Work: find a way to store and enforce per-file ownership, permissions (edit / comment / view) and comments through GitHub. Foundation for Google Docs–style co-work + AI later
 - [x] Deep research before implementation: which AI tools, MCP servers, paid tools and skills to use for building CoLeaf

@@ -82,6 +82,7 @@ coleaf/
 │  ├─ preload/          the safe bridge: the only way window ↔ background talk
 │  └─ renderer/         the window (React): everything you see
 ├─ tests/               automatic checks
+├─ compliance/          license and code-origin checks, one report per stage
 ├─ .claude/             Claude Code hooks, skills, rules
 ├─ package.json         libraries and scripts (dev, test, build)
 ├─ electron.vite.config.ts
