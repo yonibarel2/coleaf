@@ -6,6 +6,7 @@ import { guardClose, registerAppIpc } from './ipc/app'
 import { registerFileIpc } from './ipc/file'
 import { registerProjectIpc } from './ipc/project'
 import { applyMenu } from './menu'
+import icon from '../../build/icon.png?asset'
 
 function createWindow(): void {
   const window = new BrowserWindow({
@@ -14,6 +15,7 @@ function createWindow(): void {
     minWidth: 800,
     minHeight: 600,
     title: 'CoLeaf',
+    icon, // placeholder leaf (window and taskbar); the final logo comes in Stage 4
     show: false,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
