@@ -20,6 +20,7 @@ import { ReactNodeViewRenderer } from '@tiptap/react'
 import { CodeBlockView } from './CodeBlockView'
 import { HtmlBlock, RawBlock, RawInline, RawMark, SoftBreak } from './nodes'
 import { imageUrl } from './paths'
+import { CoLeafPictures } from './pictures'
 import { CoLeafSearch } from './search'
 
 // Keyboard shortcuts follow docs/markdown-spec.md exactly. The TipTap defaults that are not in
@@ -234,6 +235,8 @@ export interface EditorOptions {
   onFind: () => void
   /** Ctrl+click on a link: the app follows it. */
   onActivateLink: (href: string) => void
+  /** A pasted or dropped picture: stored under `images/`, its tree path returned. */
+  savePicture: (name: string, bytes: Uint8Array) => Promise<string>
   /** Tree path of the document, which pictures and links resolve against. */
   documentPath: string
 }
@@ -271,6 +274,10 @@ export function createExtensions(options: EditorOptions): Extensions {
     RawBlock,
     RawInline,
     SoftBreak,
+    CoLeafPictures.configure({
+      documentPath: options.documentPath,
+      savePicture: options.savePicture
+    }),
     CoLeafSearch.configure({ onFind: options.onFind }),
     CoLeafKeys.configure({ onLink: options.onLink })
   ]
@@ -280,6 +287,7 @@ const noOptions: EditorOptions = {
   onLink: () => {},
   onFind: () => {},
   onActivateLink: () => {},
+  savePicture: () => Promise.reject(new Error('No project')),
   documentPath: ''
 }
 

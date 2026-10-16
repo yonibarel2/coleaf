@@ -3,6 +3,7 @@ import type { ProjectInfo } from '../../preload/contract'
 import { Editor } from '../editor/Editor'
 import { jumpToHeading, linkDraftFor, resolveLink } from '../editor/link'
 import type { LinkDraft } from '../editor/LinkPanel'
+import { insertPictures } from '../editor/pictures'
 import { Ribbon } from '../ribbon/Ribbon'
 import { Explorer } from '../sidebar/Explorer'
 import { TabBar } from '../tabs/TabBar'
@@ -72,6 +73,11 @@ export function ProjectView({ project, explorerOpen }: ProjectViewProps): JSX.El
             }}
             onLink={() => setLinkDraft({ path: active.path, draft: linkDraftFor(active.editor) })}
             onFind={(replace) => setFind({ path: active.path, replace })}
+            onPicture={() => {
+              void window.coleaf.images
+                .pick(active.path)
+                .then((paths) => insertPictures(active.editor.view, active.path, paths, null))
+            }}
           />
         )}
         {active && (

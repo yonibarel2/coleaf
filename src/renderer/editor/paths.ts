@@ -26,6 +26,15 @@ export function resolveRepoPath(documentPath: string, target: string): string | 
   return segments.length > 0 ? segments.join('/') : null
 }
 
+/** How a document links to another tree path: `docs/plan.md` → `images/docs/plan/a.png` is `../images/docs/plan/a.png`. */
+export function relativePath(documentPath: string, treePath: string): string {
+  const from = documentPath.split('/').slice(0, -1)
+  const to = treePath.split('/')
+  let common = 0
+  while (common < from.length && common < to.length - 1 && from[common] === to[common]) common++
+  return [...Array<string>(from.length - common).fill('..'), ...to.slice(common)].join('/')
+}
+
 /**
  * Where the window loads a picture from: an `https` address as it is, a repo file through the
  * app's image scheme (served from inside the project only, see main/files/images.ts). Anything

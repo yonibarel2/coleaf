@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { headingSlugs, resolveLink } from '../../src/renderer/editor/link'
-import { imageUrl, resolveRepoPath } from '../../src/renderer/editor/paths'
+import { imageUrl, relativePath, resolveRepoPath } from '../../src/renderer/editor/paths'
 
 describe('resolveRepoPath', () => {
   it('resolves against the document folder, or the root after a slash', () => {
@@ -23,6 +23,16 @@ describe('resolveRepoPath', () => {
     expect(resolveRepoPath('a.md', '%E0%A4%A')).toBeNull() // a broken escape
     expect(resolveRepoPath('a.md', '')).toBeNull()
     expect(resolveRepoPath('a.md', '/')).toBeNull()
+  })
+})
+
+describe('relativePath', () => {
+  it('links from the document folder to a tree path', () => {
+    expect(relativePath('docs/plan.md', 'images/docs/plan/a.png')).toBe('../images/docs/plan/a.png')
+    expect(relativePath('README.md', 'images/README/a.png')).toBe('images/README/a.png')
+    expect(relativePath('docs/a.md', 'docs/b.md')).toBe('b.md')
+    expect(relativePath('docs/deep/a.md', 'docs/b.md')).toBe('../b.md')
+    expect(relativePath('a/b/c.md', 'a/b/c/d.png')).toBe('c/d.png')
   })
 })
 

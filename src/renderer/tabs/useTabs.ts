@@ -83,6 +83,7 @@ export function useTabs(options: TabsOptions): Tabs {
             onLink: () => callbacks.current.onLink(path, editor),
             onFind: () => callbacks.current.onFind(path),
             onActivateLink: (href) => callbacks.current.onActivateLink(path, href),
+            savePicture: (name, bytes) => window.coleaf.images.save(path, name, bytes),
             documentPath: path
           }),
           content: markdownToDoc(text, schema).toJSON(),

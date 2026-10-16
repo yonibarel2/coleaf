@@ -61,6 +61,7 @@ describe('editor keyboard shortcuts', () => {
         onLink: () => {},
         onFind: () => {},
         onActivateLink: () => {},
+        savePicture: () => Promise.reject(new Error('unused')),
         documentPath: ''
       })
     )

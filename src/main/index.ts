@@ -5,6 +5,7 @@ import { imagePathOf, imageScheme, readImage } from './files/images'
 import { ProjectSession } from './files/session'
 import { guardClose, registerAppIpc } from './ipc/app'
 import { registerFileIpc } from './ipc/file'
+import { registerImageIpc } from './ipc/images'
 import { registerProjectIpc } from './ipc/project'
 import { applyMenu } from './menu'
 import icon from '../../build/icon.png?asset'
@@ -63,6 +64,7 @@ app.whenReady().then(() => {
   const session = new ProjectSession()
   registerProjectIpc(session)
   registerFileIpc(session)
+  registerImageIpc(session)
   registerAppIpc()
   applyMenu(session)
   session.onChange(() => applyMenu(session))

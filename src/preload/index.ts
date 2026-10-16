@@ -39,6 +39,14 @@ const api = {
   dialog: {
     askSave: (name: string): Promise<SaveChoice> => ipcRenderer.invoke(channels.dialogAskSave, name)
   },
+  images: {
+    /** Insert › Picture: the user picks files; copies land under `images/`. Returns their tree paths. */
+    pick: (documentPath: string): Promise<string[]> =>
+      ipcRenderer.invoke(channels.imagePick, documentPath),
+    /** A pasted or dropped picture, stored under `images/`. Returns its tree path. */
+    save: (documentPath: string, name: string, bytes: Uint8Array): Promise<string> =>
+      ipcRenderer.invoke(channels.imageSave, documentPath, name, bytes)
+  },
   app: {
     /** How many open documents have unsaved changes. */
     setUnsaved: (count: number): void => ipcRenderer.send(channels.appSetUnsaved, count),
