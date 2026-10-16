@@ -47,7 +47,7 @@ Don't add libraries outside this list without approval. Not used: Monaco, TipTap
 5. **Security:** the window has no Node access (`contextIsolation` on, `nodeIntegration` off). All disk and Git work goes through the preload's allowlisted IPC messages.
 6. **Left-to-right only:** no RTL support.
 7. **No AI features** before Stage 3.
-8. **Look:** Leaf palette (accent `#2F7D32`, ground `#F3F3F1`, ink `#171717`), IBM Plex Sans for the app UI, the system font for documents. See `docs/ui/style.png`. All colors, fonts, sizes and spacing come from one tokens file in `src/renderer/styles/`; never hard-code them in components, so the whole look can be redesigned in one place (Stage 4).
+8. **Look:** Leaf palette (accent `#2F7D32`, ground `#F3F3F1`, sheet `#FCFCFB`, ink `#171717`), IBM Plex Sans for the app UI, the system font for documents. See `docs/ui/style.png`. All colors, fonts, sizes and spacing come from one tokens file in `src/renderer/styles/`; never hard-code them in components, so the whole look can be redesigned in one place (Stage 4).
 9. **English** for code, comments and commits. Small commits with clear messages.
 10. **Tool-neutral context:** shared agent rules live in this file, not in tool-specific files.
 11. **Keep the repo clean:** follow the layout below. No new top-level files or folders, and no new dependencies, without approval. No scratch, debug or backup files in the repo; delete temporary files before finishing. Reuse existing helpers instead of adding near-duplicates. One small slice per change, ready to review as a single diff.

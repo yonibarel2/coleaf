@@ -1,13 +1,15 @@
 /*
  * Design tokens: the one place for every color, font, size and spacing value.
  * Components only ever use these variables (AGENTS.md rule 8), so the whole look
- * can be redesigned here in Stage 4. Values from docs/ui/style.png (Leaf palette).
- * The dark theme comes in Stage 4 as styles/themes/dark.css.
+ * can be redesigned here in Stage 4. Values from docs/ui/style.png (Leaf palette); the sheet
+ * color from the page mockups (docs/ui/project-view.png). The dark theme comes in Stage 4 as
+ * styles/themes/dark.css.
  */
 :root {
   /* Leaf palette, light theme */
   --color-ground: #f3f3f1;
-  --color-surface: #ffffff;
+  --color-surface: #ffffff; /* controls: tabs, buttons, inputs */
+  --color-sheet: #fcfcfb; /* the page and cards: a soft off-white on the ground */
   --color-line: #e6e6e1;
   --color-ink: #171717;
   --color-muted: #5f5f5a;

@@ -11,7 +11,7 @@
   margin: 0 auto;
   border: 1px solid var(--color-line);
   border-radius: var(--radius-card);
-  background: var(--color-surface);
+  background: var(--color-sheet);
 }
 
 .document {
@@ -177,7 +177,7 @@
   padding: var(--space-4);
   border: 1px solid var(--color-line);
   border-radius: var(--radius-card);
-  background: var(--color-surface);
+  background: var(--color-sheet);
 }
 
 .link-panel__field {
