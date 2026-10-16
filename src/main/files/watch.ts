@@ -2,51 +2,53 @@ import { watch, type FSWatcher } from 'node:fs'
 
 // Editors write a file in several steps; one change per folder per burst is enough.
 const debounceMs = 150
-// Watchers only exist for folders the user expanded; the cap protects against extreme cases.
-const maxWatchers = 500
 
-/** One non-recursive watcher per folder the window has listed. */
-export class DirectoryWatchers {
-  private readonly watchers = new Map<string, FSWatcher>()
-  private readonly timers = new Map<string, NodeJS.Timeout>()
+interface Pending {
+  timer: NodeJS.Timeout
+  paths: Set<string>
+}
 
-  constructor(private readonly onChange: (dir: string) => void) {}
+/**
+ * One recursive watcher on the project root. Changes are reported per folder (tree path) with
+ * the changed paths under it, after a short debounce. Linux note: Node's recursive watch there
+ * uses one inotify watch per folder, so very large projects may hit the system limit.
+ */
+export class ProjectWatcher {
+  private watcher: FSWatcher | undefined
+  private readonly pending = new Map<string, Pending>()
 
-  watch(dir: string): void {
-    if (this.watchers.has(dir)) return
-    if (this.watchers.size >= maxWatchers) {
-      const oldest = this.watchers.keys().next().value
-      if (oldest !== undefined) this.close(oldest)
-    }
-    let watcher: FSWatcher
+  constructor(private readonly onChange: (dir: string, paths: string[]) => void) {}
+
+  watch(root: string): void {
+    this.close()
     try {
-      watcher = watch(dir, () => this.schedule(dir))
+      this.watcher = watch(root, { recursive: true }, (_type, filename) => {
+        if (typeof filename !== 'string' || filename === '') return
+        this.schedule(filename.split('\\').join('/'))
+      })
     } catch {
-      return // the folder vanished between listing and watching; its parent reports that
+      return // the folder vanished; the session will close
     }
-    watcher.on('error', () => this.close(dir))
-    this.watchers.set(dir, watcher)
+    this.watcher.on('error', () => this.close())
   }
 
-  close(dir: string): void {
-    this.watchers.get(dir)?.close()
-    this.watchers.delete(dir)
-    clearTimeout(this.timers.get(dir))
-    this.timers.delete(dir)
+  close(): void {
+    this.watcher?.close()
+    this.watcher = undefined
+    for (const { timer } of this.pending.values()) clearTimeout(timer)
+    this.pending.clear()
   }
 
-  closeAll(): void {
-    for (const dir of [...this.watchers.keys()]) this.close(dir)
-  }
-
-  private schedule(dir: string): void {
-    clearTimeout(this.timers.get(dir))
-    this.timers.set(
-      dir,
-      setTimeout(() => {
-        this.timers.delete(dir)
-        this.onChange(dir)
-      }, debounceMs)
-    )
+  private schedule(path: string): void {
+    const dir = path.includes('/') ? path.slice(0, path.lastIndexOf('/')) : ''
+    const pending = this.pending.get(dir)
+    const paths = pending?.paths ?? new Set<string>()
+    paths.add(path)
+    if (pending) clearTimeout(pending.timer)
+    const timer = setTimeout(() => {
+      this.pending.delete(dir)
+      this.onChange(dir, [...paths])
+    }, debounceMs)
+    this.pending.set(dir, { timer, paths })
   }
 }

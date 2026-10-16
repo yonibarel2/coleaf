@@ -93,6 +93,9 @@
 
 .tree__row--muted {
   color: var(--color-muted);
+}
+
+.tree__row--static {
   cursor: default;
 }
 

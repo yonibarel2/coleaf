@@ -20,7 +20,8 @@
     "check": "npm run typecheck && npm run lint && npm run test"
   },
   "dependencies": {
-    "@electron-toolkit/utils": "^4.0.0"
+    "@electron-toolkit/utils": "^4.0.0",
+    "ignore": "^7.0.12"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.1",

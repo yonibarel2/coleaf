@@ -1,48 +1,60 @@
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { DirectoryWatchers } from '../../src/main/files/watch'
+import { ProjectWatcher } from '../../src/main/files/watch'
 
 const settle = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms))
 
-let dir: string
-let watchers: DirectoryWatchers | undefined
+interface Change {
+  dir: string
+  paths: string[]
+}
+
+let root: string
+let watcher: ProjectWatcher | undefined
 
 beforeEach(async () => {
-  dir = await mkdtemp(join(tmpdir(), 'coleaf-watch-'))
+  root = await mkdtemp(join(tmpdir(), 'coleaf-watch-'))
+  await mkdir(join(root, 'a', 'b'), { recursive: true })
 })
 
 afterEach(async () => {
-  watchers?.closeAll()
-  await rm(dir, { recursive: true, force: true })
+  watcher?.close()
+  await rm(root, { recursive: true, force: true })
 })
 
-describe('DirectoryWatchers', () => {
-  it('reports one change per folder for a burst of writes, and none after closeAll', async () => {
-    const changes: string[] = []
-    watchers = new DirectoryWatchers((changed) => changes.push(changed))
-    watchers.watch(dir)
+describe('ProjectWatcher', () => {
+  it('reports a nested change under its folder, with tree paths', async () => {
+    const changes: Change[] = []
+    watcher = new ProjectWatcher((dir, paths) => changes.push({ dir, paths }))
+    watcher.watch(root)
 
-    await writeFile(join(dir, 'a.md'), 'a')
-    await writeFile(join(dir, 'b.md'), 'b')
-    await vi.waitFor(() => expect(changes).toEqual([dir]), { timeout: 3000 })
-
-    watchers.closeAll()
-    await writeFile(join(dir, 'c.md'), 'c')
-    await settle(400)
-    expect(changes).toEqual([dir])
+    await writeFile(join(root, 'a', 'b', 'x.md'), 'x')
+    await vi.waitFor(
+      () => {
+        const change = changes.find((c) => c.dir === 'a/b')
+        expect(change?.paths).toContain('a/b/x.md')
+      },
+      { timeout: 3000 }
+    )
   })
 
-  it('watches a folder only once', async () => {
-    const changes: string[] = []
-    watchers = new DirectoryWatchers((changed) => changes.push(changed))
-    watchers.watch(dir)
-    watchers.watch(dir)
+  it('merges a burst into one change per folder and stops after close', async () => {
+    const changes: Change[] = []
+    watcher = new ProjectWatcher((dir, paths) => changes.push({ dir, paths }))
+    watcher.watch(root)
 
-    await writeFile(join(dir, 'a.md'), 'a')
-    await vi.waitFor(() => expect(changes).toEqual([dir]), { timeout: 3000 })
+    await writeFile(join(root, 'one.md'), '1')
+    await writeFile(join(root, 'two.md'), '2')
+    await vi.waitFor(() => expect(changes.filter((c) => c.dir === '')).toHaveLength(1), {
+      timeout: 3000
+    })
+    expect(changes.find((c) => c.dir === '')?.paths.sort()).toEqual(['one.md', 'two.md'])
+
+    watcher.close()
+    await writeFile(join(root, 'three.md'), '3')
     await settle(400)
-    expect(changes).toEqual([dir])
+    expect(changes.filter((c) => c.dir === '')).toHaveLength(1)
   })
 })

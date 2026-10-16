@@ -49,7 +49,7 @@ interface TreeRowsProps {
 
 function TreeRows({ path, depth, tree, onlyMarkdown }: TreeRowsProps): JSX.Element {
   const entries = tree.entries[path] ?? []
-  const shown = onlyMarkdown ? entries.filter((e) => e.kind === 'dir' || e.isMarkdown) : entries
+  const shown = onlyMarkdown ? entries.filter(showsMarkdown) : entries
   return (
     <>
       {shown.map((entry) => (
@@ -75,11 +75,15 @@ interface TreeRowProps {
 function TreeRow({ entry, depth, tree, onlyMarkdown }: TreeRowProps): JSX.Element {
   const isDir = entry.kind === 'dir'
   const expanded = isDir && tree.expanded.has(entry.path)
-  const muted = !isDir && !entry.isMarkdown
+  // Greyed: a file that isn't Markdown, or a folder known to hold none (still expandable).
+  const muted = isDir ? entry.hasMarkdown === false : !entry.isMarkdown
+  const classes = ['tree__row']
+  if (muted) classes.push('tree__row--muted')
+  if (!isDir && muted) classes.push('tree__row--static')
   return (
     <>
       <li
-        className={`tree__row${muted ? ' tree__row--muted' : ''}`}
+        className={classes.join(' ')}
         style={{ '--depth': depth } as CSSProperties}
         title={entry.path}
         onClick={isDir ? () => tree.toggle(entry.path) : undefined}
@@ -96,4 +100,9 @@ function TreeRow({ entry, depth, tree, onlyMarkdown }: TreeRowProps): JSX.Elemen
 
 function Chevron({ open }: { open: boolean }): JSX.Element {
   return open ? <ChevronDown /> : <ChevronRight />
+}
+
+// "Only .md": keep Markdown files and folders that hold (or may still hold) Markdown.
+function showsMarkdown(entry: TreeEntry): boolean {
+  return entry.kind === 'dir' ? entry.hasMarkdown !== false : entry.isMarkdown
 }

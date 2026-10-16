@@ -66,8 +66,15 @@ function gitInternals(path: string): Error {
   return new Error(`Path is inside .git: ${path}`)
 }
 
-/** Lists one folder of the project: hidden entries removed, folders first. */
-export async function listDirectory(root: string, path: string): Promise<TreeEntry[]> {
+/**
+ * Lists one folder of the project: hidden entries removed, folders first. `markdownStatus` tells,
+ * per subfolder tree path, whether Markdown lives under it (see `TreeEntry.hasMarkdown`).
+ */
+export async function listDirectory(
+  root: string,
+  path: string,
+  markdownStatus?: (dir: string) => boolean | undefined
+): Promise<TreeEntry[]> {
   const dir = await resolveInside(root, path)
   const entries: TreeEntry[] = []
   for (const dirent of await readdir(dir, { withFileTypes: true })) {
@@ -76,20 +83,23 @@ export async function listDirectory(root: string, path: string): Promise<TreeEnt
       ? 'dir'
       : dirent.isFile()
         ? 'file'
-        : await kindOfLink(join(dir, dirent.name))
+        : await kindOf(join(dir, dirent.name))
     if (!kind) continue
-    entries.push({
+    const entryPath = path ? `${path}/${dirent.name}` : dirent.name
+    const entry: TreeEntry = {
       name: dirent.name,
-      path: path ? `${path}/${dirent.name}` : dirent.name,
+      path: entryPath,
       kind,
       isMarkdown: kind === 'file' && isMarkdownName(dirent.name)
-    })
+    }
+    if (kind === 'dir' && markdownStatus) entry.hasMarkdown = markdownStatus(entryPath)
+    entries.push(entry)
   }
   return entries.sort(compareEntries)
 }
 
-// A link shows as whatever it points to; a broken link is left out.
-async function kindOfLink(path: string): Promise<TreeEntry['kind'] | undefined> {
+/** What an absolute path is right now; a link counts as its target. Undefined when gone or odd. */
+export async function kindOf(path: string): Promise<TreeEntry['kind'] | undefined> {
   try {
     const info = await stat(path)
     return info.isDirectory() ? 'dir' : info.isFile() ? 'file' : undefined

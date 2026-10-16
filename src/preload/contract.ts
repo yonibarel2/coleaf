@@ -25,4 +25,9 @@ export interface TreeEntry {
   path: string
   kind: 'dir' | 'file'
   isMarkdown: boolean
+  /**
+   * Folders only: whether a Markdown file lives anywhere under it. `false` also for folders that
+   * are never scanned (`node_modules`, git-ignored); `undefined` while the background scan runs.
+   */
+  hasMarkdown?: boolean
 }

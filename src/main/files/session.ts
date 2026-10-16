@@ -1,16 +1,21 @@
-import { basename, relative, sep } from 'node:path'
+import { basename, join } from 'node:path'
 import { BrowserWindow, dialog, type BaseWindow } from 'electron'
 import { channels, type ProjectInfo, type TreeEntry } from '../../preload/contract'
-import { listDirectory, resolveInside } from './project'
-import { DirectoryWatchers } from './watch'
+import { ProjectIgnore } from './ignore'
+import { MarkdownIndex } from './markdown-index'
+import { kindOf, listDirectory } from './project'
+import { ProjectWatcher } from './watch'
 
 type ChangeListener = (project: ProjectInfo | null) => void
 
 /** The one project open in CoLeaf. Owned here; the window and the menu mirror it. */
 export class ProjectSession {
   private project: ProjectInfo | null = null
+  private index: MarkdownIndex | undefined
   private readonly listeners = new Set<ChangeListener>()
-  private readonly watchers = new DirectoryWatchers((dir) => this.notifyDirChanged(dir))
+  // Folders the window has listed: the ones to tell about changes.
+  private readonly listed = new Set<string>()
+  private readonly watcher = new ProjectWatcher((dir, paths) => void this.handleChanges(dir, paths))
 
   get current(): ProjectInfo | null {
     return this.project
@@ -27,25 +32,31 @@ export class ProjectSession {
   }
 
   openPath(root: string): ProjectInfo {
-    this.watchers.closeAll()
+    this.reset()
     this.project = { root, name: basename(root) || root }
+    const index = new MarkdownIndex(root, new ProjectIgnore(root))
+    this.index = index
+    this.watcher.watch(root)
+    void index.scan().then(() => {
+      if (this.index === index) this.notifyListed()
+    })
     this.emitChange()
     return this.project
   }
 
   close(): void {
     if (!this.project) return
-    this.watchers.closeAll()
+    this.reset()
     this.project = null
     this.emitChange()
   }
 
-  /** Lists a folder of the open project and starts following it for outside changes. */
+  /** Lists a folder of the open project; from then on the window hears about its changes. */
   async listDir(path: string): Promise<TreeEntry[]> {
-    if (!this.project) throw new Error('No project is open')
-    const dir = await resolveInside(this.project.root, path)
-    const entries = await listDirectory(this.project.root, path)
-    this.watchers.watch(dir)
+    if (!this.project || !this.index) throw new Error('No project is open')
+    const index = this.index
+    const entries = await listDirectory(this.project.root, path, (dir) => index.status(dir))
+    this.listed.add(path)
     return entries
   }
 
@@ -54,14 +65,46 @@ export class ProjectSession {
     return () => this.listeners.delete(listener)
   }
 
+  private reset(): void {
+    this.watcher.close()
+    this.index?.cancel()
+    this.index = undefined
+    this.listed.clear()
+  }
+
+  // Keeps the Markdown index current, then tells the window which listed folders to re-read.
+  private async handleChanges(dir: string, paths: string[]): Promise<void> {
+    const index = this.index
+    if (!index || !this.project) return
+    if (!index.ignore.isSkipped(dir)) {
+      if (paths.some((path) => basename(path) === '.gitignore')) {
+        await index.scan() // the rules changed: start over
+        if (this.index === index) this.notifyListed()
+        return
+      }
+      for (const path of paths) {
+        const kind = await kindOf(join(this.project.root, path))
+        if (kind === 'dir') await index.scanSubtree(path)
+        else if (kind === undefined) index.prune(path)
+      }
+      await index.refresh(dir)
+    }
+    if (this.index !== index) return
+    // The folder itself changed; its ancestors may have changed their Markdown status.
+    for (let current = dir; ; current = current.slice(0, current.lastIndexOf('/'))) {
+      if (this.listed.has(current)) this.send(channels.projectDirChanged, current)
+      if (current === '') break
+      if (!current.includes('/')) current = '/' // one more round for the root
+    }
+  }
+
+  private notifyListed(): void {
+    for (const path of this.listed) this.send(channels.projectDirChanged, path)
+  }
+
   private emitChange(): void {
     for (const listener of this.listeners) listener(this.project)
     this.send(channels.projectChanged, this.project)
-  }
-
-  private notifyDirChanged(dir: string): void {
-    if (!this.project) return
-    this.send(channels.projectDirChanged, relative(this.project.root, dir).split(sep).join('/'))
   }
 
   private send(channel: string, payload: unknown): void {
