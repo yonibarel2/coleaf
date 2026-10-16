@@ -66,7 +66,9 @@ const normalize = (key: string): string =>
 
 describe('editor keyboard shortcuts', () => {
   it('bind exactly the shortcuts of the spec, plus plain editing keys', () => {
-    const extensions = flatten(createExtensions({ onLink: () => {} }))
+    const extensions = flatten(
+      createExtensions({ onLink: () => {}, onActivateLink: () => {}, documentPath: '' })
+    )
     const keys = new Set(extensions.flatMap(boundKeys).map(normalize))
     const expected = new Set([...specShortcuts, ...editingKeys])
     expect([...keys].sort()).toEqual([...expected].sort())

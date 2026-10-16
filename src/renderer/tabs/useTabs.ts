@@ -24,7 +24,8 @@ export interface Tab {
 export interface Tabs {
   tabs: Tab[]
   active: Tab | null
-  open: (path: string) => Promise<void>
+  /** Opens the file in a tab (or shows its tab) and returns it; null while it is still opening. */
+  open: (path: string) => Promise<Tab | null>
   activate: (path: string) => void
   close: (path: string) => Promise<void>
   saveActive: () => Promise<void>
@@ -33,6 +34,8 @@ export interface Tabs {
 export interface TabsOptions {
   /** Ctrl+K in an editor. */
   onLink: () => void
+  /** Ctrl+click on a link in the document at `fromPath`. */
+  onActivateLink: (fromPath: string, href: string) => void
 }
 
 /**
@@ -45,11 +48,11 @@ export function useTabs(options: TabsOptions): Tabs {
   const [activePath, setActivePath] = useState<string | null>(null)
   const tabsRef = useRef<Tab[]>([])
   const opening = useRef(new Set<string>())
-  const onLink = useRef(options.onLink)
+  const callbacks = useRef(options)
 
   useEffect(() => {
     tabsRef.current = tabs
-    onLink.current = options.onLink
+    callbacks.current = options
   })
 
   // Editors are not React state: free them when the owner goes away.
@@ -60,12 +63,13 @@ export function useTabs(options: TabsOptions): Tabs {
   }, [])
 
   const open = useCallback(
-    async (path: string) => {
-      if (tabsRef.current.some((tab) => tab.path === path)) {
+    async (path: string): Promise<Tab | null> => {
+      const shown = tabsRef.current.find((tab) => tab.path === path)
+      if (shown) {
         setActivePath(path)
-        return
+        return shown
       }
-      if (opening.current.has(path)) return
+      if (opening.current.has(path)) return null
       opening.current.add(path)
       try {
         const { text, readOnly, ...format } = await window.coleaf.file.read(path)
@@ -73,7 +77,11 @@ export function useTabs(options: TabsOptions): Tabs {
           // A detached element: EditorContent adopts the view when the tab is shown and hands it
           // back when another tab is shown, so the editor (and its undo history) lives on.
           element: document.createElement('div'),
-          extensions: createExtensions({ onLink: () => onLink.current() }),
+          extensions: createExtensions({
+            onLink: () => callbacks.current.onLink(),
+            onActivateLink: (href) => callbacks.current.onActivateLink(path, href),
+            documentPath: path
+          }),
           content: markdownToDoc(text, schema).toJSON(),
           editable: !readOnly,
           // No typed Markdown shortcuts: formatting only via shortcuts (and the ribbon, later).
@@ -98,6 +106,7 @@ export function useTabs(options: TabsOptions): Tabs {
         })
         setTabs((prev) => [...prev, tab])
         setActivePath(path)
+        return tab
       } finally {
         opening.current.delete(path)
       }

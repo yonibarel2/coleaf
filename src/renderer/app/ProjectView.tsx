@@ -1,7 +1,7 @@
 import { useEffect, useState, type JSX } from 'react'
 import type { ProjectInfo } from '../../preload/contract'
 import { Editor } from '../editor/Editor'
-import { linkDraftFor } from '../editor/link'
+import { jumpToHeading, linkDraftFor, resolveLink } from '../editor/link'
 import type { LinkDraft } from '../editor/LinkPanel'
 import { Explorer } from '../sidebar/Explorer'
 import { TabBar } from '../tabs/TabBar'
@@ -18,9 +18,23 @@ export function ProjectView({ project, explorerOpen }: ProjectViewProps): JSX.El
   const tabs = useTabs({
     onLink: () => {
       if (tabs.active) setLinkDraft(linkDraftFor(tabs.active.editor))
-    }
+    },
+    onActivateLink: (fromPath, href) => void followLink(fromPath, href)
   })
   const { open, saveActive } = tabs
+
+  // Ctrl+click on a link: a web address opens in the browser (through the background's
+  // window-open handler), a Markdown file of the project in a tab, at its heading if named.
+  async function followLink(fromPath: string, href: string): Promise<void> {
+    const target = resolveLink(fromPath, href)
+    if (!target) return
+    if (target.kind === 'web') {
+      window.open(target.url)
+      return
+    }
+    const tab = await open(target.path).catch(() => null)
+    if (tab && target.fragment) jumpToHeading(tab.editor, target.fragment)
+  }
 
   // File › Save (Ctrl+S) and File › New File arrive from the menu, wherever the focus is.
   useEffect(() => window.coleaf.app.onSave(() => void saveActive()), [saveActive])

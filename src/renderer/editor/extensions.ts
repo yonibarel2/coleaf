@@ -7,15 +7,17 @@ import Document from '@tiptap/extension-document'
 import HardBreak from '@tiptap/extension-hard-break'
 import Heading, { type Level } from '@tiptap/extension-heading'
 import HorizontalRule from '@tiptap/extension-horizontal-rule'
-import Image from '@tiptap/extension-image'
+import Image, { type ImageOptions } from '@tiptap/extension-image'
 import Italic from '@tiptap/extension-italic'
-import Link from '@tiptap/extension-link'
+import Link, { type LinkOptions } from '@tiptap/extension-link'
 import { BulletList, ListItem, ListKeymap, OrderedList } from '@tiptap/extension-list'
 import Paragraph from '@tiptap/extension-paragraph'
 import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table'
 import Text from '@tiptap/extension-text'
 import { Dropcursor, Gapcursor, UndoRedo } from '@tiptap/extensions'
+import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { HtmlBlock, RawBlock, RawInline, RawMark, SoftBreak } from './nodes'
+import { imageUrl } from './paths'
 
 // Keyboard shortcuts follow docs/markdown-spec.md exactly. The TipTap defaults that are not in
 // the spec are removed here; tests/editor/shortcuts.test.ts checks the full list.
@@ -100,7 +102,15 @@ const CoLeafUndoRedo = UndoRedo.extend({
   }
 })
 
-const CoLeafLink = Link.extend({
+interface CoLeafLinkOptions extends LinkOptions {
+  /** Ctrl+click (Cmd on Mac) on a link: the app follows it. */
+  onActivate: (href: string) => void
+}
+
+const CoLeafLink = Link.extend<CoLeafLinkOptions>({
+  addOptions() {
+    return { ...this.parent?.(), onActivate: () => {} } as CoLeafLinkOptions
+  },
   addAttributes() {
     return {
       ...this.parent?.(),
@@ -109,8 +119,54 @@ const CoLeafLink = Link.extend({
       // in the editor. Keeps `[https://x](https://x)` from being saved as `<https://x>`.
       form: { default: null, rendered: false }
     }
+  },
+  addProseMirrorPlugins() {
+    return [
+      ...(this.parent?.() ?? []),
+      new Plugin({
+        key: new PluginKey('coleafLinkClick'),
+        props: {
+          handleClick: (view, pos, event) => {
+            if (!(event.ctrlKey || event.metaKey)) return false
+            const node = view.state.doc.nodeAt(pos)
+            const href = node?.marks.find((mark) => mark.type.name === 'link')?.attrs['href']
+            if (typeof href !== 'string') return false
+            this.options.onActivate(href)
+            return true
+          }
+        }
+      })
+    ]
   }
 }).configure({ openOnClick: false, linkOnPaste: false })
+
+interface CoLeafImageOptions extends ImageOptions {
+  /** Tree path of the document, which relative picture paths start from. */
+  documentPath: string
+}
+
+// The Markdown `src` stays as written (kept in data-src); the picture itself loads through the
+// app's image scheme for repo files, or directly for https (see paths.ts).
+const CoLeafImage = Image.extend<CoLeafImageOptions>({
+  addOptions() {
+    return { ...this.parent?.(), documentPath: '' } as CoLeafImageOptions
+  },
+  addAttributes() {
+    const { documentPath } = this.options
+    return {
+      ...this.parent?.(),
+      src: {
+        default: null,
+        parseHTML: (element: HTMLElement) =>
+          element.getAttribute('data-src') ?? element.getAttribute('src'),
+        renderHTML: (attributes: Record<string, unknown>) => {
+          const src = typeof attributes['src'] === 'string' ? attributes['src'] : null
+          return { 'data-src': src, src: imageUrl(documentPath, src) }
+        }
+      }
+    }
+  }
+}).configure({ inline: true, allowBase64: false })
 
 // GFM tables: the first row is the header, a cell is one line of inline text (one paragraph,
 // no blocks), and each column may be aligned (shown, not editable yet). The table keeps the
@@ -147,7 +203,7 @@ const CoLeafTableHeader = TableHeader.extend({
   }
 })
 
-export interface CoLeafKeysOptions {
+interface CoLeafKeysOptions {
   /** Ctrl+K: the app opens its link panel. */
   onLink: () => void
 }
@@ -165,7 +221,16 @@ const CoLeafKeys = Extension.create<CoLeafKeysOptions>({
   }
 })
 
-export function createExtensions(options: CoLeafKeysOptions): Extensions {
+export interface EditorOptions {
+  /** Ctrl+K: the app opens its link panel. */
+  onLink: () => void
+  /** Ctrl+click on a link: the app follows it. */
+  onActivateLink: (href: string) => void
+  /** Tree path of the document, which pictures and links resolve against. */
+  documentPath: string
+}
+
+export function createExtensions(options: EditorOptions): Extensions {
   return [
     Document,
     CoLeafParagraph,
@@ -174,7 +239,7 @@ export function createExtensions(options: CoLeafKeysOptions): Extensions {
     // Marks, outermost first: a link around bold or code is written `[**text**](url)` and
     // `` [`code`](url) ``; the other way round, the link would be lost inside the code span.
     RawMark,
-    CoLeafLink,
+    CoLeafLink.configure({ onActivate: options.onActivateLink }),
     Bold,
     Italic,
     CoLeafCode,
@@ -186,7 +251,7 @@ export function createExtensions(options: CoLeafKeysOptions): Extensions {
     ListKeymap,
     CoLeafHardBreak,
     HorizontalRule,
-    Image.configure({ inline: true, allowBase64: false }),
+    CoLeafImage.configure({ documentPath: options.documentPath }),
     CoLeafTable,
     TableRow,
     CoLeafTableHeader,
@@ -198,9 +263,11 @@ export function createExtensions(options: CoLeafKeysOptions): Extensions {
     RawBlock,
     RawInline,
     SoftBreak,
-    CoLeafKeys.configure(options)
+    CoLeafKeys.configure({ onLink: options.onLink })
   ]
 }
 
+const noOptions: EditorOptions = { onLink: () => {}, onActivateLink: () => {}, documentPath: '' }
+
 /** The document schema, usable without an editor (tests, conversion). */
-export const schema = getSchema(createExtensions({ onLink: () => {} }))
+export const schema = getSchema(createExtensions(noOptions))

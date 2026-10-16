@@ -1,12 +1,18 @@
 import { join } from 'node:path'
-import { app, BrowserWindow, shell } from 'electron'
+import { app, BrowserWindow, protocol, shell } from 'electron'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
+import { imagePathOf, imageScheme, readImage } from './files/images'
 import { ProjectSession } from './files/session'
 import { guardClose, registerAppIpc } from './ipc/app'
 import { registerFileIpc } from './ipc/file'
 import { registerProjectIpc } from './ipc/project'
 import { applyMenu } from './menu'
 import icon from '../../build/icon.png?asset'
+
+// Pictures in documents load through this scheme, served from inside the project only.
+protocol.registerSchemesAsPrivileged([
+  { scheme: imageScheme, privileges: { standard: true, secure: true } }
+])
 
 function createWindow(): void {
   const window = new BrowserWindow({
@@ -29,9 +35,9 @@ function createWindow(): void {
   window.on('ready-to-show', () => window.show())
   guardClose(window)
 
-  // Links open in the system browser; the window itself only ever shows the app.
+  // Web links open in the system browser; the window itself only ever shows the app.
   window.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url)
+    if (/^(https?|mailto):/i.test(url)) void shell.openExternal(url)
     return { action: 'deny' }
   })
 
@@ -61,6 +67,17 @@ app.whenReady().then(() => {
   applyMenu(session)
   session.onChange(() => applyMenu(session))
   app.on('will-quit', () => session.close())
+
+  protocol.handle(imageScheme, async (request) => {
+    const root = session.current?.root
+    if (!root) return new Response(null, { status: 404 })
+    try {
+      const { bytes, type } = await readImage(root, imagePathOf(request.url))
+      return new Response(new Uint8Array(bytes), { headers: { 'content-type': type } })
+    } catch {
+      return new Response(null, { status: 404 })
+    }
+  })
 
   createWindow()
 
