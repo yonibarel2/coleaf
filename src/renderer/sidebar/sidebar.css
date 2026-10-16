@@ -1,0 +1,110 @@
+/* The sidebar and its sections. Every value comes from tokens.css. */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: auto;
+  border-right: 1px solid var(--color-line);
+  background: var(--color-ground);
+  user-select: none;
+}
+
+.sidebar__header,
+.section__header {
+  font-size: var(--text-label);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sidebar__header {
+  padding: var(--space-4) var(--space-4) var(--space-3);
+}
+
+.sidebar__empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 0 var(--space-4);
+  color: var(--color-muted);
+}
+
+.sidebar__empty p {
+  margin: 0 0 var(--space-1);
+}
+
+.section__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: var(--tree-row-height);
+  padding: 0 var(--space-3) 0 var(--space-2);
+  border-top: 1px solid var(--color-line);
+  cursor: pointer;
+}
+
+.section__header svg,
+.tree__chevron svg {
+  width: var(--icon-size);
+  height: var(--icon-size);
+  color: var(--color-muted);
+}
+
+.section__title {
+  flex: 1;
+}
+
+.section__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-weight: var(--weight-regular);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-muted);
+  cursor: pointer;
+}
+
+.section__option input {
+  margin: 0;
+  accent-color: var(--color-accent);
+}
+
+.tree {
+  margin: 0;
+  padding: var(--space-1) var(--space-2) var(--space-2);
+  list-style: none;
+}
+
+.tree__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: var(--tree-row-height);
+  padding-right: var(--space-2);
+  padding-left: calc(var(--space-1) + var(--tree-indent) * var(--depth));
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.tree__row:hover {
+  background: var(--color-ground-hover);
+}
+
+.tree__row--muted {
+  color: var(--color-muted);
+  cursor: default;
+}
+
+.tree__chevron {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--icon-size);
+}
+
+.tree__name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

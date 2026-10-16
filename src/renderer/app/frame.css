@@ -1,0 +1,60 @@
+/* The window frame: icon bar | sidebar | workspace. Every value comes from tokens.css. */
+.frame {
+  display: grid;
+  grid-template-columns: var(--icon-bar-width) var(--sidebar-width) 1fr;
+  height: 100%;
+}
+
+.frame--no-sidebar {
+  grid-template-columns: var(--icon-bar-width) 1fr;
+}
+
+.icon-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) 0;
+  border-right: 1px solid var(--color-line);
+}
+
+.icon-bar__spacer {
+  flex: 1;
+}
+
+.icon-button {
+  display: grid;
+  place-items: center;
+  width: var(--icon-button-size);
+  height: var(--icon-button-size);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-muted);
+  cursor: pointer;
+}
+
+.icon-button svg {
+  width: var(--icon-size-lg);
+  height: var(--icon-size-lg);
+}
+
+.icon-button:hover:not(:disabled) {
+  background: var(--color-ground-hover);
+}
+
+.icon-button--active,
+.icon-button--active:hover:not(:disabled) {
+  background: var(--color-accent-tint);
+  color: var(--color-accent);
+}
+
+.icon-button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.workspace {
+  min-width: 0;
+  background: var(--color-ground);
+}
