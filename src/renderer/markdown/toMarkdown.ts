@@ -4,11 +4,28 @@ import {
   fromProseMirror,
   type FromProseMirrorOptions
 } from '@handlewithcare/remark-prosemirror'
-import type { ListItem, Nodes, PhrasingContent, RootContent } from 'mdast'
+import type { AlignType, ListItem, Nodes, PhrasingContent, RootContent, TableRow } from 'mdast'
 import type { Node as PmNode } from 'prosemirror-model'
 import { mergeText, parseMarkdown, sameShape, stringifyMdast } from './mdast'
 
 type Options = FromProseMirrorOptions<string, string>
+type NodeHandler = Options['nodeHandlers'][string]
+
+// A GFM cell is one line of inline text: its paragraph's content, a line break as `<br>`.
+function cellContent(blocks: RootContent[]): PhrasingContent[] {
+  return blocks
+    .flatMap((block) => (block.type === 'paragraph' ? block.children : []))
+    .map((child): PhrasingContent => {
+      if (child.type === 'break') return { type: 'html', value: '<br>' }
+      if (child.type === 'text') return { ...child, value: child.value.replace(/\n/g, ' ') }
+      return child
+    })
+}
+
+const tableCell: NodeHandler = (node, _parent, state) => ({
+  type: 'tableCell',
+  children: cellContent(state.all(node) as RootContent[])
+})
 
 // Only a list starting at 1 may follow a paragraph without a blank line (CommonMark); a nested
 // list starting elsewhere needs the item written loose, or it would read as paragraph text.
@@ -64,6 +81,19 @@ const nodeHandlers: Options['nodeHandlers'] = {
     title: node.attrs['title'] ?? null
   }),
   htmlBlock: (node) => ({ type: 'html', value: node.attrs['html'] }),
+  // Untouched since it was opened: written back exactly as the file had it (see toDoc.ts).
+  table: (node, _parent, state) => {
+    const source = node.attrs['source']
+    const untouched =
+      JSON.stringify(node.content.toJSON()) === JSON.stringify(node.attrs['original'])
+    if (typeof source === 'string' && untouched) return { type: 'coleafRaw', value: source }
+    const align: AlignType[] = []
+    node.firstChild?.forEach((cell) => align.push((cell.attrs['align'] as AlignType) ?? null))
+    return { type: 'table', align, children: state.all(node) as TableRow[] }
+  },
+  tableRow: fromPmNode('tableRow'),
+  tableCell,
+  tableHeader: tableCell,
   rawBlock: rawContent,
   rawInline: (node) => rawContent(node) as PhrasingContent
 }

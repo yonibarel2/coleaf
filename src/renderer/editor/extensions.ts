@@ -12,6 +12,7 @@ import Italic from '@tiptap/extension-italic'
 import Link from '@tiptap/extension-link'
 import { BulletList, ListItem, ListKeymap, OrderedList } from '@tiptap/extension-list'
 import Paragraph from '@tiptap/extension-paragraph'
+import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table'
 import Text from '@tiptap/extension-text'
 import { Dropcursor, Gapcursor, UndoRedo } from '@tiptap/extensions'
 import { HtmlBlock, RawBlock, RawInline, RawMark, SoftBreak } from './nodes'
@@ -83,7 +84,10 @@ const CoLeafCodeBlock = CodeBlock.extend({
 
 const CoLeafHardBreak = HardBreak.extend({
   addKeyboardShortcuts() {
-    return { 'Shift-Enter': () => this.editor.commands.setHardBreak() }
+    // A GFM table cell is one line: Shift+Enter does nothing there.
+    return {
+      'Shift-Enter': () => this.editor.isActive('table') || this.editor.commands.setHardBreak()
+    }
   }
 })
 
@@ -107,6 +111,41 @@ const CoLeafLink = Link.extend({
     }
   }
 }).configure({ openOnClick: false, linkOnPaste: false })
+
+// GFM tables: the first row is the header, a cell is one line of inline text (one paragraph,
+// no blocks), and each column may be aligned (shown, not editable yet). The table keeps the
+// source it was opened from, so an untouched table is saved byte for byte (toMarkdown.ts).
+const alignAttribute = {
+  default: null,
+  parseHTML: (element: HTMLElement): string | null =>
+    element.style.textAlign || element.getAttribute('align') || null,
+  renderHTML: (attributes: Record<string, unknown>): Record<string, string> =>
+    typeof attributes['align'] === 'string' ? { style: `text-align: ${attributes['align']}` } : {}
+}
+
+const CoLeafTable = Table.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      source: { default: null, rendered: false },
+      original: { default: null, rendered: false }
+    }
+  }
+})
+
+const CoLeafTableCell = TableCell.extend({
+  content: 'paragraph',
+  addAttributes() {
+    return { ...this.parent?.(), align: alignAttribute }
+  }
+})
+
+const CoLeafTableHeader = TableHeader.extend({
+  content: 'paragraph',
+  addAttributes() {
+    return { ...this.parent?.(), align: alignAttribute }
+  }
+})
 
 export interface CoLeafKeysOptions {
   /** Ctrl+K: the app opens its link panel. */
@@ -148,6 +187,10 @@ export function createExtensions(options: CoLeafKeysOptions): Extensions {
     CoLeafHardBreak,
     HorizontalRule,
     Image.configure({ inline: true, allowBase64: false }),
+    CoLeafTable,
+    TableRow,
+    CoLeafTableHeader,
+    CoLeafTableCell,
     CoLeafUndoRedo,
     Dropcursor,
     Gapcursor,

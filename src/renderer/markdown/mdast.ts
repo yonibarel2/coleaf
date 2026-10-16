@@ -1,4 +1,5 @@
 import type {
+  AlignType,
   CoLeafRaw,
   Link,
   Nodes,
@@ -6,6 +7,7 @@ import type {
   PhrasingContent,
   Root,
   RootContent,
+  Table,
   Text
 } from 'mdast'
 import { defaultHandlers, type ConstructName } from 'mdast-util-to-markdown'
@@ -30,6 +32,10 @@ declare module 'mdast' {
     coleafForm?: 'resource' | 'autolink' | null
     /** A bare URL, www. address or email (GFM autolink literal): written as its text. */
     literal?: boolean
+  }
+  interface TableData {
+    /** The exact source of a top-level table: written back while the table is untouched. */
+    coleafSource?: string
   }
 }
 
@@ -61,16 +67,20 @@ type Handlers = NonNullable<StringifyOptions['handlers']>
 type Handle = NonNullable<Handlers['text']>
 type Unsafe = NonNullable<StringifyOptions['unsafe']>[number]
 
-// Always escaped: backslashes, backticks and tags. At a line start also `#`, `>`, list markers
-// and `1.`; not `[`, `=`, `_` or `~`, which only matter in shapes the safety net catches.
+// Always escaped: backslashes, backticks and tags, and inside a table cell also pipes and line
+// breaks. At a line start also `#`, `>`, list markers and `1.`; not `[`, `=`, `_` or `~`,
+// which only matter in shapes the safety net catches.
 const keptEverywhere = new Set(['\\', '`', '<'])
 const leftToSafetyNet = new Set(['[', '=', '_', '~'])
+const inTableCell = (rule: Unsafe): boolean => toArray(rule.inConstruct).includes('tableCell')
 
 const minimalText: Handle = (node: Text, _parent, state, info) => {
   const all = state.unsafe
   state.unsafe = all.filter(
     (rule: Unsafe) =>
-      keptEverywhere.has(rule.character) || (rule.atBreak && !leftToSafetyNet.has(rule.character))
+      keptEverywhere.has(rule.character) ||
+      inTableCell(rule) ||
+      (rule.atBreak && !leftToSafetyNet.has(rule.character))
   )
   try {
     return state.safe(node.value, info)
@@ -155,6 +165,61 @@ function toArray<T>(value: T | T[] | null | undefined): T[] {
   return value == null ? [] : Array.isArray(value) ? value : [value]
 }
 
+// A table is laid out like Prettier: every column padded to its widest cell (at least 3), the
+// text centered or right-aligned in aligned columns, and a `---` delimiter row with colons for
+// the alignment. The cells themselves are written by remark-gfm (pipes escaped).
+const table: Handle = (node: Table, _parent, state, info) => {
+  const exit = state.enter('table')
+  const rows = node.children.map((row) => {
+    const exitRow = state.enter('tableRow')
+    const cells = row.children.map((cell) => state.handle(cell, row, state, info))
+    exitRow()
+    return cells
+  })
+  exit()
+  return layoutTable(rows, node.align ?? [])
+}
+
+function layoutTable(rows: string[][], align: (AlignType | null)[]): string {
+  const header = rows[0] ?? []
+  const widths = header.map((_, column) =>
+    Math.max(3, ...rows.map((row) => stringWidth(row[column] ?? '')))
+  )
+  const pad = (text: string, column: number): string => {
+    const width = widths[column]
+    if (width === undefined) return text
+    const spaces = Math.max(0, width - stringWidth(text))
+    const kind = align[column]
+    const left = kind === 'center' ? Math.floor(spaces / 2) : kind === 'right' ? spaces : 0
+    return ' '.repeat(left) + text + ' '.repeat(spaces - left)
+  }
+  const line = (cells: string[]): string => `| ${cells.join(' | ')} |`
+  const delimiter = widths.map((width, column) => {
+    const kind = align[column]
+    const start = kind === 'left' || kind === 'center' ? ':' : '-'
+    const end = kind === 'right' || kind === 'center' ? ':' : '-'
+    return start + '-'.repeat(width - 2) + end
+  })
+  const body = rows.slice(1).map((row) => line(row.map(pad)))
+  return [line(header.map(pad)), line(delimiter), ...body].join('\n')
+}
+
+// Emoji sequences and East Asian wide characters take two columns, as in Prettier.
+const emoji = /\p{Extended_Pictographic}(?:️|‍\p{Extended_Pictographic})*/gu
+const wide = /[ᄀ-ᅟ⺀-〾ぁ-㏿㐀-䶿一-鿿ꀀ-꓏가-힣豈-﫿︰-﹏＀-｠￠-￦\u{20000}-\u{3FFFD}]/u
+
+/** The display width of a cell's text, counted the way Prettier pads table columns. */
+export function stringWidth(text: string): number {
+  if (/^[\x20-\x7e]*$/.test(text)) return text.length
+  let width = 0
+  for (const char of text.replace(emoji, '  ')) {
+    const code = char.codePointAt(0) ?? 0
+    if (code < 0x20 || (code >= 0x7f && code < 0xa0) || /\p{M}/u.test(char)) continue
+    width += wide.test(char) ? 2 : 1
+  }
+  return width
+}
+
 // A backslash at the end of a text run, or right before its last letter, is written as `\\`:
 // remark may encode that last letter as `&#x61;` next to an emphasis marker, and a marker or
 // line end may follow the run, none of which may turn a literal backslash into an escape or a
@@ -175,6 +240,7 @@ export function stringifyOptions(escaping: Escaping): StringifyOptions {
     coleafRaw: (node: CoLeafRaw): string => node.value,
     emphasis,
     link,
+    table,
     text: withSafeEnd(escaping === 'minimal' ? minimalText : defaultHandlers.text)
   }
   return {

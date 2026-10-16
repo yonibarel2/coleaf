@@ -3,6 +3,7 @@ import type { JSX } from 'react'
 import type { Tab } from '../tabs/useTabs'
 import { insertLink } from './link'
 import { LinkPanel, type LinkDraft } from './LinkPanel'
+import { TableBar } from './TableBar'
 import './editor.css'
 
 interface EditorProps {
@@ -34,6 +35,7 @@ export function Editor({ tab, linkDraft, onLinkDone }: EditorProps): JSX.Element
         />
       )}
       <EditorContent editor={tab.editor} className="sheet" />
+      <TableBar editor={tab.editor} />
     </div>
   )
 }

@@ -42,7 +42,7 @@ export const HtmlBlock = Node.create({
   ]
 })
 
-/** Any other block the editor does not edit yet: table, footnote, link definition, front matter… */
+/** Any other block the editor does not edit yet: task list, footnote, link definition, front matter… */
 export const RawBlock = Node.create({
   name: 'rawBlock',
   group: 'block',

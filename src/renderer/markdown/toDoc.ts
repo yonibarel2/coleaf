@@ -38,7 +38,6 @@ function isRawBlock(node: RootContent): boolean {
   switch (node.type) {
     case 'definition':
     case 'footnoteDefinition':
-    case 'table':
       return true
     case 'list':
       return node.children.some((item) => item.checked != null) // task list
@@ -51,7 +50,8 @@ function isRawBlock(node: RootContent): boolean {
  * Top-level raw blocks keep their exact source text, and neighbours with no blank line between
  * them (link definitions, HTML comments) become one block, so nothing is restyled on save.
  * Nested raw blocks are re-written from their mdast instead: their source carries the
- * container's prefixes. Front matter, split off before parsing, comes first.
+ * container's prefixes. Front matter, split off before parsing, comes first. A top-level
+ * table also remembers its source, so it is written back verbatim while it is untouched.
  */
 function keepRawBlocks(tree: Root, text: string, frontMatter: string | null): void {
   const children: RootContent[] = []
@@ -72,6 +72,10 @@ function keepRawBlocks(tree: Root, text: string, frontMatter: string | null): vo
   for (const node of tree.children) {
     if (!isRawBlock(node) && node.type !== 'html') {
       flush()
+      if (node.type === 'table') {
+        const source = sourceOf(node, text)
+        if (source !== null) node.data = { ...node.data, coleafSource: source }
+      }
       children.push(node)
       continue
     }
@@ -165,6 +169,26 @@ function createHandlers(schema: Schema, text: string): Handlers {
         { spread: isLoose(node.children, node.spread) },
         state.all(node)
       ),
+    // The first row is the header; a cell is one paragraph of inline content, aligned as its
+    // column says. The rows as opened are kept on the table: an untouched one is saved as it was.
+    table: (node, _, state) => {
+      const align = node.align ?? []
+      const rows = node.children.map((row, rowIndex) =>
+        nodes.tableRow.create(
+          null,
+          row.children.map((cell, column) =>
+            (rowIndex === 0 ? nodes.tableHeader : nodes.tableCell).create(
+              { align: align[column] ?? null },
+              nodes.paragraph.create(null, state.all(cell))
+            )
+          )
+        )
+      )
+      return nodes.table.create(
+        { source: node.data?.coleafSource ?? null, original: rows.map((row) => row.toJSON()) },
+        rows
+      )
+    },
     html: (node, parent) =>
       phrasingParents.has(parent.type)
         ? rawInline(node)
@@ -190,7 +214,6 @@ function createHandlers(schema: Schema, text: string): Handlers {
     break: () => nodes.hardBreak.create(),
     definition: rawBlock,
     footnoteDefinition: rawBlock,
-    table: rawBlock,
     footnoteReference: rawInline,
     imageReference: rawInline,
     linkReference: (node, _, state) => rawMark(node, state.all(node)),

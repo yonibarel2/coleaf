@@ -123,6 +123,72 @@
   max-width: 100%;
 }
 
+/* Tables, like GitHub: a header row on the ground color, lines between cells, scrolling sideways
+   when wider than the page. */
+.document .tableWrapper {
+  overflow-x: auto;
+}
+
+.document table {
+  margin: 0;
+  border-collapse: collapse;
+}
+
+.document th,
+.document td {
+  position: relative;
+  min-width: calc(var(--space-8) * 2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-line);
+  vertical-align: top;
+}
+
+.document th {
+  background: var(--color-ground);
+  font-weight: var(--weight-semibold);
+}
+
+.document .selectedCell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color-accent-tint);
+  pointer-events: none;
+}
+
+/* The table bar (TableBar.tsx): above the table the cursor is in, inside the scrolling area. */
+.table-bar {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  transform: translateY(calc(-100% - var(--space-1)));
+}
+
+.table-bar__button {
+  height: calc(var(--control-height) - var(--space-2));
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--space-1);
+  background: transparent;
+  color: var(--color-ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.table-bar__button:hover:not(:disabled) {
+  background: var(--color-ground-hover);
+}
+
+.table-bar__button:disabled {
+  color: var(--color-muted);
+  cursor: default;
+}
+
 .document a {
   color: var(--color-accent);
   text-decoration: underline;

@@ -26,8 +26,9 @@ const knownGaps = new Map([
   ['other/09-admonition.md', 'indentation inside a paragraph is not kept']
 ])
 
-// Stage 1 rows must also be exactly what Prettier would write (AGENTS.md rule 1).
-const stage1 = (file: string): boolean => /^(blocks|inline)\//.test(name(file))
+// Stage 1 rows (the CommonMark sections and GFM tables) must also be exactly what Prettier
+// would write (AGENTS.md rule 1).
+const stage1 = (file: string): boolean => /^(blocks|inline)\/|^gfm\/0[1-3]-/.test(name(file))
 const prettierOptions = {
   parser: 'markdown',
   proseWrap: 'preserve',
