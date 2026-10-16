@@ -202,6 +202,143 @@
   outline: 2px solid var(--color-accent);
 }
 
+/* A block shown as a picture (diagram) keeps its code in the page, out of sight, so the cursor
+   can still move into it; "Edit code" in the corner brings the code back. */
+.document .code-block__hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.document .code-block__edit {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: var(--control-height-small);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-small);
+  background: var(--color-surface);
+  font-family: var(--font-ui);
+  font-size: var(--text-label);
+  color: var(--color-muted);
+  cursor: pointer;
+}
+
+.document .code-block__edit:hover {
+  background: var(--color-ground-hover);
+  color: var(--color-ink);
+}
+
+.document .code-block__edit svg {
+  width: var(--icon-size);
+  height: var(--icon-size);
+}
+
+.document .preview {
+  padding: var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-control);
+}
+
+.document .preview--pending,
+.document .preview--error p {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: var(--text-label);
+}
+
+.document .preview--error pre {
+  margin-bottom: var(--space-2);
+}
+
+.document .preview--diagram {
+  text-align: center;
+}
+
+.document .preview--diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Code colors: highlight.js classes through lowlight, GitHub's light scheme from tokens.css. */
+.document .hljs-comment,
+.document .hljs-quote {
+  color: var(--code-comment);
+}
+
+.document .hljs-keyword,
+.document .hljs-selector-tag,
+.document .hljs-doctag,
+.document .hljs-template-tag {
+  color: var(--code-keyword);
+}
+
+.document .hljs-string,
+.document .hljs-regexp,
+.document .hljs-meta .hljs-string {
+  color: var(--code-string);
+}
+
+.document .hljs-number,
+.document .hljs-literal,
+.document .hljs-attr,
+.document .hljs-attribute,
+.document .hljs-variable,
+.document .hljs-template-variable,
+.document .hljs-meta,
+.document .hljs-symbol,
+.document .hljs-property,
+.document .hljs-selector-attr,
+.document .hljs-selector-pseudo {
+  color: var(--code-number);
+}
+
+.document .hljs-title,
+.document .hljs-section,
+.document .hljs-selector-id,
+.document .hljs-selector-class {
+  color: var(--code-name);
+}
+
+.document .hljs-built_in,
+.document .hljs-type,
+.document .hljs-class .hljs-title {
+  color: var(--code-type);
+}
+
+.document .hljs-tag .hljs-name,
+.document .hljs-bullet {
+  color: var(--code-tag);
+}
+
+.document .hljs-addition {
+  color: var(--code-added);
+  background: var(--code-added-bg);
+}
+
+.document .hljs-deletion {
+  color: var(--code-removed);
+  background: var(--code-removed-bg);
+}
+
+.document .hljs-emphasis {
+  font-style: italic;
+}
+
+.document .hljs-strong {
+  font-weight: var(--weight-semibold);
+}
+
 .document hr {
   height: 1px;
   margin: var(--space-6) 0;

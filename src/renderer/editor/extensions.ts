@@ -2,7 +2,7 @@ import { Extension, getSchema, Mark, type Extensions } from '@tiptap/core'
 import Blockquote from '@tiptap/extension-blockquote'
 import Bold from '@tiptap/extension-bold'
 import Code from '@tiptap/extension-code'
-import CodeBlock from '@tiptap/extension-code-block'
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import Document from '@tiptap/extension-document'
 import HardBreak from '@tiptap/extension-hard-break'
 import Heading, { type Level } from '@tiptap/extension-heading'
@@ -19,6 +19,7 @@ import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { ReactNodeViewRenderer } from '@tiptap/react'
 import { CoLeafAlerts } from './alerts'
 import { CodeBlockView } from './CodeBlockView'
+import { highlighter } from './highlight'
 import { Emoji, HtmlBlock, RawBlock, RawInline, RawMark, SoftBreak } from './nodes'
 import { imageUrl } from './paths'
 import { CoLeafPictures } from './pictures'
@@ -116,7 +117,9 @@ const CoLeafBlockquote = Blockquote.extend({ addKeyboardShortcuts: () => ({}) })
 // would otherwise push every other mark off the same text.
 const CoLeafCode = Code.extend({ excludes: '', addKeyboardShortcuts: () => ({}) })
 
-const CoLeafCodeBlock = CodeBlock.extend({
+// Code is colored by language through lowlight (highlight.ts); a Mermaid block shows its
+// diagram (CodeBlockView.tsx).
+const CoLeafCodeBlock = CodeBlockLowlight.extend({
   addAttributes() {
     // The text after the language on the opening fence (```js title="x") is kept as-is.
     return { ...this.parent?.(), meta: { default: null, rendered: false } }
@@ -129,7 +132,7 @@ const CoLeafCodeBlock = CodeBlock.extend({
   addNodeView() {
     return ReactNodeViewRenderer(CodeBlockView)
   }
-})
+}).configure({ lowlight: highlighter })
 
 const CoLeafHardBreak = HardBreak.extend({
   addKeyboardShortcuts() {

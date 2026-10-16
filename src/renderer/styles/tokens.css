@@ -27,6 +27,19 @@
   --color-warning: #9a6700;
   --color-caution: #cf222e;
 
+  /* Code colors in code blocks (highlight.js classes), GitHub's light scheme */
+  --code-comment: #59636e;
+  --code-keyword: #cf222e;
+  --code-string: #0a3069;
+  --code-number: #0550ae;
+  --code-name: #8250df;
+  --code-type: #953800;
+  --code-tag: #116329;
+  --code-added: #116329;
+  --code-added-bg: #dafbe1;
+  --code-removed: #82071e;
+  --code-removed-bg: #ffebe9;
+
   /* Fonts: IBM Plex Sans for the app UI, the system font for documents */
   --font-ui: 'IBM Plex Sans', system-ui, sans-serif;
   --font-doc: system-ui, -apple-system, 'Segoe UI', sans-serif;
