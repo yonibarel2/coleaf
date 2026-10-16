@@ -1,0 +1,2 @@
+> [!note]-
+> Folded by default.

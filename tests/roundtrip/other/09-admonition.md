@@ -1,0 +1,2 @@
+!!! note "Title"
+    Indented body.
