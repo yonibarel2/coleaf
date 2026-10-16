@@ -5,10 +5,12 @@
     "vitest.config.*",
     "src/main/**/*",
     "src/preload/**/*",
-    "tests/**/*"
+    "tests/**/*",
+    "compliance/**/*.mts"
   ],
   "compilerOptions": {
     "composite": true,
+    "rewriteRelativeImportExtensions": true,
     "types": ["electron-vite/node"]
   }
 }

@@ -17,7 +17,8 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "npm run typecheck && npm run lint && npm run test"
+    "check": "npm run typecheck && npm run lint && npm run test",
+    "compliance": "node compliance/run.mts"
   },
   "dependencies": {
     "@electron-toolkit/utils": "^4.0.0",
@@ -60,6 +61,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
     "fast-check": "^4.10.2",
+    "license-checker-rseidelsohn": "^5.0.1",
     "lucide-react": "^1.57.0",
     "mdast-util-to-markdown": "^2.2.0",
     "prettier": "^3.9.10",
