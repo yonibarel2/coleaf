@@ -65,7 +65,9 @@ const CoLeafListItem = ListItem.extend({
 
 const CoLeafBlockquote = Blockquote.extend({ addKeyboardShortcuts: () => ({}) })
 
-const CoLeafCode = Code.extend({ addKeyboardShortcuts: () => ({}) })
+// Markdown allows code inside a link or bold (`` [`x`](url) ``, `` **`x`** ``); TipTap's Code
+// would otherwise push every other mark off the same text.
+const CoLeafCode = Code.extend({ excludes: '', addKeyboardShortcuts: () => ({}) })
 
 const CoLeafCodeBlock = CodeBlock.extend({
   addAttributes() {
@@ -96,7 +98,13 @@ const CoLeafUndoRedo = UndoRedo.extend({
 
 const CoLeafLink = Link.extend({
   addAttributes() {
-    return { ...this.parent?.(), title: { default: null } }
+    return {
+      ...this.parent?.(),
+      title: { default: null },
+      // How the file wrote it: `[text](url)` (resource) or `<url>` (autolink); null when made
+      // in the editor. Keeps `[https://x](https://x)` from being saved as `<https://x>`.
+      form: { default: null, rendered: false }
+    }
   }
 }).configure({ openOnClick: false, linkOnPaste: false })
 
@@ -124,6 +132,10 @@ export function createExtensions(options: CoLeafKeysOptions): Extensions {
     CoLeafParagraph,
     Text,
     CoLeafHeading,
+    // Marks, outermost first: a link around bold or code is written `[**text**](url)` and
+    // `` [`code`](url) ``; the other way round, the link would be lost inside the code span.
+    RawMark,
+    CoLeafLink,
     Bold,
     Italic,
     CoLeafCode,
@@ -135,7 +147,6 @@ export function createExtensions(options: CoLeafKeysOptions): Extensions {
     ListKeymap,
     CoLeafHardBreak,
     HorizontalRule,
-    CoLeafLink,
     Image.configure({ inline: true, allowBase64: false }),
     CoLeafUndoRedo,
     Dropcursor,
@@ -143,7 +154,6 @@ export function createExtensions(options: CoLeafKeysOptions): Extensions {
     HtmlBlock,
     RawBlock,
     RawInline,
-    RawMark,
     SoftBreak,
     CoLeafKeys.configure(options)
   ]

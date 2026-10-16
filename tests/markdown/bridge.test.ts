@@ -104,6 +104,12 @@ describe('Markdown ⇄ editor document', () => {
     expect(roundTrip(nested)).toBe('- item\n\n  | a | b |\n  | - | - |\n  | 1 | 2 |\n')
   })
 
+  it('keeps links as the file wrote them', () => {
+    const text =
+      'See [`code`](https://x.y/a?b=1&c=2), [https://x.y](https://x.y), <https://x.y> and [**bold**](https://x.y).\n'
+    expect(roundTrip(text)).toBe(text)
+  })
+
   it('tells front matter from a file that merely starts with a rule', () => {
     expect(roundTrip('---\n\n> a\n\n- item\n')).toBe('---\n\n> a\n\n- item\n')
     expect(markdownToDoc('---\n\n> a\n', schema).child(1).type.name).toBe('blockquote')

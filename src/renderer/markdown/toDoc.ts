@@ -178,7 +178,8 @@ function createHandlers(schema: Schema, text: string): Handlers {
       if (source != null && !source.startsWith('[') && !source.startsWith('<')) {
         return rawMark({ ...node, data: { ...node.data, literal: true } }, state.all(node))
       }
-      const mark = marks.link.create({ href: node.url, title: node.title ?? null })
+      const form = source?.startsWith('<') ? 'autolink' : 'resource'
+      const mark = marks.link.create({ href: node.url, title: node.title ?? null, form })
       return state.all(node).map((child) => child.mark(mark.addToSet(child.marks)))
     },
     image: (node) =>

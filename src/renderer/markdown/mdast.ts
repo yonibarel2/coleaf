@@ -1,5 +1,14 @@
-import type { CoLeafRaw, Nodes, Parent, PhrasingContent, Root, RootContent, Text } from 'mdast'
-import { defaultHandlers } from 'mdast-util-to-markdown'
+import type {
+  CoLeafRaw,
+  Link,
+  Nodes,
+  Parent,
+  PhrasingContent,
+  Root,
+  RootContent,
+  Text
+} from 'mdast'
+import { defaultHandlers, type ConstructName } from 'mdast-util-to-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkParse from 'remark-parse'
 import remarkStringify, { type Options as StringifyOptions } from 'remark-stringify'
@@ -15,6 +24,12 @@ declare module 'mdast' {
   }
   interface PhrasingContentMap {
     coleafRaw: CoLeafRaw
+  }
+  interface LinkData {
+    /** How the file wrote the link; null when it was made in the editor. */
+    coleafForm?: 'resource' | 'autolink' | null
+    /** A bare URL, www. address or email (GFM autolink literal): written as its text. */
+    literal?: boolean
   }
 }
 
@@ -115,6 +130,31 @@ const emphasis: Handle = Object.assign(
   }
 )
 
+// A link the file wrote as `[text](url)` stays that way even when the text is the URL; remark
+// would otherwise shorten it to `<url>`. Links made in the editor get remark's choice. And an
+// `&` in the address is left alone (`?a=1&b=2`): remark escapes it, Prettier and GitHub don't.
+const destinations: ConstructName[] = ['destinationRaw', 'destinationLiteral']
+const link: Handle = (node, parent, state, info) => {
+  const savedResourceLink = state.options.resourceLink
+  const savedUnsafe = state.unsafe
+  state.options.resourceLink = (node as Link).data?.coleafForm === 'resource'
+  state.unsafe = savedUnsafe.map((rule: Unsafe) =>
+    rule.character === '&'
+      ? { ...rule, notInConstruct: [...toArray(rule.notInConstruct), ...destinations] }
+      : rule
+  )
+  try {
+    return defaultHandlers.link(node as Link, parent, state, info)
+  } finally {
+    state.options.resourceLink = savedResourceLink
+    state.unsafe = savedUnsafe
+  }
+}
+
+function toArray<T>(value: T | T[] | null | undefined): T[] {
+  return value == null ? [] : Array.isArray(value) ? value : [value]
+}
+
 // A backslash at the end of a text run, or right before its last letter, is written as `\\`:
 // remark may encode that last letter as `&#x61;` next to an emphasis marker, and a marker or
 // line end may follow the run, none of which may turn a literal backslash into an escape or a
@@ -134,6 +174,7 @@ export function stringifyOptions(escaping: Escaping): StringifyOptions {
   const handlers: Handlers = {
     coleafRaw: (node: CoLeafRaw): string => node.value,
     emphasis,
+    link,
     text: withSafeEnd(escaping === 'minimal' ? minimalText : defaultHandlers.text)
   }
   return {

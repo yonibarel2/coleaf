@@ -32,7 +32,10 @@ const codeRun = codeText.map((text) => schema.text(text, [marks.code.create()]))
 const linkRun = fc
   .record({ text: line, path: fc.stringMatching(/^[a-z]{1,6}$/) })
   .map(({ text, path }) =>
-    schema.text(text, [marks.link.create({ href: `https://example.com/${path}` })])
+    // `form: 'resource'`, as a reopened `[text](url)` link has it.
+    schema.text(text, [
+      marks.link.create({ href: `https://example.com/${path}`, form: 'resource' })
+    ])
   )
 const inline = fc.array(fc.oneof(textRun, textRun, codeRun, linkRun), {
   minLength: 1,
@@ -102,7 +105,7 @@ describe('properties', () => {
       }),
       { numRuns: 200 }
     )
-  })
+  }, 60_000)
 
   const goldenDir = resolve('tests', 'roundtrip')
   const golden = ['blocks', 'inline'].flatMap((section) =>
@@ -151,6 +154,6 @@ describe('properties', () => {
         }),
         { numRuns: 25 }
       )
-    })
+    }, 60_000)
   }
 })

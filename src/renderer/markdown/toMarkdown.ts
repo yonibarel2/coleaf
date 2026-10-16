@@ -77,7 +77,8 @@ const markHandlers: Options['markHandlers'] = {
   }),
   link: fromPmMark('link', (mark) => ({
     url: mark.attrs['href'],
-    title: mark.attrs['title'] ?? null
+    title: mark.attrs['title'] ?? null,
+    data: { coleafForm: mark.attrs['form'] ?? null }
   })),
   rawMark: (mark, _parent, children) => {
     const node = structuredClone(mark.attrs['node']) as PhrasingContent
