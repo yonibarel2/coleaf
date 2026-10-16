@@ -18,6 +18,7 @@ import { Dropcursor, Gapcursor, UndoRedo } from '@tiptap/extensions'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { HtmlBlock, RawBlock, RawInline, RawMark, SoftBreak } from './nodes'
 import { imageUrl } from './paths'
+import { CoLeafSearch } from './search'
 
 // Keyboard shortcuts follow docs/markdown-spec.md exactly. The TipTap defaults that are not in
 // the spec are removed here; tests/editor/shortcuts.test.ts checks the full list.
@@ -224,6 +225,8 @@ const CoLeafKeys = Extension.create<CoLeafKeysOptions>({
 export interface EditorOptions {
   /** Ctrl+K: the app opens its link panel. */
   onLink: () => void
+  /** Ctrl+F: the app opens its Find / Replace panel. */
+  onFind: () => void
   /** Ctrl+click on a link: the app follows it. */
   onActivateLink: (href: string) => void
   /** Tree path of the document, which pictures and links resolve against. */
@@ -263,11 +266,17 @@ export function createExtensions(options: EditorOptions): Extensions {
     RawBlock,
     RawInline,
     SoftBreak,
+    CoLeafSearch.configure({ onFind: options.onFind }),
     CoLeafKeys.configure({ onLink: options.onLink })
   ]
 }
 
-const noOptions: EditorOptions = { onLink: () => {}, onActivateLink: () => {}, documentPath: '' }
+const noOptions: EditorOptions = {
+  onLink: () => {},
+  onFind: () => {},
+  onActivateLink: () => {},
+  documentPath: ''
+}
 
 /** The document schema, usable without an editor (tests, conversion). */
 export const schema = getSchema(createExtensions(noOptions))

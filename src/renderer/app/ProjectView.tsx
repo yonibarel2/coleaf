@@ -16,15 +16,17 @@ interface ProjectViewProps {
 
 /** Everything that belongs to one open project: the Explorer and the tabs. Keyed on the root. */
 export function ProjectView({ project, explorerOpen }: ProjectViewProps): JSX.Element {
-  const [linkDraft, setLinkDraft] = useState<LinkDraft | null>(null)
+  // The panels belong to the document they were opened on: shown only while it is the active tab.
+  const [linkDraft, setLinkDraft] = useState<{ path: string; draft: LinkDraft } | null>(null)
+  const [find, setFind] = useState<{ path: string; replace: boolean } | null>(null)
   const [ribbonHidden, setRibbonHidden] = useState(() => readFlag('ribbonHidden'))
   const tabs = useTabs({
-    onLink: () => {
-      if (tabs.active) setLinkDraft(linkDraftFor(tabs.active.editor))
-    },
+    onLink: (path, editor) => setLinkDraft({ path, draft: linkDraftFor(editor) }),
+    onFind: (path) => setFind({ path, replace: false }),
     onActivateLink: (fromPath, href) => void followLink(fromPath, href)
   })
   const { open, saveActive } = tabs
+  const active = tabs.active
 
   // Ctrl+click on a link: a web address opens in the browser (through the background's
   // window-open handler), a Markdown file of the project in a tab, at its heading if named.
@@ -59,26 +61,27 @@ export function ProjectView({ project, explorerOpen }: ProjectViewProps): JSX.El
           onActivate={tabs.activate}
           onClose={(path) => void tabs.close(path)}
         />
-        {tabs.active && (
+        {active && (
           <Ribbon
-            key={`ribbon:${tabs.active.path}`}
-            editor={tabs.active.editor}
+            key={`ribbon:${active.path}`}
+            editor={active.editor}
             collapsed={ribbonHidden}
             onToggleCollapsed={() => {
               writeFlag('ribbonHidden', !ribbonHidden)
               setRibbonHidden(!ribbonHidden)
             }}
-            onLink={() => {
-              if (tabs.active) setLinkDraft(linkDraftFor(tabs.active.editor))
-            }}
+            onLink={() => setLinkDraft({ path: active.path, draft: linkDraftFor(active.editor) })}
+            onFind={(replace) => setFind({ path: active.path, replace })}
           />
         )}
-        {tabs.active && (
+        {active && (
           <Editor
-            key={tabs.active.path}
-            tab={tabs.active}
-            linkDraft={linkDraft}
+            key={active.path}
+            tab={active}
+            linkDraft={linkDraft?.path === active.path ? linkDraft.draft : null}
             onLinkDone={() => setLinkDraft(null)}
+            find={find?.path === active.path ? find : null}
+            onFindDone={() => setFind(null)}
           />
         )}
       </main>

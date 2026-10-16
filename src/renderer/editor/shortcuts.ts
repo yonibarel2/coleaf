@@ -14,6 +14,7 @@ export interface Shortcut {
 export const shortcuts: Shortcut[] = [
   { id: 'undo', label: 'Undo', keys: 'Mod-z', group: 'Edit' },
   { id: 'redo', label: 'Redo', keys: 'Mod-y', group: 'Edit' },
+  { id: 'find', label: 'Find / Replace', keys: 'Mod-f', group: 'Edit' },
   { id: 'normal', label: 'Normal text', keys: 'Mod-Shift-n', group: 'Styles' },
   { id: 'heading1', label: 'Heading 1', keys: 'Mod-Alt-1', group: 'Styles' },
   { id: 'heading2', label: 'Heading 2', keys: 'Mod-Alt-2', group: 'Styles' },

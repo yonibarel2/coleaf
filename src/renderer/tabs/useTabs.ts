@@ -32,8 +32,10 @@ export interface Tabs {
 }
 
 export interface TabsOptions {
-  /** Ctrl+K in an editor. */
-  onLink: () => void
+  /** Ctrl+K in the editor of the document at `path`. */
+  onLink: (path: string, editor: Editor) => void
+  /** Ctrl+F in the editor of the document at `path`. */
+  onFind: (path: string) => void
   /** Ctrl+click on a link in the document at `fromPath`. */
   onActivateLink: (fromPath: string, href: string) => void
 }
@@ -78,7 +80,8 @@ export function useTabs(options: TabsOptions): Tabs {
           // back when another tab is shown, so the editor (and its undo history) lives on.
           element: document.createElement('div'),
           extensions: createExtensions({
-            onLink: () => callbacks.current.onLink(),
+            onLink: () => callbacks.current.onLink(path, editor),
+            onFind: () => callbacks.current.onFind(path),
             onActivateLink: (href) => callbacks.current.onActivateLink(path, href),
             documentPath: path
           }),

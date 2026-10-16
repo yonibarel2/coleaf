@@ -28,7 +28,7 @@ CoLeaf: Word-style editing of a repo's `.md` files, with simple Git and (later) 
 | --- | --- |
 | App shell | Electron + electron-vite |
 | Screen | React + TypeScript |
-| Editor | TipTap v3 (ProseMirror) |
+| Editor | TipTap v3 (ProseMirror); `prosemirror-search` for Find / Replace |
 | Markdown | remark + remark-gfm + `@handlewithcare/remark-prosemirror` (front matter is split off by hand; remark-frontmatter misreads files that start with a `---` rule) |
 | Diagrams | Mermaid |
 | Diffs | jsdiff, shown as highlights on the formatted page (never raw text) |
