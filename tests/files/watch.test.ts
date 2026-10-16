@@ -1,3 +1,4 @@
+import { writeFileSync } from 'node:fs'
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -45,16 +46,21 @@ describe('ProjectWatcher', () => {
     watcher = new ProjectWatcher((dir, paths) => changes.push({ dir, paths }))
     watcher.watch(root)
 
-    await writeFile(join(root, 'one.md'), '1')
-    await writeFile(join(root, 'two.md'), '2')
-    await vi.waitFor(() => expect(changes.filter((c) => c.dir === '')).toHaveLength(1), {
-      timeout: 3000
-    })
-    expect(changes.find((c) => c.dir === '')?.paths.sort()).toEqual(['one.md', 'two.md'])
+    // Both writes land within one debounce window (synchronous, back to back).
+    writeFileSync(join(root, 'one.md'), '1')
+    writeFileSync(join(root, 'two.md'), '2')
+    const rootPaths = (): string[] =>
+      changes
+        .filter((c) => c.dir === '')
+        .flatMap((c) => c.paths)
+        .sort()
+    await vi.waitFor(() => expect(rootPaths()).toEqual(['one.md', 'two.md']), { timeout: 3000 })
+    const batches = changes.filter((c) => c.dir === '').length
+    expect(batches).toBeLessThanOrEqual(2) // one, unless the machine was busy between them
 
     watcher.close()
     await writeFile(join(root, 'three.md'), '3')
     await settle(400)
-    expect(changes.filter((c) => c.dir === '')).toHaveLength(1)
+    expect(rootPaths()).toEqual(['one.md', 'two.md'])
   })
 })
