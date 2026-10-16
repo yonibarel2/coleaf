@@ -70,7 +70,7 @@ Full planned tree: [docs/architecture.md](docs/architecture.md#repo-layout).
 | Command | Does |
 | --- | --- |
 | `npm install` | Installs dependencies and downloads Electron |
-| `npm run dev` | Starts the app with hot reload; Chromium remote debugging on port 9222. If it crashes with `reading 'isPackaged'`, unset `ELECTRON_RUN_AS_NODE` first (VS Code's extension host sets it, and Electron then runs as plain Node) |
+| `npm run dev` | Starts the app with hot reload; Chromium remote debugging on port 9222. `COLEAF_PROJECT=<folder>` opens that folder at start (dev only). If it crashes with `reading 'isPackaged'`, unset `ELECTRON_RUN_AS_NODE` first (VS Code's extension host sets it, and Electron then runs as plain Node) |
 | `npm run check` | Typecheck + lint + tests. Must pass before a change is finished |
 | `npm run typecheck` | TypeScript for both the background and the window |
 | `npm run lint` | ESLint |

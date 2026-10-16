@@ -1,6 +1,9 @@
 import { join } from 'node:path'
 import { app, BrowserWindow, shell } from 'electron'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
+import { ProjectSession } from './files/session'
+import { registerProjectIpc } from './ipc/project'
+import { applyMenu } from './menu'
 
 function createWindow(): void {
   const window = new BrowserWindow({
@@ -46,7 +49,17 @@ app.whenReady().then(() => {
   // F12 opens DevTools in development; Ctrl/Cmd+R is ignored in production.
   app.on('browser-window-created', (_, window) => optimizer.watchWindowShortcuts(window))
 
+  const session = new ProjectSession()
+  registerProjectIpc(session)
+  applyMenu(session)
+  session.onChange(() => applyMenu(session))
+  app.on('will-quit', () => session.close())
+
   createWindow()
+
+  // Development only: open a folder at start, so the app can be driven without the native dialog.
+  const devProject = is.dev ? process.env['COLEAF_PROJECT'] : undefined
+  if (devProject) session.openPath(devProject)
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
