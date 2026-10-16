@@ -50,3 +50,78 @@ button {
   background: var(--color-accent);
   filter: brightness(0.94);
 }
+
+/* Dialogs: a card in the middle of the window over a dimmed backdrop. */
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  background: var(--color-backdrop);
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(var(--dialog-width), 90vw);
+  max-height: 85vh;
+  padding: var(--space-6);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.dialog__title {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-ui-lg);
+  font-weight: var(--weight-semibold);
+}
+
+.dialog__body {
+  overflow: auto;
+}
+
+.dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+/* Help › Keyboard Shortcuts (ShortcutsDialog.tsx). */
+.shortcuts__group + .shortcuts__group {
+  margin-top: var(--space-4);
+}
+
+.shortcuts__heading {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-label);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.shortcuts__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.shortcuts__table td {
+  padding: var(--space-1) 0;
+  border-top: 1px solid var(--color-line);
+}
+
+.shortcuts__table td:last-child {
+  text-align: right;
+}
+
+.shortcuts__table kbd {
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-small);
+  background: var(--color-ground);
+  font: inherit;
+  font-size: var(--text-label);
+}

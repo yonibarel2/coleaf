@@ -64,7 +64,10 @@ const api = {
       subscribe<undefined>(channels.appSave, callback),
     /** File › New File: the background created this file; open it in a tab. */
     onOpenFile: (callback: (path: string) => void): (() => void) =>
-      subscribe(channels.appOpenFile, callback)
+      subscribe(channels.appOpenFile, callback),
+    /** Help › Keyboard Shortcuts. */
+    onShowShortcuts: (callback: () => void): (() => void) =>
+      subscribe<undefined>(channels.appShowShortcuts, callback)
   }
 }
 

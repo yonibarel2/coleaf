@@ -16,6 +16,7 @@ export const channels = {
   appUnsavedSettled: 'app:unsaved-settled',
   appSave: 'app:save',
   appOpenFile: 'app:open-file',
+  appShowShortcuts: 'app:show-shortcuts',
   imagePick: 'image:pick',
   imageSave: 'image:save'
 } as const

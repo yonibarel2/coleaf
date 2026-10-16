@@ -1,5 +1,12 @@
 import { join } from 'node:path'
-import { app, BrowserWindow, protocol, shell } from 'electron'
+import {
+  app,
+  BrowserWindow,
+  Menu,
+  protocol,
+  shell,
+  type MenuItemConstructorOptions
+} from 'electron'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { imagePathOf, imageScheme, readImage } from './files/images'
 import { ProjectSession } from './files/session'
@@ -35,6 +42,34 @@ function createWindow(): void {
 
   window.on('ready-to-show', () => window.show())
   guardClose(window)
+
+  // Right-click in the document: spelling suggestions for the word, then the usual editing items.
+  window.webContents.on('context-menu', (_event, params) => {
+    if (!params.isEditable) return
+    const { webContents } = window
+    const suggestions: MenuItemConstructorOptions[] = params.dictionarySuggestions.map((word) => ({
+      label: word,
+      click: () => webContents.replaceMisspelling(word)
+    }))
+    const spelling: MenuItemConstructorOptions[] = params.misspelledWord
+      ? [
+          ...(suggestions.length > 0 ? suggestions : [{ label: 'No suggestions', enabled: false }]),
+          {
+            label: 'Add to dictionary',
+            click: () => webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord)
+          },
+          { type: 'separator' }
+        ]
+      : []
+    Menu.buildFromTemplate([
+      ...spelling,
+      { role: 'cut' },
+      { role: 'copy' },
+      { role: 'paste' },
+      { type: 'separator' },
+      { role: 'selectAll' }
+    ]).popup({ window })
+  })
 
   // Web links open in the system browser; the window itself only ever shows the app.
   window.webContents.setWindowOpenHandler(({ url }) => {

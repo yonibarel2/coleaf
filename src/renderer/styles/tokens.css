@@ -18,6 +18,7 @@
   --color-accent-tint: #e3f1e4;
   --color-ground-hover: #e9e9e6;
   --color-toolbar: #eaeae6; /* the ribbon: a little darker than the ground */
+  --color-backdrop: rgba(23, 23, 23, 0.3); /* ink, behind a dialog */
 
   /* Fonts: IBM Plex Sans for the app UI, the system font for documents */
   --font-ui: 'IBM Plex Sans', system-ui, sans-serif;
@@ -60,6 +61,7 @@
   --tree-row-height: 26px;
   --tree-indent: 12px;
   --tab-height: 36px;
+  --dialog-width: 480px;
 
   /* Documents: a sheet about A4 wide, GitHub-like type scale */
   --doc-width: 800px;

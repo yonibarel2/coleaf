@@ -58,7 +58,14 @@ export function applyMenu(session: ProjectSession): void {
     },
     {
       label: 'Help',
-      submenu: [{ label: 'About CoLeaf', click: () => showAbout() }]
+      submenu: [
+        {
+          label: 'Keyboard Shortcuts',
+          click: (_item, window) =>
+            targetWindow(window)?.webContents.send(channels.appShowShortcuts)
+        },
+        { label: 'About CoLeaf', click: () => showAbout() }
+      ]
     }
   ]
   if (process.platform === 'darwin') template.unshift({ role: 'appMenu' })
