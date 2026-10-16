@@ -1,5 +1,6 @@
 import type {
   AlignType,
+  CoLeafFrontMatter,
   CoLeafRaw,
   Link,
   Nodes,
@@ -22,8 +23,13 @@ declare module 'mdast' {
   interface CoLeafRaw extends Literal {
     type: 'coleafRaw'
   }
+  /** YAML front matter, with its `---` lines: shown as a table, written back verbatim. */
+  interface CoLeafFrontMatter extends Literal {
+    type: 'coleafFrontMatter'
+  }
   interface RootContentMap {
     coleafRaw: CoLeafRaw
+    coleafFrontMatter: CoLeafFrontMatter
   }
   interface PhrasingContentMap {
     coleafRaw: CoLeafRaw
@@ -259,6 +265,7 @@ function markTaskItemParentheses(node: Nodes): void {
 export function stringifyOptions(escaping: Escaping): StringifyOptions {
   const handlers: Handlers = {
     coleafRaw: (node: CoLeafRaw): string => node.value,
+    coleafFrontMatter: (node: CoLeafFrontMatter): string => node.value,
     emphasis,
     link,
     table,
@@ -272,6 +279,10 @@ export function stringifyOptions(escaping: Escaping): StringifyOptions {
     rule: '-',
     listItemIndent: 'one',
     incrementListMarker: true,
+    // remark-math's own `$` rule carries an empty `after` condition, so remark skips the escape
+    // when the next character is escaped too (`$_` came out as `$\_`, which reopens as math).
+    // This rule has no condition: every `$` in text is escaped.
+    unsafe: [{ character: '$', inConstruct: 'phrasing' }],
     handlers
   }
 }

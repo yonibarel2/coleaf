@@ -3,6 +3,7 @@ import type { Node as PmNode } from 'prosemirror-model'
 import { describe, expect, it } from 'vitest'
 import { findAlerts } from '../../src/renderer/editor/alerts'
 import { schema } from '../../src/renderer/editor/extensions'
+import { frontMatterTable } from '../../src/renderer/editor/frontMatter'
 import { mathSource, renderMath } from '../../src/renderer/editor/math'
 import { emojiOf } from '../../src/renderer/markdown/emoji'
 import { markdownToDoc } from '../../src/renderer/markdown/toDoc'
@@ -103,16 +104,48 @@ describe('math', () => {
   })
 
   it('escapes a typed dollar sign so it stays text', () => {
-    const typed = schema.nodes.doc.create(null, [
-      schema.nodes.paragraph.create(null, schema.text('Costs $5 and $10.'))
-    ])
-    expect(docToMarkdown(typed)).toBe('Costs \\$5 and \\$10.\n')
+    const typed = (text: string): string =>
+      docToMarkdown(
+        schema.nodes.doc.create(null, [schema.nodes.paragraph.create(null, schema.text(text))])
+      )
+    expect(typed('Costs $5 and $10.')).toBe('Costs \\$5 and \\$10.\n')
     expect(roundTrip('Costs \\$5 and \\$10.\n')).toBe('Costs \\$5 and \\$10.\n')
+    // A dollar before another escaped character is escaped too (remark alone drops it).
+    expect(typed('$_ $a a')).toBe('\\$\\_ \\$a a\n')
+    expect(typed('$*x* $')).toBe('\\$\\*x\\* \\$\n')
   })
 
   it('draws a formula with KaTeX and shows bad TeX rather than failing', async () => {
     expect(await renderMath('E = mc^2', false)).toContain('class="katex"')
     expect(await renderMath('\\frac{a}', true)).toContain('katex-error')
+  })
+})
+
+describe('front matter', () => {
+  it('opens YAML front matter as its own block and writes it back', () => {
+    const text = '---\ntitle: Front matter\ntags: [a, b]\n---\n\n# Title\n'
+    const doc = markdownToDoc(text, schema)
+    expect(doc.firstChild?.type.name).toBe('frontMatter')
+    expect(doc.firstChild?.attrs['source']).toBe('---\ntitle: Front matter\ntags: [a, b]\n---')
+    expect(roundTrip(text)).toBe(text)
+    expect(markdownToDoc('+++\ntitle = "x"\n+++\n\ntext\n', schema).firstChild?.type.name).toBe(
+      'rawBlock'
+    )
+  })
+
+  it('tables the keys and values, lists on one line, and reports bad YAML', async () => {
+    const source = '---\ntitle: Front matter\ntags: [a, b]\ndraft: true\nauthor:\n  name: Yo\n---'
+    expect(await frontMatterTable(source)).toEqual({
+      rows: [
+        ['title', 'Front matter'],
+        ['tags', 'a, b'],
+        ['draft', 'true'],
+        ['author', 'name: Yo']
+      ]
+    })
+    expect(await frontMatterTable('---\n---')).toEqual({ rows: [] })
+    expect(await frontMatterTable('---\n- just\n- a list\n---')).toHaveProperty('error')
+    expect(await frontMatterTable('---\ntitle: [\n---')).toHaveProperty('error')
   })
 })
 

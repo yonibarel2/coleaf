@@ -100,7 +100,8 @@ const nodeHandlers: Options['nodeHandlers'] = {
   tableCell,
   tableHeader: tableCell,
   rawBlock: rawContent,
-  rawInline: (node) => rawContent(node) as PhrasingContent
+  rawInline: (node) => rawContent(node) as PhrasingContent,
+  frontMatter: (node) => ({ type: 'coleafFrontMatter', value: node.attrs['source'] })
 }
 
 const markHandlers: Options['markHandlers'] = {

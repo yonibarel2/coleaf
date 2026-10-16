@@ -50,7 +50,11 @@ function isRawBlock(node: RootContent): boolean {
  */
 function keepRawBlocks(tree: Root, text: string, frontMatter: string | null): void {
   const children: RootContent[] = []
-  if (frontMatter !== null) children.push({ type: 'coleafRaw', value: frontMatter })
+  // YAML front matter gets its table; TOML (`+++`, Hugo) is kept as-is.
+  if (frontMatter !== null) {
+    const type = frontMatter.startsWith('---') ? 'coleafFrontMatter' : 'coleafRaw'
+    children.push({ type, value: frontMatter })
+  }
   let run: RootContent[] = []
   const flush = (): void => {
     if (run.length === 0) return
@@ -198,6 +202,7 @@ function createHandlers(schema: Schema, text: string): Handlers {
         ? rawInline(node)
         : nodes.htmlBlock.create({ html: node.value }),
     coleafRaw: (node) => nodes.rawBlock.create({ markdown: node.value, source: node.value }),
+    coleafFrontMatter: (node) => nodes.frontMatter.create({ source: node.value }),
     text: (node) => textNodes(node.value),
     emphasis: toPmMark(marks.italic),
     strong: toPmMark(marks.bold),

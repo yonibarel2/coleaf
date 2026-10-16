@@ -1,6 +1,7 @@
 import { Mark, Node } from '@tiptap/core'
 import { ReactNodeViewRenderer } from '@tiptap/react'
 import { emojiOf } from '../markdown/emoji'
+import { FrontMatterView } from './FrontMatterView'
 import { MathInlineView } from './MathInlineView'
 
 // Markdown the editor cannot edit yet is carried through as-is and written back unchanged: as
@@ -45,7 +46,24 @@ export const HtmlBlock = Node.create({
   ]
 })
 
-/** Any other block the editor does not edit yet: task list, footnote, link definition, front matter… */
+/** YAML front matter (`---` lines at the top): shown as a table (FrontMatterView.tsx), saved as it was. */
+export const FrontMatter = Node.create({
+  name: 'frontMatter',
+  group: 'block',
+  atom: true,
+  addAttributes: () => ({ source: { ...sourceAttribute, default: '---\n---' } }),
+  parseHTML: () => [{ tag: 'pre[data-front-matter]' }],
+  renderHTML: ({ node, HTMLAttributes }) => [
+    'pre',
+    { ...HTMLAttributes, 'data-front-matter': '', class: 'raw raw--block' },
+    String(node.attrs['source'])
+  ],
+  addNodeView() {
+    return ReactNodeViewRenderer(FrontMatterView)
+  }
+})
+
+/** Any other block the editor does not edit yet: footnote, link definition, TOML front matter… */
 export const RawBlock = Node.create({
   name: 'rawBlock',
   group: 'block',

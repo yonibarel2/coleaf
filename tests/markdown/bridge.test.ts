@@ -117,7 +117,7 @@ describe('Markdown ⇄ editor document', () => {
     expect(roundTrip('---\n\n> a\n\n- item\n')).toBe('---\n\n> a\n\n- item\n')
     expect(markdownToDoc('---\n\n> a\n', schema).child(1).type.name).toBe('blockquote')
     const withFrontMatter = markdownToDoc('---\ntitle: x\n---\n\n# Title\n', schema)
-    expect(withFrontMatter.firstChild?.type.name).toBe('rawBlock')
+    expect(withFrontMatter.firstChild?.type.name).toBe('frontMatter')
     expect(withFrontMatter.firstChild?.attrs['source']).toBe('---\ntitle: x\n---')
     expect(roundTrip('+++\ntitle = "x"\n+++\n\ntext\n')).toBe('+++\ntitle = "x"\n+++\n\ntext\n')
   })

@@ -266,6 +266,87 @@
   text-align: center;
 }
 
+/* The source of a block in a field (EditCode.tsx), with Done in the corner. */
+.document .code-editor {
+  position: relative;
+}
+
+.document .code-editor__field {
+  display: block;
+  width: 100%;
+  padding: var(--space-4);
+  border: 1px dashed var(--color-line);
+  border-radius: var(--radius-control);
+  background: var(--color-ground);
+  font-family: var(--font-mono);
+  font-size: var(--text-doc-code);
+  line-height: var(--line-height-doc);
+  color: var(--color-ink);
+  resize: vertical;
+}
+
+.document .code-editor__field:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -1px;
+}
+
+/* Front matter (FrontMatterView.tsx): a small table of keys and values at the top of the page. */
+.document .front-matter {
+  position: relative;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-control);
+  background: var(--color-ground);
+}
+
+.document .front-matter[data-editing] {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.document .front-matter__title {
+  margin-bottom: var(--space-2);
+  font-family: var(--font-ui);
+  font-size: var(--text-label);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.document .front-matter__table {
+  border-collapse: collapse;
+  font-size: var(--text-doc-code);
+}
+
+.document .front-matter__table th,
+.document .front-matter__table td {
+  min-width: 0;
+  padding: var(--space-1) var(--space-3) var(--space-1) 0;
+  border: 0;
+  text-align: left;
+  vertical-align: top;
+  white-space: pre-wrap;
+}
+
+.document .front-matter__table th {
+  background: transparent;
+  color: var(--color-muted);
+  font-weight: var(--weight-medium);
+}
+
+.document .front-matter__code {
+  padding: 0;
+  background: transparent;
+}
+
+.document .front-matter__error {
+  margin-top: var(--space-2);
+  font-size: var(--text-label);
+  color: var(--color-caution);
+}
+
 /* Inline math (MathInlineView.tsx): a formula; selected, a field with its TeX. */
 .document .math-inline[data-selected] {
   outline: 2px solid var(--color-accent);
