@@ -31,7 +31,7 @@ Build a human-friendly Markdown view in the CoLeaf desktop app that people edit 
 3. **Custom shortcuts:** users can bind their own keys to any supported syntax.
 4. **Full standard Markdown (CommonMark + GitHub-flavored):** headings, bold/italic/strikethrough, lists, task lists, links, images, tables, code blocks, quotes, horizontal rules.
 5. **Round-trip fidelity:** untouched files never change (open + save with no edits = no git diff). Edited files are saved in one consistent Markdown style (Prettier-compatible).
-6. **Embedded HTML:** any HTML already in a file shows as a plain "HTML" block (or a small inline chip) with an "edit code" button, and is saved back unchanged. Never dropped, never run.
+6. **Shows what GitHub shows:** everything GitHub renders formatted, CoLeaf renders formatted too, from Stage 1: embedded HTML (through a safe sanitizer), math (LaTeX), maps (GeoJSON/TopoJSON) and 3D models (STL), besides Mermaid diagrams. Each such block gets a small "edit code" button and is saved back unchanged. Nothing is ever dropped from the file, and embedded scripts or styles never run. Needs new libraries, approved when we reach them (see TODOs).
 7. **Simple Git:** a Sync button (pull, commit, push) and basic version history.
 8. **Friendly conflicts:** when Sync finds the same lines changed by two people, show Mine and Theirs side by side with Keep mine, Keep theirs or Keep both. Never raw Git markers.
 9. **Maximize the document area:** the main UI rule; everything else stays small or can be hidden.
@@ -209,8 +209,7 @@ A full-window, Word-like workspace with modern styling, working side by side wit
 
 1. **Final logo:** replaces the Stage 1 placeholder icon.
 2. **Final name:** confirm the product name before launch.
-3. **Formatted HTML:** show HTML found in files formatted (underline, sub/superscript, tables, collapsible sections) instead of as plain blocks; unsafe HTML (scripts, styles) is never run.
-4. **Dark theme:** a dark version of the whole app, switched in Settings.
+3. **Dark theme:** a dark version of the whole app, switched in Settings.
 
 ### Design
 
@@ -261,3 +260,4 @@ TODO
 - [x] Color palette: replace the current dark green with a livelier, natural green (same lightness and strength, new hue)
 - [ ] Part A: check that every Markdown syntax is reachable from the ribbon, and list the blocks that show a preview plus a small "edit code" button (Mermaid, code blocks, math, raw HTML, front matter...)
 - [ ] Think of a better tagline than "All the power of a repo. None of the nerd."
+- [ ] Approve the libraries for GitHub-style rendering before building it (Stage 1, requirement 6): KaTeX (math), a safe HTML sanitizer (e.g. DOMPurify), a map viewer for GeoJSON/TopoJSON (e.g. Leaflet) and a 3D viewer for STL (e.g. three.js)

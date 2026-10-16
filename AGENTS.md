@@ -42,7 +42,7 @@ Don't add libraries outside this list without approval. Not used: Monaco, TipTap
 
 1. **Save rule:** an untouched file is never rewritten (open + save with no edits = no git diff). Edited files are saved in one consistent, Prettier-compatible Markdown style. Never add hard line breaks.
 2. **Plain Markdown only:** files stay GitHub-flavored Markdown. No CoLeaf-only syntax or hidden metadata in `.md` files.
-3. **Embedded HTML:** shown as a block, saved back unchanged, never executed.
+3. **Embedded HTML and other GitHub-rendered content** (math, maps, 3D): shown formatted, HTML through a safe sanitizer; saved back unchanged; scripts and styles never run.
 4. **Editable files:** only `.md` and `.markdown`.
 5. **Security:** the window has no Node access (`contextIsolation` on, `nodeIntegration` off). All disk and Git work goes through the preload's allowlisted IPC messages.
 6. **Left-to-right only:** no RTL support.
