@@ -229,6 +229,7 @@ A full-window, Word-like workspace with modern styling, working side by side wit
 4. **Viewers:** map (GeoJSON/TopoJSON), 3D model (STL) and PlantUML blocks rendered like GitHub and GitLab do; libraries to approve first.
 5. **Custom title bar:** one row with the app icon, the menus, the search box and the window controls, as in the mockups, replacing the system title bar plus a separate menu row.
 6. **Scrollbars:** thin overlay scrollbars on the sidebar and the page (the mockups draw none).
+7. **Authoring format:** a policy for what CoLeaf lets people add, so files stay easy for both humans and AI to read: GFM first; diagrams only as Mermaid text with `accTitle`/`accDescr`; images with alt text and no base64; a small HTML allowlist (`details`, `sub`/`sup`, `kbd`, `br`); optional front matter (title, owner, status, one-line summary); scripts, iframes, styles, forms, colors and merged cells never created. Existing HTML is kept as-is. Written as `docs/authoring-policy.md` plus an AGENTS.md rule.
 
 ### Design
 
