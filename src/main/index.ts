@@ -1,12 +1,5 @@
 import { join } from 'node:path'
-import {
-  app,
-  BrowserWindow,
-  Menu,
-  protocol,
-  shell,
-  type MenuItemConstructorOptions
-} from 'electron'
+import { app, BrowserWindow, Menu, protocol, shell } from 'electron'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { imagePathOf, imageScheme, readImage } from './files/images'
 import { ProjectSession } from './files/session'
@@ -36,33 +29,21 @@ function createWindow(): void {
       // The window never gets Node access: all disk and Git work goes through the preload's allowlist.
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: true
+      sandbox: true,
+      // Off until the spell check TODO in docs/plan.md is done: Electron's checker reports
+      // nothing on Windows since Electron 41 (issue 54729), so squiggles and suggestions
+      // would only look broken. The suggestions menu is in commit 07f355c.
+      spellcheck: false
     }
   })
 
   window.on('ready-to-show', () => window.show())
   guardClose(window)
 
-  // Right-click in the document: spelling suggestions for the word, then the usual editing items.
+  // Right-click in the document: the usual editing items.
   window.webContents.on('context-menu', (_event, params) => {
     if (!params.isEditable) return
-    const { webContents } = window
-    const suggestions: MenuItemConstructorOptions[] = params.dictionarySuggestions.map((word) => ({
-      label: word,
-      click: () => webContents.replaceMisspelling(word)
-    }))
-    const spelling: MenuItemConstructorOptions[] = params.misspelledWord
-      ? [
-          ...(suggestions.length > 0 ? suggestions : [{ label: 'No suggestions', enabled: false }]),
-          {
-            label: 'Add to dictionary',
-            click: () => webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord)
-          },
-          { type: 'separator' }
-        ]
-      : []
     Menu.buildFromTemplate([
-      ...spelling,
       { role: 'cut' },
       { role: 'copy' },
       { role: 'paste' },

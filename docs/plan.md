@@ -286,3 +286,4 @@ TODO
 - [ ] Part A: check that every Markdown syntax is reachable from the ribbon, and list the blocks that show a preview plus a small "edit code" button (Mermaid, code blocks, math, raw HTML, front matter...)
 - [ ] Think of a better tagline than "All the power of a repo. None of the nerd."
 - [ ] Approve the libraries for GitHub-style rendering before building it: for Stage 1b, KaTeX (math) and a safe HTML sanitizer (e.g. DOMPurify); for Stage 4, a map viewer for GeoJSON/TopoJSON (e.g. Leaflet), a 3D viewer for STL (e.g. three.js) and a PlantUML renderer
+- [ ] Spell check broken on Windows since Electron 41 (issue 54729, closed by a bot, no fix). Before Release 1: own checker, or re-test the newest Electron.
