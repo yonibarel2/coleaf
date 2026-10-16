@@ -1,5 +1,7 @@
 import { Mark, Node } from '@tiptap/core'
+import { ReactNodeViewRenderer } from '@tiptap/react'
 import { emojiOf } from '../markdown/emoji'
+import { MathInlineView } from './MathInlineView'
 
 // Markdown the editor cannot edit yet is carried through as-is and written back unchanged: as
 // its exact source text when it has one, else as the mdast node it came from. Shown as code for
@@ -90,6 +92,32 @@ export const RawMark = Mark.create({
     { ...HTMLAttributes, 'data-raw-mark': '', class: 'raw raw--mark' },
     0
   ]
+})
+
+/** An inline formula (`$E = mc^2$`): drawn with KaTeX (MathInlineView.tsx), saved as its TeX. */
+export const MathInline = Node.create({
+  name: 'mathInline',
+  group: 'inline',
+  inline: true,
+  atom: true,
+  addAttributes: () => ({
+    code: {
+      default: '',
+      parseHTML: (element: HTMLElement): string => element.getAttribute('data-math') ?? '',
+      renderHTML: (attributes: Record<string, unknown>): Record<string, string> => ({
+        'data-math': String(attributes['code'])
+      })
+    }
+  }),
+  parseHTML: () => [{ tag: 'span[data-math]' }],
+  renderHTML: ({ node, HTMLAttributes }) => [
+    'span',
+    { ...HTMLAttributes, class: 'math-inline' },
+    String(node.attrs['code'])
+  ],
+  addNodeView() {
+    return ReactNodeViewRenderer(MathInlineView)
+  }
 })
 
 /** An emoji shortcode (`:smile:`): shown as the emoji, saved as the shortcode. */

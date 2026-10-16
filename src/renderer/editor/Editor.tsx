@@ -5,6 +5,7 @@ import { FindPanel } from './FindPanel'
 import { insertLink } from './link'
 import { LinkPanel, type LinkDraft } from './LinkPanel'
 import { TableBar } from './TableBar'
+import 'katex/dist/katex.min.css'
 import './editor.css'
 
 interface EditorProps {

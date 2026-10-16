@@ -261,8 +261,32 @@
   margin-bottom: var(--space-2);
 }
 
-.document .preview--diagram {
+.document .preview--diagram,
+.document .preview--math {
   text-align: center;
+}
+
+/* Inline math (MathInlineView.tsx): a formula; selected, a field with its TeX. */
+.document .math-inline[data-selected] {
+  outline: 2px solid var(--color-accent);
+  border-radius: var(--space-1);
+}
+
+.document .math-inline__code {
+  width: calc(var(--sidebar-width) - var(--space-8));
+  padding: 0 var(--space-1);
+  border: 0;
+  background: var(--color-ground);
+  font-family: var(--font-mono);
+  font-size: var(--text-doc-code);
+  color: var(--color-ink);
+  outline: none;
+}
+
+.document .math-pending {
+  font-family: var(--font-mono);
+  font-size: var(--text-doc-code);
+  color: var(--color-muted);
 }
 
 .document .preview--diagram svg {

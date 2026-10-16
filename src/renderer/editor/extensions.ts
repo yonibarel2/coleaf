@@ -20,7 +20,7 @@ import { ReactNodeViewRenderer } from '@tiptap/react'
 import { CoLeafAlerts } from './alerts'
 import { CodeBlockView } from './CodeBlockView'
 import { highlighter } from './highlight'
-import { Emoji, HtmlBlock, RawBlock, RawInline, RawMark, SoftBreak } from './nodes'
+import { Emoji, HtmlBlock, MathInline, RawBlock, RawInline, RawMark, SoftBreak } from './nodes'
 import { imageUrl } from './paths'
 import { CoLeafPictures } from './pictures'
 import { CoLeafSearch } from './search'
@@ -121,8 +121,14 @@ const CoLeafCode = Code.extend({ excludes: '', addKeyboardShortcuts: () => ({}) 
 // diagram (CodeBlockView.tsx).
 const CoLeafCodeBlock = CodeBlockLowlight.extend({
   addAttributes() {
-    // The text after the language on the opening fence (```js title="x") is kept as-is.
-    return { ...this.parent?.(), meta: { default: null, rendered: false } }
+    return {
+      ...this.parent?.(),
+      // The text after the language on the opening fence (```js title="x") is kept as-is.
+      meta: { default: null, rendered: false },
+      // A math block the file wrote between `$$` lines is written back that way ('dollar');
+      // null for a fence. Only meaningful while the language is math.
+      fence: { default: null, rendered: false }
+    }
   },
   addKeyboardShortcuts() {
     const keys = this.parent?.() ?? {}
@@ -319,6 +325,7 @@ export function createExtensions(options: EditorOptions): Extensions {
     RawInline,
     SoftBreak,
     Emoji,
+    MathInline,
     CoLeafAlerts,
     CoLeafPictures.configure({
       documentPath: options.documentPath,

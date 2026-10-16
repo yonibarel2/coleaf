@@ -22,7 +22,6 @@ const golden = files.filter((file) => !name(file).startsWith('normalize/'))
 // Rows that cannot survive mdast yet; the untouched rule still protects them (Stage 5 work).
 const knownGaps = new Map([
   ['inline/16-html-entity.md', 'entities are decoded by the parser'],
-  ['extras/03b-math-dollar-escape.md', 'needs remark-math to tell \\$ from $math$'],
   ['other/09-admonition.md', 'indentation inside a paragraph is not kept']
 ])
 

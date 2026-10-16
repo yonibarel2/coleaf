@@ -8,6 +8,7 @@ import type { Parent, PhrasingContent, Root, RootContent } from 'mdast'
 import type { Node as PmNode, Schema } from 'prosemirror-model'
 import type { Position } from 'unist'
 import remarkGfm from 'remark-gfm'
+import remarkMath from 'remark-math'
 import remarkParse from 'remark-parse'
 import { unified } from 'unified'
 import { splitEmoji } from './emoji'
@@ -28,6 +29,7 @@ export function markdownToDoc(text: string, schema: Schema): PmNode {
   const file = unified()
     .use(remarkParse)
     .use(remarkGfm, gfmOptions)
+    .use(remarkMath)
     .use(() => (tree: Root) => keepRawBlocks(tree, body, frontMatter))
     .use(remarkProseMirror, { schema, handlers: createHandlers(schema, body) })
     .processSync(body)
@@ -153,6 +155,13 @@ function createHandlers(schema: Schema, text: string): Handlers {
         { language: node.lang ?? null, meta: node.meta ?? null },
         node.value ? schema.text(node.value) : undefined
       ),
+    // A `$$` block is a math code block that remembers its fence (extensions.ts).
+    math: (node) =>
+      nodes.codeBlock.create(
+        { language: 'math', meta: node.meta ?? null, fence: 'dollar' },
+        node.value ? schema.text(node.value) : undefined
+      ),
+    inlineMath: (node) => nodes.mathInline.create({ code: node.value }),
     list: (node, _, state) => {
       const type = node.ordered ? nodes.orderedList : nodes.bulletList
       const spread = isLoose(node.children, node.spread)

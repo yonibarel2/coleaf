@@ -9,11 +9,12 @@ import { useEffect, useState, type JSX } from 'react'
 import { renderDiagram, type Diagram } from './diagrams'
 import { previewKindOf } from './highlight'
 import { languages } from './languages'
+import { MathPreview } from './MathInlineView'
 
 /**
  * A code block with its language picker in the corner (docs/ui/ribbon-panels.png). A Mermaid
- * block shows its diagram while the cursor is elsewhere, and its code, with the picker, while
- * the cursor is inside; "Edit code" on the diagram puts the cursor there.
+ * or math block shows its diagram or formula while the cursor is elsewhere, and its code, with
+ * the picker, while the cursor is inside; "Edit code" on the picture puts the cursor there.
  */
 export function CodeBlockView(props: ReactNodeViewProps): JSX.Element {
   const { node, editor, getPos, updateAttributes, selected } = props
@@ -73,6 +74,11 @@ export function CodeBlockView(props: ReactNodeViewProps): JSX.Element {
         </button>
       )}
       {!showCode && kind === 'mermaid' && <DiagramPreview code={node.textContent} />}
+      {!showCode && kind === 'math' && (
+        <div className="preview preview--math" contentEditable={false}>
+          <MathPreview code={node.textContent} display />
+        </div>
+      )}
       <pre className={showCode ? undefined : 'code-block__hidden'}>
         <NodeViewContent<'code'> as="code" />
       </pre>

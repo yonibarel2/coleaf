@@ -3,6 +3,7 @@ import type { Node as PmNode } from 'prosemirror-model'
 import { describe, expect, it } from 'vitest'
 import { findAlerts } from '../../src/renderer/editor/alerts'
 import { schema } from '../../src/renderer/editor/extensions'
+import { mathSource, renderMath } from '../../src/renderer/editor/math'
 import { emojiOf } from '../../src/renderer/markdown/emoji'
 import { markdownToDoc } from '../../src/renderer/markdown/toDoc'
 import { docToMarkdown } from '../../src/renderer/markdown/toMarkdown'
@@ -78,6 +79,40 @@ describe('alerts', () => {
     ])
     expect(doc.nodeAt(alerts[0].from)?.type.name).toBe('blockquote')
     expect(roundTrip(text)).toBe(text)
+  })
+})
+
+describe('math', () => {
+  it('opens inline formulas as math nodes, in both of GitHub`s forms', () => {
+    const text = '$E = mc^2$ and $`E = mc^2`$\n'
+    const formulas = nodesOf(markdownToDoc(text, schema), 'mathInline')
+    expect(formulas.map(({ node }) => node.attrs['code'])).toEqual(['E = mc^2', '`E = mc^2`'])
+    expect(mathSource('`E = mc^2`')).toBe('E = mc^2')
+    expect(mathSource('E = mc^2')).toBe('E = mc^2')
+    expect(roundTrip(text)).toBe(text)
+  })
+
+  it('keeps a $$ block and a math fence apart', () => {
+    const text = '$$\nE = mc^2\n$$\n\n```math\nE = mc^2\n```\n'
+    const blocks = nodesOf(markdownToDoc(text, schema), 'codeBlock')
+    expect(blocks.map(({ node }) => [node.attrs['language'], node.attrs['fence']])).toEqual([
+      ['math', 'dollar'],
+      ['math', null]
+    ])
+    expect(roundTrip(text)).toBe(text)
+  })
+
+  it('escapes a typed dollar sign so it stays text', () => {
+    const typed = schema.nodes.doc.create(null, [
+      schema.nodes.paragraph.create(null, schema.text('Costs $5 and $10.'))
+    ])
+    expect(docToMarkdown(typed)).toBe('Costs \\$5 and \\$10.\n')
+    expect(roundTrip('Costs \\$5 and \\$10.\n')).toBe('Costs \\$5 and \\$10.\n')
+  })
+
+  it('draws a formula with KaTeX and shows bad TeX rather than failing', async () => {
+    expect(await renderMath('E = mc^2', false)).toContain('class="katex"')
+    expect(await renderMath('\\frac{a}', true)).toContain('katex-error')
   })
 })
 

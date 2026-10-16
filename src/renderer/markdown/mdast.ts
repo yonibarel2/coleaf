@@ -12,6 +12,7 @@ import type {
 } from 'mdast'
 import { defaultHandlers, type ConstructName } from 'mdast-util-to-markdown'
 import remarkGfm from 'remark-gfm'
+import remarkMath from 'remark-math'
 import remarkParse from 'remark-parse'
 import remarkStringify, { type Options as StringifyOptions } from 'remark-stringify'
 import { unified } from 'unified'
@@ -275,9 +276,9 @@ export function stringifyOptions(escaping: Escaping): StringifyOptions {
   }
 }
 
-/** Parses GitHub-flavored Markdown (without front matter) into mdast. */
+/** Parses GitHub-flavored Markdown (without front matter), with GitHub's math, into mdast. */
 export function parseMarkdown(text: string): Root {
-  return unified().use(remarkParse).use(remarkGfm, gfmOptions).parse(text)
+  return unified().use(remarkParse).use(remarkGfm, gfmOptions).use(remarkMath).parse(text)
 }
 
 /** Writes mdast as Markdown in CoLeaf's style. */
@@ -286,6 +287,7 @@ export function stringifyMdast(root: Root, escaping: Escaping = 'full'): string 
   markTaskItemParentheses(root)
   return unified()
     .use(remarkGfm, gfmOptions)
+    .use(remarkMath)
     .use(remarkStringify, stringifyOptions(escaping))
     .stringify(root)
 }

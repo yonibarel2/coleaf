@@ -16,8 +16,8 @@ export const highlighter = {
 }
 
 /** What a code block shows instead of its code while the cursor is elsewhere. */
-export type PreviewKind = 'mermaid'
+export type PreviewKind = 'mermaid' | 'math'
 
 export function previewKindOf(language: string | null): PreviewKind | null {
-  return language === 'mermaid' ? 'mermaid' : null
+  return language === 'mermaid' || language === 'math' ? language : null
 }

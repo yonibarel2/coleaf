@@ -51,12 +51,16 @@ const nodeHandlers: Options['nodeHandlers'] = {
   heading: fromPmNode('heading', (node) => ({ depth: node.attrs['level'] })),
   blockquote: fromPmNode('blockquote'),
   horizontalRule: () => ({ type: 'thematicBreak' }),
-  codeBlock: (node) => ({
-    type: 'code',
-    lang: node.attrs['language'] ?? null,
-    meta: node.attrs['meta'] ?? null,
-    value: node.textContent
-  }),
+  codeBlock: (node) =>
+    node.attrs['language'] === 'math' && node.attrs['fence'] === 'dollar'
+      ? { type: 'math', meta: node.attrs['meta'] ?? null, value: node.textContent }
+      : {
+          type: 'code',
+          lang: node.attrs['language'] ?? null,
+          meta: node.attrs['meta'] ?? null,
+          value: node.textContent
+        },
+  mathInline: (node) => ({ type: 'inlineMath', value: node.attrs['code'] }),
   bulletList: fromPmNode('list', (node) => ({ ordered: false, spread: node.attrs['spread'] })),
   orderedList: fromPmNode('list', (node) => ({
     ordered: true,
