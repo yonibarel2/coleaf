@@ -1,6 +1,7 @@
 import { app, BrowserWindow, dialog, Menu, type MenuItemConstructorOptions } from 'electron'
 import { is } from '@electron-toolkit/utils'
 import type { ProjectSession } from './files/session'
+import { settleUnsaved } from './ipc/app'
 
 /** Builds the application menu. Call again whenever the session changes. */
 export function applyMenu(session: ProjectSession): void {
@@ -12,11 +13,23 @@ export function applyMenu(session: ProjectSession): void {
           label: 'Open project…',
           accelerator: 'CmdOrCtrl+O',
           click: (_item, window) => {
-            void session.open(window ?? BrowserWindow.getAllWindows()[0])
+            const target = (window as BrowserWindow | undefined) ?? BrowserWindow.getAllWindows()[0]
+            void settleUnsaved(target).then((proceed) => {
+              if (proceed) void session.open(target)
+            })
           }
         },
         { type: 'separator' },
-        { label: 'Close Project', enabled: session.current !== null, click: () => session.close() }
+        {
+          label: 'Close Project',
+          enabled: session.current !== null,
+          click: (_item, window) => {
+            const target = (window as BrowserWindow | undefined) ?? BrowserWindow.getAllWindows()[0]
+            void settleUnsaved(target).then((proceed) => {
+              if (proceed) session.close()
+            })
+          }
+        }
       ]
     },
     {

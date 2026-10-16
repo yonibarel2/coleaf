@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { channels, type ProjectInfo, type TreeEntry } from './contract'
+import { channels, type ProjectInfo, type SaveChoice, type TreeEntry } from './contract'
 
 // Subscribes to a one-way message from the background and returns the unsubscribe function.
 // The window only ever sees the payload, never ipcRenderer itself.
@@ -21,6 +21,28 @@ const api = {
       subscribe(channels.projectChanged, callback),
     onDirChanged: (callback: (path: string) => void): (() => void) =>
       subscribe(channels.projectDirChanged, callback)
+  },
+  file: {
+    /** The text of a Markdown file of the open project. */
+    read: (path: string): Promise<string> => ipcRenderer.invoke(channels.fileRead, path),
+    write: (path: string, text: string): Promise<void> =>
+      ipcRenderer.invoke(channels.fileWrite, path, text)
+  },
+  dialog: {
+    askSave: (name: string): Promise<SaveChoice> => ipcRenderer.invoke(channels.dialogAskSave, name)
+  },
+  app: {
+    /** How many open documents have unsaved changes. */
+    setUnsaved: (count: number): void => ipcRenderer.send(channels.appSetUnsaved, count),
+    /**
+     * Before closing the window or switching projects with unsaved changes, the background asks
+     * the window to save or discard them; the window answers with `unsavedSettled`.
+     */
+    onSettleUnsaved: (callback: () => void): (() => void) =>
+      subscribe<undefined>(channels.appSettleUnsaved, callback),
+    /** `false` when the user cancelled: the pending close or switch is dropped. */
+    unsavedSettled: (proceed: boolean): void =>
+      ipcRenderer.send(channels.appUnsavedSettled, proceed)
   }
 }
 

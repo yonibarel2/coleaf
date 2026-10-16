@@ -7,8 +7,17 @@ export const channels = {
   projectCurrent: 'project:current',
   projectListDir: 'project:list-dir',
   projectChanged: 'project:changed',
-  projectDirChanged: 'project:dir-changed'
+  projectDirChanged: 'project:dir-changed',
+  fileRead: 'file:read',
+  fileWrite: 'file:write',
+  dialogAskSave: 'dialog:ask-save',
+  appSetUnsaved: 'app:set-unsaved',
+  appSettleUnsaved: 'app:settle-unsaved',
+  appUnsavedSettled: 'app:unsaved-settled'
 } as const
+
+/** The answer to "Save changes?" */
+export type SaveChoice = 'save' | 'discard' | 'cancel'
 
 /** The folder currently open in CoLeaf. */
 export interface ProjectInfo {

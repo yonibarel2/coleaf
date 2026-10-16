@@ -2,6 +2,8 @@ import { join } from 'node:path'
 import { app, BrowserWindow, shell } from 'electron'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { ProjectSession } from './files/session'
+import { guardClose, registerAppIpc } from './ipc/app'
+import { registerFileIpc } from './ipc/file'
 import { registerProjectIpc } from './ipc/project'
 import { applyMenu } from './menu'
 
@@ -23,6 +25,7 @@ function createWindow(): void {
   })
 
   window.on('ready-to-show', () => window.show())
+  guardClose(window)
 
   // Links open in the system browser; the window itself only ever shows the app.
   window.webContents.setWindowOpenHandler(({ url }) => {
@@ -51,6 +54,8 @@ app.whenReady().then(() => {
 
   const session = new ProjectSession()
   registerProjectIpc(session)
+  registerFileIpc(session)
+  registerAppIpc()
   applyMenu(session)
   session.onChange(() => applyMenu(session))
   app.on('will-quit', () => session.close())
