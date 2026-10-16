@@ -97,7 +97,7 @@ Shown after opening a project or a single file.
 | Non-.md files and folders | Files that aren't `.md` (can't be opened), and folders with no `.md` file at any depth, are shown greyed in the Project section; `node_modules` and git-ignored folders are never scanned and always greyed. The "Only .md" tick in the section header hides them all. .git and system files are always hidden |
 | Pictures | Pasted or dragged pictures are saved under the root images/ folder, in a subfolder mirroring the doc's path (images/docs/plan/diagram-1.png). Created only when a doc gets its first picture. Moving or renaming a doc renames its image folder and updates its links automatically |
 | Restore a version | Right-click a version in History → Restore. If the current version isn't committed yet, a short message explains it will be lost, with three buttons: Override (restore, lose current), Commit and restore (current version kept in History first), Cancel. The restored file is a normal change, committed on the next Sync. Nothing in History is deleted |
-| Page layout | A soft off-white sheet (about A4 width, \~800 px) centered on the grey background, below a slightly darker toolbar. On a narrow window or split pane the sheet shrinks and text re-wraps (no sideways scrolling). No page breaks; CoLeaf never adds line breaks to the file |
+| Page layout | A soft off-white sheet (`#FCFCFB`, about A4 width, \~800 px) centered on the grey background, below a slightly darker toolbar. On a narrow window or split pane the sheet shrinks and text re-wraps (no sideways scrolling). No page breaks; CoLeaf never adds line breaks to the file |
 | Editing like Word | Blinking cursor; select with mouse or Shift+arrows (highlighted in the accent tint); Ctrl+C/X/V, Ctrl+A, Ctrl+Z/Y; double-click selects a word, triple-click a paragraph. Pasting from Word or the web keeps what Markdown supports (bold, lists, links, tables) and drops the rest (fonts, colors) |
 | Outline (TOC) | Slim column at the left edge of the page, built automatically from the headings, like Word's Navigation pane; one button shows or hides it; click a heading to jump. Follows the focused tab. Nothing is written to the file |
 
@@ -139,6 +139,7 @@ Build this first and see it work; then review and detail 1b. Stage 1 rows of [ma
 - [ ] Formatted read-only views of all other rows: tables, task lists, strikethrough, alerts, footnotes, Mermaid, math and common HTML (`<img>`, `<details>`, `<sub>`/`<sup>`, `<kbd>`, `<br>`, …); libraries to approve first (KaTeX, a safe HTML sanitizer)
 - [ ] Git: Sync button (commit, pull, push) with friendly conflicts
 - [ ] History and Restore
+- [ ] Frame: Welcome tab; Help › User Guide and Keyboard Shortcuts; File › Open for a single `.md` file; outside changes (Keep mine / Reload)
 - [ ] Test on real repo files
 
 ## Release 1 – First public version
@@ -152,6 +153,7 @@ Ship Stage 1 to testers and the public as a signed app that updates itself.
 1. **Signed installers:** Windows (no "unknown publisher" warning) and macOS (notarized).
 2. **Auto-update:** new versions install themselves.
 3. **Crash reports:** errors reach us so we can fix them.
+4. **Minified build:** the window's code ships minified (the build currently leaves it unminified, about 2.3 MB).
 
 ### Work plan
 
@@ -212,6 +214,8 @@ A full-window, Word-like workspace with modern styling, working side by side wit
 2. **Final name:** confirm the product name before launch.
 3. **Dark theme:** a dark version of the whole app, switched in Settings.
 4. **Viewers:** map (GeoJSON/TopoJSON), 3D model (STL) and PlantUML blocks rendered like GitHub and GitLab do; libraries to approve first.
+5. **Custom title bar:** one row with the app icon, the menus, the search box and the window controls, as in the mockups, replacing the system title bar plus a separate menu row.
+6. **Scrollbars:** thin overlay scrollbars on the sidebar and the page (the mockups draw none).
 
 ### Design
 
