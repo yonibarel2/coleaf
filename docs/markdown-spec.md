@@ -73,7 +73,7 @@ Pictures open the system file picker; HTML blocks and inline HTML get an "Edit c
 | Stage 1 | Stage 1a | Table | Header row and body rows of cells separated by pipes, with a divider row of dashes under the header | Insert › Table (3 × 3 with a header row); type in the cells; Tab moves to the next cell and adds a row at the end; a bar above the table adds or removes rows and columns | Tab / Shift+Tab |
 | Later | Stage 1a | Table column alignment | Colons in the divider row: `:---` left, `:---:` center, `---:` right | Shown and kept; no button yet |  |
 | Stage 1 | Stage 1a | Formatting inside table cells | Bold, italic, code, links and images work inside cells; a literal pipe is written `\|` | The Text shortcuts and Ctrl+K work inside a cell |  |
-| Later | Stage 1b | Task list | `- [ ] to do` and `- [x] done`; an item starting with a parenthesis escapes it: `- [ ] \(Optional)` |  |  |
+| Stage 1b (the tick) | Stage 1b | Task list | `- [ ] to do` and `- [x] done`; an item starting with a parenthesis escapes it: `- [ ] \(Optional)` | Click the box to tick or untick it; the text edits like any list item |  |
 | Later | Stage 1b | Strikethrough | `~~text~~` (GitHub also accepts `~text~`) |  |  |
 | Later | Stage 1a | Extended autolink | Bare `https://example.com`, `www.example.com` or `name@example.com` become links |  |  |
 | Kept as-is | Stage 1a | Disallowed HTML | `<script>`, `<style>`, `<iframe>`, `<textarea>`, `<title>` and similar are shown as text, never run |  |  |

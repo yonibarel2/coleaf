@@ -17,6 +17,7 @@ CoLeaf: Word-style editing of a repo's `.md` files, with simple Git and (later) 
 
 - What we build, by stage: [docs/plan.md](docs/plan.md)
 - How it's built: [docs/architecture.md](docs/architecture.md)
+- Where things are: [docs/codemap.md](docs/codemap.md), one line per module plus the data flow; update it at the end of every slice
 - UI mockups: [docs/ui/](docs/ui/)
 - Current phase: **Stage 1a: prove the core** (see "Work plan" in the plan).
 
