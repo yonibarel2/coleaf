@@ -1,0 +1,28 @@
+// The IPC contract between the window and the background: channel names and the data they carry.
+// Both sides import from here (types only in the window), so the allowlist is defined in one place.
+
+export const channels = {
+  projectOpen: 'project:open',
+  projectClose: 'project:close',
+  projectCurrent: 'project:current',
+  projectListDir: 'project:list-dir',
+  projectChanged: 'project:changed',
+  projectDirChanged: 'project:dir-changed'
+} as const
+
+/** The folder currently open in CoLeaf. */
+export interface ProjectInfo {
+  /** Absolute path of the folder. */
+  root: string
+  /** The folder's name, shown in the window title. */
+  name: string
+}
+
+/** One row of the file tree. */
+export interface TreeEntry {
+  name: string
+  /** Path relative to the project root, `/`-separated; `''` is the root itself. */
+  path: string
+  kind: 'dir' | 'file'
+  isMarkdown: boolean
+}
