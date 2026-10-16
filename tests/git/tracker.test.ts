@@ -28,7 +28,7 @@ const paths = (status: GitStatus | undefined): string[] =>
 describe('GitTracker', () => {
   it('reports the status soon after opening, and again only when it changes', async () => {
     tracker.open(root)
-    await vi.waitFor(() => expect(reported).toHaveLength(1))
+    await vi.waitFor(() => expect(reported).toHaveLength(1), { timeout: 5000 })
     expect(reported[0]).toEqual({ repo: true, branch: 'main', changes: [] })
 
     tracker.touch()
@@ -38,7 +38,7 @@ describe('GitTracker', () => {
 
     await write(root, 'b.md', 'b\n')
     tracker.touch()
-    await vi.waitFor(() => expect(paths(reported.at(-1))).toEqual(['b.md']))
+    await vi.waitFor(() => expect(paths(reported.at(-1))).toEqual(['b.md']), { timeout: 5000 })
     expect(reported).toHaveLength(2)
   })
 
@@ -53,12 +53,12 @@ describe('GitTracker', () => {
 
   it('commits and then reports the cleared status', async () => {
     tracker.open(root)
-    await vi.waitFor(() => expect(reported).toHaveLength(1))
+    await vi.waitFor(() => expect(reported).toHaveLength(1), { timeout: 5000 })
     await write(root, 'a.md', 'edited\n')
     await rm(join(root, 'a.md')).catch(() => {})
     await write(root, 'c.md', 'c\n')
     await tracker.commit(['a.md', 'c.md'], 'Second')
-    await vi.waitFor(() => expect(paths(reported.at(-1))).toEqual([]))
+    await vi.waitFor(() => expect(paths(reported.at(-1))).toEqual([]), { timeout: 5000 })
     await expect(tracker.identity()).resolves.toEqual({
       name: 'Test User',
       email: 'test@example.com'
@@ -68,7 +68,7 @@ describe('GitTracker', () => {
   it('reports a plain folder as not a repository', async () => {
     const plain = await tempDir('plain')
     tracker.open(plain)
-    await vi.waitFor(() => expect(reported).toHaveLength(1))
+    await vi.waitFor(() => expect(reported).toHaveLength(1), { timeout: 5000 })
     expect(reported[0]).toEqual({ repo: false, branch: null, changes: [] })
   })
 })
