@@ -95,7 +95,7 @@ Stage 1 builds the whole app frame plus open, edit, save and Sync; it is by far 
 | Area | What gets built | Parts used |
 | --- | --- | --- |
 | Frame | Menu, left icon bar, sidebar, tabs, side-by-side, settings, account | React, Electron APIs |
-| Editor | Ribbon, outline, spell check, pictures, Mermaid and HTML blocks with "edit code" | TipTap v3, Mermaid, Electron spellchecker |
+| Editor | Ribbon, outline, spell check, pictures, and "edit code" blocks for everything GitHub renders: Mermaid, HTML (sanitized), math, maps, 3D models | TipTap v3, Mermaid, Electron spellchecker; to approve: KaTeX, a safe HTML sanitizer, a map viewer, a 3D viewer |
 | Markdown | Open: `.md` → document; save: never rewrite untouched files, one consistent style for edited ones | remark + remark-gfm, remark-prosemirror bridge |
 | Git | Sync (commit → pull → push), History, Restore, friendly conflicts | dugite (bundled Git), jsdiff for diffs shown on the formatted page |
 | Sign-in | "Sign in with GitHub"; token kept in the OS keychain | GitHub App + device flow, Octokit, Electron safeStorage |
@@ -114,7 +114,7 @@ src/renderer/
 ├─ app/                frame, menus, Welcome tab, settings, account
 ├─ sidebar/            Project tree, History, Sync sections
 ├─ tabs/               tabs, unsaved dot, side-by-side panes
-├─ editor/             TipTap setup, ribbon, outline, Mermaid/HTML blocks, search
+├─ editor/             TipTap setup, ribbon, outline, Mermaid/HTML/math/map/3D blocks, search
 ├─ markdown/           remark ⇄ editor conversion, save rules
 └─ styles/             colors, fonts, spacing (Leaf palette)
 tests/
@@ -189,7 +189,6 @@ Stage 4 is polish: no new plumbing, mostly styles and display.
 | --- | --- | --- |
 | Themes | Dark theme switched in Settings | CSS color tokens |
 | Brand | Final logo and name | Installer icons |
-| HTML | HTML in files shown formatted (tables, underline, collapsible); scripts never run | A safe HTML sanitizer (TBD) |
 
 ```text
 src/renderer/styles/themes/   light.css, dark.css
