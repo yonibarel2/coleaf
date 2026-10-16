@@ -13,7 +13,9 @@ export const channels = {
   dialogAskSave: 'dialog:ask-save',
   appSetUnsaved: 'app:set-unsaved',
   appSettleUnsaved: 'app:settle-unsaved',
-  appUnsavedSettled: 'app:unsaved-settled'
+  appUnsavedSettled: 'app:unsaved-settled',
+  appSave: 'app:save',
+  appOpenFile: 'app:open-file'
 } as const
 
 /** The answer to "Save changes?" */

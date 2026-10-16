@@ -1,4 +1,5 @@
 import { readFile, rename, writeFile } from 'node:fs/promises'
+import { basename, dirname, join } from 'node:path'
 import type { DocumentFormat, DocumentText } from '../../preload/contract'
 import { isMarkdownName, resolveInside } from './project'
 
@@ -23,7 +24,8 @@ export function decodeDocument(bytes: Uint8Array): DocumentText {
     text,
     eol: crlf ? 'crlf' : 'lf',
     bom: hasBom,
-    finalNewline: text.endsWith('\n'),
+    // An empty file (File › New File) gets the Prettier style, with a final newline, once edited.
+    finalNewline: text === '' || text.endsWith('\n'),
     readOnly
   }
 }
@@ -55,6 +57,16 @@ export async function writeDocument(
   const temporary = `${file}.coleaf-saving`
   await writeFile(temporary, encodeDocument(text, format), 'utf8')
   await rename(temporary, file)
+}
+
+/**
+ * Creates an empty Markdown file in the project. Never replaces a file: when one exists the
+ * error has code `EEXIST`, and the caller can open that file instead.
+ */
+export async function createDocument(root: string, path: string): Promise<void> {
+  if (!isMarkdownName(path)) throw new Error(`Not a Markdown file: ${path}`)
+  const dir = await resolveInside(root, dirname(path))
+  await writeFile(join(dir, basename(path)), '', { flag: 'wx' })
 }
 
 async function resolveDocument(root: string, path: string): Promise<string> {

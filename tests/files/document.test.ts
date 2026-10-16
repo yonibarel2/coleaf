@@ -1,8 +1,9 @@
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import {
+  createDocument,
   decodeDocument,
   encodeDocument,
   readDocument,
@@ -31,6 +32,10 @@ describe('decodeDocument', () => {
       finalNewline: false,
       readOnly: false
     })
+  })
+
+  it('gives an empty file a final newline once it is written', () => {
+    expect(decodeDocument(encode(''))).toMatchObject({ text: '', finalNewline: true })
   })
 
   it('opens a file that is not UTF-8 read-only', () => {
@@ -81,5 +86,35 @@ describe('readDocument and writeDocument', () => {
     await expect(
       writeDocument(root, 'notes.txt', 'x', { eol: 'lf', bom: false, finalNewline: true })
     ).rejects.toThrow(/Not a Markdown file/)
+  })
+})
+
+describe('createDocument', () => {
+  let root: string
+
+  beforeAll(async () => {
+    root = await mkdtemp(join(tmpdir(), 'coleaf-new-'))
+    await mkdir(join(root, 'docs'))
+    await writeFile(join(root, 'docs', 'plan.md'), '# Plan\n')
+  })
+
+  afterAll(() => rm(root, { recursive: true, force: true }))
+
+  it('creates an empty file, also in a subfolder', async () => {
+    await createDocument(root, 'new.md')
+    await createDocument(root, 'docs/notes.md')
+    expect(await readFile(join(root, 'new.md'), 'utf8')).toBe('')
+    expect(await readFile(join(root, 'docs', 'notes.md'), 'utf8')).toBe('')
+  })
+
+  it('never replaces an existing file', async () => {
+    await expect(createDocument(root, 'docs/plan.md')).rejects.toMatchObject({ code: 'EEXIST' })
+    expect(await readFile(join(root, 'docs', 'plan.md'), 'utf8')).toBe('# Plan\n')
+  })
+
+  it('refuses names that are not Markdown and places outside the project', async () => {
+    await expect(createDocument(root, 'notes.txt')).rejects.toThrow(/Not a Markdown file/)
+    await expect(createDocument(root, '../escape.md')).rejects.toThrow(/outside the project/)
+    await expect(createDocument(root, 'missing/new.md')).rejects.toThrow()
   })
 })

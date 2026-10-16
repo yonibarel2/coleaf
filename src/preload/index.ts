@@ -50,7 +50,13 @@ const api = {
       subscribe<undefined>(channels.appSettleUnsaved, callback),
     /** `false` when the user cancelled: the pending close or switch is dropped. */
     unsavedSettled: (proceed: boolean): void =>
-      ipcRenderer.send(channels.appUnsavedSettled, proceed)
+      ipcRenderer.send(channels.appUnsavedSettled, proceed),
+    /** File › Save (Ctrl+S): save the active document. */
+    onSave: (callback: () => void): (() => void) =>
+      subscribe<undefined>(channels.appSave, callback),
+    /** File › New File: the background created this file; open it in a tab. */
+    onOpenFile: (callback: (path: string) => void): (() => void) =>
+      subscribe(channels.appOpenFile, callback)
   }
 }
 

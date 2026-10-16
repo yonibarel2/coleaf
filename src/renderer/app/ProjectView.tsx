@@ -20,19 +20,11 @@ export function ProjectView({ project, explorerOpen }: ProjectViewProps): JSX.El
       if (tabs.active) setLinkDraft(linkDraftFor(tabs.active.editor))
     }
   })
-  const { saveActive } = tabs
+  const { open, saveActive } = tabs
 
-  // Ctrl+S saves the active document, wherever the focus is.
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent): void => {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
-        event.preventDefault()
-        void saveActive()
-      }
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [saveActive])
+  // File › Save (Ctrl+S) and File › New File arrive from the menu, wherever the focus is.
+  useEffect(() => window.coleaf.app.onSave(() => void saveActive()), [saveActive])
+  useEffect(() => window.coleaf.app.onOpenFile((path) => void open(path)), [open])
 
   return (
     <>
