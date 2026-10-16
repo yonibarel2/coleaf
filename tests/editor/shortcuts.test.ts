@@ -1,23 +1,13 @@
 import type { AnyExtension } from '@tiptap/core'
 import { describe, expect, it } from 'vitest'
 import { createExtensions } from '../../src/renderer/editor/extensions'
+import { keysLabel, shortcuts } from '../../src/renderer/editor/shortcuts'
 
-// The shortcuts of docs/markdown-spec.md (Stage 1 rows). Ctrl+S is handled by the window.
-const specShortcuts = [
-  'Mod-b',
-  'Mod-i',
-  'Mod-k',
-  'Mod-Alt-1',
-  'Mod-Alt-2',
-  'Mod-Alt-3',
-  'Mod-Shift-n',
-  'Mod-Shift-l',
-  'Tab',
-  'Shift-Tab',
-  'Shift-Enter',
-  'Mod-z',
-  'Mod-y'
-]
+// The editor's shortcuts, from the one list the ribbon and the Help dialog also read; the File
+// group (save, new file, open project) belongs to the application menu.
+const specShortcuts = shortcuts
+  .filter((shortcut) => shortcut.group !== 'File')
+  .map((shortcut) => shortcut.keys)
 
 // Plain editing keys TipTap binds for lists and code blocks: not formatting shortcuts.
 const editingKeys = [
@@ -72,5 +62,20 @@ describe('editor keyboard shortcuts', () => {
     const keys = new Set(extensions.flatMap(boundKeys).map(normalize))
     const expected = new Set([...specShortcuts, ...editingKeys])
     expect([...keys].sort()).toEqual([...expected].sort())
+  })
+
+  it('have unique ids and keys', () => {
+    const ids = shortcuts.map((shortcut) => shortcut.id)
+    const keys = shortcuts.map((shortcut) => shortcut.keys)
+    expect(new Set(ids).size).toBe(ids.length)
+    expect(new Set(keys).size).toBe(keys.length)
+  })
+
+  it('are shown the way people read them', () => {
+    expect(keysLabel('Mod-Shift-n', false)).toBe('Ctrl+Shift+N')
+    expect(keysLabel('Mod-Alt-1', false)).toBe('Ctrl+Alt+1')
+    expect(keysLabel('Shift-Enter', false)).toBe('Shift+Enter')
+    expect(keysLabel('Tab', false)).toBe('Tab')
+    expect(keysLabel('Mod-Shift-n', true)).toBe('⌘⇧N')
   })
 })

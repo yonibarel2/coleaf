@@ -6,7 +6,13 @@ const rendererDir = resolve('src', 'renderer')
 const tokensFile = join(rendererDir, 'styles', 'tokens.css')
 
 // The Leaf palette as fixed in AGENTS.md rule 8.
-const palette = { accent: '#2f7d32', ground: '#f3f3f1', sheet: '#fcfcfb', ink: '#171717' }
+const palette = {
+  accent: '#2f7d32',
+  ground: '#f3f3f1',
+  sheet: '#fcfcfb',
+  ink: '#171717',
+  'accent-tint': '#e3f1e4'
+}
 
 describe('design tokens', () => {
   const tokens = readFileSync(tokensFile, 'utf8')

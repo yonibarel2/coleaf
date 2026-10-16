@@ -3,9 +3,11 @@ import type { ProjectInfo } from '../../preload/contract'
 import { Editor } from '../editor/Editor'
 import { jumpToHeading, linkDraftFor, resolveLink } from '../editor/link'
 import type { LinkDraft } from '../editor/LinkPanel'
+import { Ribbon } from '../ribbon/Ribbon'
 import { Explorer } from '../sidebar/Explorer'
 import { TabBar } from '../tabs/TabBar'
 import { useTabs } from '../tabs/useTabs'
+import { readFlag, writeFlag } from './settings'
 
 interface ProjectViewProps {
   project: ProjectInfo
@@ -15,6 +17,7 @@ interface ProjectViewProps {
 /** Everything that belongs to one open project: the Explorer and the tabs. Keyed on the root. */
 export function ProjectView({ project, explorerOpen }: ProjectViewProps): JSX.Element {
   const [linkDraft, setLinkDraft] = useState<LinkDraft | null>(null)
+  const [ribbonHidden, setRibbonHidden] = useState(() => readFlag('ribbonHidden'))
   const tabs = useTabs({
     onLink: () => {
       if (tabs.active) setLinkDraft(linkDraftFor(tabs.active.editor))
@@ -56,6 +59,20 @@ export function ProjectView({ project, explorerOpen }: ProjectViewProps): JSX.El
           onActivate={tabs.activate}
           onClose={(path) => void tabs.close(path)}
         />
+        {tabs.active && (
+          <Ribbon
+            key={`ribbon:${tabs.active.path}`}
+            editor={tabs.active.editor}
+            collapsed={ribbonHidden}
+            onToggleCollapsed={() => {
+              writeFlag('ribbonHidden', !ribbonHidden)
+              setRibbonHidden(!ribbonHidden)
+            }}
+            onLink={() => {
+              if (tabs.active) setLinkDraft(linkDraftFor(tabs.active.editor))
+            }}
+          />
+        )}
         {tabs.active && (
           <Editor
             key={tabs.active.path}

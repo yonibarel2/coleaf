@@ -1,0 +1,189 @@
+/* The ribbon above the document (Ribbon.tsx). Every value comes from tokens.css. */
+.ribbon {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--color-line);
+  background: var(--color-toolbar);
+  user-select: none;
+}
+
+.ribbon--collapsed {
+  justify-content: flex-end;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.ribbon__group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 var(--space-2);
+  border-right: 1px solid var(--color-line);
+}
+
+.ribbon__body {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-1);
+}
+
+.ribbon__rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.ribbon__row {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.ribbon__label {
+  margin-top: var(--space-1);
+  font-size: var(--text-label);
+  color: var(--color-muted);
+}
+
+.ribbon__spacer {
+  flex: 1;
+}
+
+.ribbon__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  height: var(--control-height-small);
+  min-width: var(--control-height-small);
+  padding: 0 var(--space-1);
+  border: 0;
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: var(--color-ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ribbon__button svg {
+  width: var(--icon-size);
+  height: var(--icon-size);
+}
+
+.ribbon__button span {
+  padding-right: var(--space-1);
+}
+
+.ribbon__button:hover:not(:disabled) {
+  background: var(--color-ground-hover);
+}
+
+.ribbon__button--active,
+.ribbon__button--active:hover:not(:disabled) {
+  background: var(--color-accent-tint);
+  color: var(--color-accent);
+}
+
+.ribbon__button:disabled {
+  color: var(--color-muted);
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ribbon__button--tall {
+  height: auto;
+  align-self: stretch;
+}
+
+/* Undo is Redo's icon flipped. */
+.ribbon__mirror {
+  transform: scaleX(-1);
+}
+
+/* The Styles buttons look like the styles they set. */
+.ribbon__style {
+  justify-content: flex-start;
+  min-width: calc(var(--control-height-small) * 3);
+  padding: 0 var(--space-2);
+}
+
+.ribbon__style--h1 {
+  font-size: var(--text-ui-lg);
+  font-weight: var(--weight-semibold);
+}
+
+.ribbon__style--h2,
+.ribbon__style--h3 {
+  font-weight: var(--weight-semibold);
+}
+
+.ribbon__menu-anchor {
+  position: relative;
+  display: flex;
+}
+
+.ribbon__menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  min-width: calc(var(--sidebar-width) - var(--space-8));
+  margin-top: var(--space-1);
+  padding: var(--space-1);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+}
+
+.ribbon__menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  height: var(--control-height);
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: var(--color-ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ribbon__menu-item:hover {
+  background: var(--color-ground-hover);
+}
+
+.ribbon__menu-item--active {
+  background: var(--color-accent-tint);
+}
+
+.ribbon__menu-item kbd {
+  font: inherit;
+  font-size: var(--text-label);
+  color: var(--color-muted);
+}
+
+.ribbon__menu-item--h1 {
+  font-size: var(--text-doc-h3);
+  font-weight: var(--weight-semibold);
+}
+
+.ribbon__menu-item--h2 {
+  font-size: var(--text-ui-lg);
+  font-weight: var(--weight-semibold);
+}
+
+.ribbon__menu-item--h3,
+.ribbon__menu-item--h4,
+.ribbon__menu-item--h5,
+.ribbon__menu-item--h6 {
+  font-weight: var(--weight-semibold);
+}
+
+.ribbon__menu-item--h6 {
+  color: var(--color-muted);
+}
