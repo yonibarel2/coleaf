@@ -4,7 +4,7 @@ Oct 16, 2026 · Source: CoLeaf – Markdown formatting spec (online doc); this f
 
 Every Markdown syntax CoLeaf may meet in a repo. **CoLeaf shows all of it formatted, like GitHub: most of it from Stage 1, maps, 3D models and PlantUML from Stage 4.** The first column says from which stage each item is editable, the second from which stage it looks like GitHub; Shortcut is decided with the Stage 1 ribbon (Part A).
 
-- **Editable from:** Stage 1 covers only the two CommonMark sections; the rest is Later, or Kept as-is (shown and saved unchanged, never edited as formatting).
+- **Editable from:** Stage 1 covers the two CommonMark sections and GFM tables; the rest is Later, or Kept as-is (shown and saved unchanged, never edited as formatting).
 - **Shown from:** Stage 1a (editable rows, and syntax GitHub also shows as plain text), Stage 1b (formatted read-only views), Stage 4 (map, 3D, PlantUML), — (not shown).
 - **How:** where it sits in the ribbon (group › button), or "automatic" / "typing" when no button is needed. Filled for Stage 1 only.
 - **Shortcut:** its keys, for the Stage 1 features that have one. Ctrl = Cmd on Mac.
@@ -52,13 +52,13 @@ Pictures open the system file picker; HTML blocks and inline HTML get an "Edit c
 | Stage 1 | Stage 1a | Bold | `**text**` or `__text__` | Text › Bold | Ctrl+B |
 | Stage 1 | Stage 1a | Bold + italic | `***text***` | Text › Bold + Italic |  |
 | Stage 1 | Stage 1a | Inline code | `` `code` `` (double backticks when the code contains one) | Text › Code |  |
-| Stage 1 | Stage 1a | Link | `[text](https://example.com "Title")` | Insert › Link (dialog) | Ctrl+K |
+| Stage 1 | Stage 1a | Link | `[text](https://example.com "Title")` | Insert › Link (dialog); Ctrl+click opens a web address in the browser | Ctrl+K |
 | Stage 1 | Stage 1a | Link with spaces in the path | `[text](<my file.md>)` (angle brackets) | Automatic |  |
-| Stage 1 | Stage 1a | Relative link (to another file) | `[Plan](docs/plan.md)`; `/docs/plan.md` starts from the repo root | Insert › Link, type the path; click opens the file | Ctrl+K |
-| Stage 1 | Stage 1a | Link to a heading | `[Goals](#goals)` or `[Goals](plan.md#goals)` | Insert › Link, type `#heading`; click jumps | Ctrl+K |
+| Stage 1 | Stage 1a | Relative link (to another file) | `[Plan](docs/plan.md)`; `/docs/plan.md` starts from the repo root | Insert › Link, type the path; Ctrl+click opens a `.md` file in a tab (other files: nothing) | Ctrl+K |
+| Stage 1 | Stage 1a | Link to a heading | `[Goals](#goals)` or `[Goals](plan.md#goals)` | Insert › Link, type `#heading`; Ctrl+click jumps | Ctrl+K |
 | Kept as-is | Stage 1b | Reference link | `[text][label]`, `[label][]` or `[label]`, using a definition elsewhere | Its text stays editable |  |
 | Stage 1 | Stage 1a | Autolink | `<https://example.com>` or `<name@example.com>` | Automatic when typing or pasting a URL |  |
-| Stage 1 | Stage 1a | Image | `![alt text](images/pic.png "Title")` | Insert › Picture, or paste / drag (saved to `images/`) |  |
+| Stage 1 | Stage 1a | Image | `![alt text](images/pic.png "Title")` | Insert › Picture, or paste / drag (saved to `images/`); shown from the repo (inside the project only) or `https`, like GitHub |  |
 | Kept as-is | Stage 1b | Reference image | `![alt text][label]` |  |  |
 | Stage 1 | Stage 1a | Hard line break | Two spaces or a backslash `\` at the end of a line | Typing | Shift+Enter |
 | Kept as-is | Stage 1a | Soft line break | A plain line break inside a paragraph (shown as a space) |  |  |
@@ -70,9 +70,9 @@ Pictures open the system file picker; HTML blocks and inline HTML get an "Edit c
 
 | Editable from | Shown from | Feature | Markdown | How | Shortcut |
 | --- | --- | --- | --- | --- | --- |
-| Later | Stage 1b | Table | Header row and body rows of cells separated by pipes, with a divider row of dashes under the header |  |  |
-| Later | Stage 1b | Table column alignment | Colons in the divider row: `:---` left, `:---:` center, `---:` right |  |  |
-| Later | Stage 1b | Formatting inside table cells | Bold, italic, code, links and images work inside cells; a literal pipe is written `\|` |  |  |
+| Stage 1 | Stage 1a | Table | Header row and body rows of cells separated by pipes, with a divider row of dashes under the header | Type in the cells; Tab moves to the next cell and adds a row at the end; a bar above the table adds or removes rows and columns; Insert › Table comes with the ribbon | Tab / Shift+Tab |
+| Later | Stage 1a | Table column alignment | Colons in the divider row: `:---` left, `:---:` center, `---:` right | Shown and kept; no button yet |  |
+| Stage 1 | Stage 1a | Formatting inside table cells | Bold, italic, code, links and images work inside cells; a literal pipe is written `\|` | The Text shortcuts and Ctrl+K work inside a cell |  |
 | Later | Stage 1b | Task list | `- [ ] to do` and `- [x] done`; an item starting with a parenthesis escapes it: `- [ ] \(Optional)` |  |  |
 | Later | Stage 1b | Strikethrough | `~~text~~` (GitHub also accepts `~text~`) |  |  |
 | Later | Stage 1a | Extended autolink | Bare `https://example.com`, `www.example.com` or `name@example.com` become links |  |  |

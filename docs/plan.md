@@ -123,6 +123,7 @@ Build this first and see it work; then review and detail 1b. Stage 1 rows of [ma
 - [x] Add the editor with Markdown read and write (remark + bridge) and basic keyboard shortcuts
 - [x] Save: never rewrite untouched files; save edited files in one consistent style; test the round-trip (open and save with no edits = no git diff)
 - [x] Test on real repo files
+- [x] Tables, links, images: GFM tables shown formatted and edited in place (type in cells, Tab between cells, add and remove rows and columns; alignment and HTML tables stay Later); Ctrl+click on a link to a `.md` file in the repo opens it in a tab and jumps to its `#heading`, web links open in the system browser, links to other repo files do nothing; pictures from the repo (path-safe, inside the project only) and `https` images are shown like GitHub
 
 **Stage 1b – Complete Stage 1**
 
