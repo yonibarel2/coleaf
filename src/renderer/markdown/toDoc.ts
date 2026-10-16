@@ -83,6 +83,9 @@ function keepRawBlocks(tree: Root, text: string, frontMatter: string | null): vo
     run.push(node)
   }
   flush()
+  // An empty file (File › New File, or only blank lines) opens as one empty paragraph: the
+  // editor needs a block to put the cursor in. It is saved as empty text again.
+  if (children.length === 0) children.push({ type: 'paragraph', children: [] })
   tree.children = children
 }
 

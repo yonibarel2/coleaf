@@ -140,4 +140,14 @@ describe('Markdown ⇄ editor document', () => {
     const edited = doc.type.create(null, [typed])
     expect(docToMarkdown(edited)).toBe('\\# not a heading \\*nor\\* em\n')
   })
+
+  it('opens an empty file as one empty paragraph and saves it empty again', () => {
+    for (const text of ['', '\n', '\n\n']) {
+      const doc = markdownToDoc(text, schema)
+      expect(doc.childCount).toBe(1)
+      expect(doc.firstChild?.type.name).toBe('paragraph')
+      expect(doc.firstChild?.childCount).toBe(0)
+      expect(docToMarkdown(doc)).toBe('')
+    }
+  })
 })
