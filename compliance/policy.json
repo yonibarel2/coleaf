@@ -18,5 +18,15 @@
     "spdx-ranges": "dev-only data of the license checker, not shipped"
   },
   "shipped": ["electron"],
+  "bundled": [
+    {
+      "name": "Git (dugite-native build)",
+      "version": "2.53.0",
+      "license": "GPL-2.0-only",
+      "source": "https://github.com/git/git and https://github.com/desktop/dugite-native",
+      "licenseFile": "node_modules/dugite/git/LICENSE.txt",
+      "note": "Downloaded by dugite at install; run as a separate process, never linked into the app. The GPL allows shipping the unmodified program with its license text and a link to the source (as GitHub Desktop does)."
+    }
+  ],
   "owners": ["Yehonatan Barel", "CoLeaf"]
 }

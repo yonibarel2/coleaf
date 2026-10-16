@@ -8,8 +8,24 @@ export interface Policy {
   exceptions: Record<string, string>
   /** Packages shipped in the app although no source file imports them. */
   shipped: string[]
+  /** Programs shipped next to the app's code, not npm packages (the Git binary). */
+  bundled: BundledProgram[]
   /** Copyright holders and authors that count as ours. */
   owners: string[]
+}
+
+/** A program the installer carries as separate files, run as its own process. */
+export interface BundledProgram {
+  name: string
+  version: string
+  /** SPDX identifier; copyleft is fine for a separate program whose license text ships. */
+  license: string
+  /** Where its source code is. */
+  source: string
+  /** Where its license text sits in the package. */
+  licenseFile: string
+  /** How it reaches the app and why its license allows that. */
+  note: string
 }
 
 export interface Entry {
@@ -243,6 +259,7 @@ export interface ReportData {
   commit: string
   pass: boolean
   licenses: Classified
+  bundled: BundledProgram[]
   scancode: ScanResult | null
 }
 
@@ -253,6 +270,7 @@ export function renderReport({
   commit,
   pass,
   licenses,
+  bundled,
   scancode
 }: ReportData): string {
   const all = [...licenses.allowed, ...licenses.excepted, ...licenses.failed]
@@ -316,6 +334,21 @@ export function renderReport({
       const shippedText = entry.shipped ? 'yes' : 'no'
       lines.push(
         `| ${id(entry)} | ${cell(entry.license)} | ${shippedText} | ${cell(entry.reason)} |`
+      )
+    }
+  }
+  lines.push('', '## Bundled programs', '')
+  if (bundled.length === 0) lines.push('None.')
+  else {
+    lines.push(
+      'Programs shipped as separate files and run as their own process; their license text ships with them.',
+      '',
+      '| Program | Version | License | Source | License text | Note |',
+      '| --- | --- | --- | --- | --- | --- |'
+    )
+    for (const program of bundled) {
+      lines.push(
+        `| ${cell(program.name)} | ${cell(program.version)} | ${cell(program.license)} | ${cell(program.source)} | ${cell(program.licenseFile)} | ${cell(program.note)} |`
       )
     }
   }

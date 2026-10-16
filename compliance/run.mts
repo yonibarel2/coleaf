@@ -49,7 +49,15 @@ const pass =
   licenses.failed.length === 0 &&
   (scancode === null || (scancode.ok && scancode.findings.length === 0))
 
-const report = renderReport({ stage, date, commit, pass, licenses, scancode })
+const report = renderReport({
+  stage,
+  date,
+  commit,
+  pass,
+  licenses,
+  bundled: policy.bundled,
+  scancode
+})
 const file = join(here, 'reports', `stage-${stage}.md`)
 await mkdir(dirname(file), { recursive: true })
 await writeFile(file, report, 'utf8')

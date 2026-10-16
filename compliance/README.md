@@ -7,6 +7,7 @@ Run at the end of every stage; the report is committed with the stage (AGENTS.md
 | Check | When | How |
 | --- | --- | --- |
 | Dependency licenses | every stage | Every installed package (`license-checker-rseidelsohn`) is sorted by the license it declares against the allow list in `policy.json`. Packages that a file under `src/` imports, their whole dependency trees and Electron itself count as **shipped**: they must be on the allow list, no exceptions. Everything else is **dev-only** (build, lint and test tools): on the allow list, or listed under `exceptions` with a reason. Copyleft licenses (GPL, AGPL, LGPL), unknown licenses and licenses only guessed from a LICENSE file always fail. |
+| Bundled programs | every stage | Programs that ship as separate files and run as their own process (the Git binary that `dugite` downloads at install) are not npm packages, so the license checker never sees them. `policy.json` lists each one with its version, license, source and license text; the report prints the list. Git is GPL-2.0-only, which allows shipping the unmodified program with its license text and a link to the source; CoLeaf runs it as a separate process and never links to it (GitHub Desktop ships it the same way). |
 | Code origin | `--release`, when a full stage is complete (Stage 1, 2, …) | [ScanCode Toolkit](https://github.com/aboutcode-org/scancode-toolkit) scans `src/` for license texts and references and for copyright and author notices. Any license, and any notice not naming an owner from `policy.json`, is a finding and fails the check. ScanCode finds the traces copied code carries; it does not compare our code against a corpus of open-source code (that would need ScanCode.io's matching service). |
 
 ## How to run
@@ -32,4 +33,5 @@ The report lands in `reports/stage-<id>.md`. Its first line gives the date, the 
 | `allow` | SPDX identifiers every dependency may use. SPDX expressions in packages are evaluated: `(MIT OR GPL-3.0)` passes, `MIT AND GPL-3.0` fails. |
 | `exceptions` | Dev-only packages allowed although their license is not on the list: package name (a trailing `*` matches a prefix) → reason. Never applied to shipped packages. |
 | `shipped` | Packages that ship without being imported by a source file (Electron). |
+| `bundled` | Programs shipped as separate files, not npm packages: name, version, SPDX license, source, license text and a note on how they reach the app. Printed in the report. |
 | `owners` | Copyright holders and authors that count as ours for the ScanCode pass. |

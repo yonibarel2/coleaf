@@ -42,6 +42,7 @@ describe('classify', () => {
     allow,
     exceptions: { 'lightningcss*': 'dev-only build tool, not shipped', 'caniuse-lite': 'data' },
     shipped: ['electron'],
+    bundled: [],
     owners: ['CoLeaf']
   }
   const packages = {
@@ -168,6 +169,16 @@ describe('renderReport', () => {
           { name: 'tool', version: '2.0.0', license: 'GPL-3.0', shipped: false, reason: 'copyleft' }
         ]
       },
+      bundled: [
+        {
+          name: 'Git',
+          version: '2.53.0',
+          license: 'GPL-2.0-only',
+          source: 'https://github.com/git/git',
+          licenseFile: 'node_modules/dugite/git/LICENSE.txt',
+          note: 'separate process | not linked'
+        }
+      ],
       scancode: null
     })
     expect(report).toContain('# Compliance report: Stage 1a')
@@ -175,6 +186,22 @@ describe('renderReport', () => {
     expect(report).toContain('| MIT | react@19.0.0 |')
     expect(report).toContain('| caniuse-lite@1.0.0 | CC-BY-4.0 | data |')
     expect(report).toContain('| tool@2.0.0 | GPL-3.0 | no | copyleft |')
+    expect(report).toContain(
+      '| Git | 2.53.0 | GPL-2.0-only | https://github.com/git/git | node_modules/dugite/git/LICENSE.txt | separate process \\| not linked |'
+    )
     expect(report).toContain('Not run: ScanCode runs with `--release`')
+  })
+
+  it('says so when nothing is bundled', () => {
+    const report = renderReport({
+      stage: '1a',
+      date: '2026-10-16',
+      commit: 'abc1234',
+      pass: true,
+      licenses: { allowed: [], excepted: [], failed: [] },
+      bundled: [],
+      scancode: null
+    })
+    expect(report).toContain('## Bundled programs\n\nNone.')
   })
 })
