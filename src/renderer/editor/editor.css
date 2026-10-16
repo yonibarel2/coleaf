@@ -156,6 +156,13 @@
   color: var(--color-alert);
 }
 
+/* The label stands on its own line, as on GitHub: the line break after it is a real one. */
+.document .alert__marker + .soft-break {
+  display: block;
+  height: 0;
+  overflow: hidden;
+}
+
 .document code {
   font-family: var(--font-mono);
   font-size: var(--text-doc-code);
