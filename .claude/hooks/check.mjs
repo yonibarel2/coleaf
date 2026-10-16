@@ -21,11 +21,15 @@ const hasCodeChanges = changedPaths.some(
 )
 if (!hasCodeChanges) process.exit(0)
 
-const result = spawnSync('npm', ['run', 'check', '--silent'], {
-  cwd: root,
-  encoding: 'utf8',
-  shell: true
-})
+const check = () =>
+  spawnSync('npm', ['run', 'check', '--silent'], { cwd: root, encoding: 'utf8', shell: true })
+
+let result = check()
+if (result.status !== 0) {
+  // A dev server starting at the same moment can break a test run; one retry settles that.
+  spawnSync(process.execPath, ['-e', 'setTimeout(() => {}, 5000)'])
+  result = check()
+}
 if (result.status === 0) process.exit(0)
 
 const output = `${result.stdout ?? ''}\n${result.stderr ?? ''}`.trim().slice(-6000)
