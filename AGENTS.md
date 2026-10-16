@@ -34,7 +34,7 @@ CoLeaf: Word-style editing of a repo's `.md` files, with simple Git and (later) 
 | Diffs | jsdiff, shown as highlights on the formatted page (never raw text) |
 | Git | dugite (bundled Git) |
 | GitHub | GitHub App (device flow) + Octokit; token in Electron `safeStorage` |
-| Tooling | Vitest, ESLint + Prettier, `@electron-toolkit/*` (utils, tsconfig, ESLint configs), `@fontsource/ibm-plex-sans` |
+| Tooling | Vitest, ESLint + Prettier, `@electron-toolkit/*` (utils, tsconfig, ESLint configs), `@fontsource/ibm-plex-sans`, `lucide-react` (icons), `ignore` (.gitignore rules) |
 
 Don't add libraries outside this list without approval. Not used: Monaco, TipTap typed-Markdown input rules.
 

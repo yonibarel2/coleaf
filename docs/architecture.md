@@ -104,7 +104,7 @@ Stage 1 builds the whole app frame plus open, edit, save and Sync; it is by far 
 ```text
 src/main/
 ├─ index.ts            app start, main window
-├─ files/              open, save, watch for outside changes, pictures (images/)
+├─ files/              open, save, watch for outside changes, Markdown index of folders, pictures (images/)
 ├─ git/                Sync, History, Restore, conflicts (dugite)
 ├─ auth/               GitHub sign-in, token storage
 └─ ipc/                message handlers for the window
