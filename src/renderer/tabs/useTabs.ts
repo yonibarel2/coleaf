@@ -170,7 +170,8 @@ export function useTabs(options: TabsOptions): Tabs {
         ...tab.format
       }))
       if (text === null || readOnly) continue // gone or unreadable: left as shown
-      const fresh = markdownToDoc(text, schema)
+      // Built with this editor's own schema instance: nodes of another one would not fit.
+      const fresh = markdownToDoc(text, tab.editor.schema)
       const { state } = tab.editor
       if (!needsSave(state.doc, fresh)) continue
       const transaction = state.tr

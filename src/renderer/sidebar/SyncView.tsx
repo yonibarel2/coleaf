@@ -304,8 +304,8 @@ function LearnMore({ onOpen }: { onOpen: () => void }): JSX.Element {
   )
 }
 
-// How a Sync ended, in the Sync view's words.
-function describe(outcome: SyncOutcome): Outcome {
+// How a Sync ended, in the Sync view's words; null when the view already says it.
+function describe(outcome: SyncOutcome): Outcome | null {
   const latest = outcome.pulled ? " Others' changes were brought in." : ''
   switch (outcome.kind) {
     case 'synced':
@@ -340,10 +340,7 @@ function describe(outcome: SyncOutcome): Outcome {
         text: "Version saved on this computer. Couldn't reach GitHub; Sync again when you're online."
       }
     case 'conflicts':
-      return {
-        ok: false,
-        text: `${outcome.files?.length ?? 0} ${outcome.files?.length === 1 ? 'file needs' : 'files need'} a choice.`
-      }
+      return null // the note above the list and the caption say what is needed
     default:
       return { ok: false, text: outcome.message ?? 'Sync failed.' }
   }

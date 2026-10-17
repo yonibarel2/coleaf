@@ -1,6 +1,5 @@
-import { Editor } from '@tiptap/core'
-import { EditorContent } from '@tiptap/react'
-import { useEffect, useMemo, useState, type JSX } from 'react'
+import { EditorContent, useEditor } from '@tiptap/react'
+import { useMemo, useState, type JSX } from 'react'
 import type { ConflictChoice, ConflictPart } from '../../preload/contract'
 import { createExtensions, schema } from '../editor/extensions'
 import { markdownToDoc } from '../markdown/toDoc'
@@ -126,27 +125,25 @@ export function ConflictTab({ path, parts, onDone }: ConflictTabProps): JSX.Elem
   )
 }
 
-// A run of lines shown formatted and read-only.
+// A run of lines shown formatted and read-only. `useEditor` owns the editor's lifetime, so
+// React's development double-mount does not destroy it.
 function Segment({ text }: { text: string }): JSX.Element {
-  const editor = useMemo(
-    () =>
-      new Editor({
-        element: document.createElement('div'),
-        extensions: createExtensions({
-          onLink: () => {},
-          onFind: () => {},
-          onActivateLink: () => {},
-          savePicture: () => Promise.reject(new Error('read only')),
-          documentPath: ''
-        }),
-        content: markdownToDoc(text, schema).toJSON(),
-        editable: false,
-        enableInputRules: false,
-        enablePasteRules: false,
-        editorProps: { attributes: { class: 'document document--segment' } }
+  const editor = useEditor(
+    {
+      extensions: createExtensions({
+        onLink: () => {},
+        onFind: () => {},
+        onActivateLink: () => {},
+        savePicture: () => Promise.reject(new Error('read only')),
+        documentPath: ''
       }),
+      content: markdownToDoc(text, schema).toJSON(),
+      editable: false,
+      enableInputRules: false,
+      enablePasteRules: false,
+      editorProps: { attributes: { class: 'document document--segment' } }
+    },
     [text]
   )
-  useEffect(() => () => editor.destroy(), [editor])
   return <EditorContent editor={editor} />
 }
