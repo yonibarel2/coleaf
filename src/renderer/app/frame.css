@@ -32,15 +32,8 @@
 }
 
 .status-bar__item svg {
-  width: var(--text-label);
-  height: var(--text-label);
-}
-
-/* A count in a small rounded pill, as Word shows it. */
-.status-bar__pill {
-  padding: 0 var(--space-2);
-  border-radius: var(--radius-control);
-  background: var(--color-ground-hover);
+  width: var(--icon-size-xs);
+  height: var(--icon-size-xs);
 }
 
 /* Drag the sidebar's right edge (SidebarResizer.tsx) to change its width. */

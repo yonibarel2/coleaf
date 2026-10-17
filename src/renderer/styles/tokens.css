@@ -79,10 +79,11 @@
   --sidebar-width-min: 180px;
   --sidebar-width-max: 600px;
   --resizer-width: 6px; /* the strip to drag at the sidebar's edge */
-  --status-bar-height: 24px;
+  --status-bar-height: 26px;
   --control-height: 32px;
   --control-height-small: 28px;
   --icon-button-size: 36px;
+  --icon-size-xs: 10px; /* next to label-sized text, as in the bottom bar */
   --icon-size: 16px;
   --icon-size-lg: 20px;
   --tree-row-height: 26px;

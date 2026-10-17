@@ -20,7 +20,7 @@ export function StatusBar({ project, status, words }: StatusBarProps): JSX.Eleme
         </span>
       )}
       {words !== null && (
-        <span className="status-bar__pill">
+        <span className="status-bar__item">
           {words.toLocaleString()} {words === 1 ? 'word' : 'words'}
         </span>
       )}
