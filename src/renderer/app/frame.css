@@ -77,10 +77,12 @@
   position: relative;
 }
 
+/* The GitHub picture fills the button but for a small margin all round. */
 .account__picture {
-  width: var(--icon-size-lg);
-  height: var(--icon-size-lg);
+  width: calc(var(--icon-button-size) - 2 * var(--space-1));
+  height: calc(var(--icon-button-size) - 2 * var(--space-1));
   border-radius: 50%;
+  object-fit: cover;
 }
 
 .account__card {
