@@ -2,7 +2,7 @@
 // editor's keymap, the ribbon tooltips and Help › Keyboard Shortcuts all read this one list;
 // docs/markdown-spec.md is the source. tests/editor/shortcuts.test.ts checks the keymap agrees.
 
-export type ShortcutGroup = 'Edit' | 'Styles' | 'Text' | 'Paragraph' | 'Insert' | 'File'
+export type ShortcutGroup = 'Edit' | 'Styles' | 'Text' | 'Paragraph' | 'Insert' | 'File' | 'View'
 
 export interface Shortcut {
   id: string
@@ -28,7 +28,10 @@ export const shortcuts: Shortcut[] = [
   { id: 'link', label: 'Link', keys: 'Mod-k', group: 'Insert' },
   { id: 'save', label: 'Save', keys: 'Mod-s', group: 'File' },
   { id: 'newFile', label: 'New file', keys: 'Mod-n', group: 'File' },
-  { id: 'openProject', label: 'Open project', keys: 'Mod-o', group: 'File' }
+  { id: 'openProject', label: 'Open project', keys: 'Mod-o', group: 'File' },
+  { id: 'zoomIn', label: 'Zoom in', keys: 'Mod-=', group: 'View' },
+  { id: 'zoomOut', label: 'Zoom out', keys: 'Mod-Minus', group: 'View' },
+  { id: 'resetZoom', label: 'Actual size', keys: 'Mod-0', group: 'View' }
 ]
 
 /** The keys bound to a shortcut id, if it has any. */
@@ -48,6 +51,8 @@ export function keysLabel(keys: string, mac = onMac): string {
         return mac ? '⇧' : 'Shift'
       case 'Alt':
         return mac ? '⌥' : 'Alt'
+      case 'Minus': // the key's own name, since `-` separates the parts
+        return '-'
       default:
         return part.length === 1 ? part.toUpperCase() : part
     }
