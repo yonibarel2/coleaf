@@ -19,26 +19,31 @@ One line per folder and module, then how data flows through them. [architecture.
 | `files/images.ts` | Pictures under `images/` (one folder per document) and the image scheme's lookup |
 | `git/run.ts` | Runs the bundled Git (dugite): no prompts, no credential helpers, no optional locks; Git's wording as the error |
 | `git/repo.ts` | Status (porcelain v2 → branch and changed files), commit of the ticked files only, the identity in Git's config |
-| `git/tracker.ts` | The project's status, refreshed after every change on disk (debounced, one run at a time), reported when it differs |
-| `ipc/*.ts` | One file per area (app, project, file, images, git): the handlers behind the preload's allowlist |
+| `git/tracker.ts` | The project's status, refreshed after every change on disk (debounced, one run at a time), reported when it differs; every Git action goes through it |
+| `git/remote.ts` | Sync: commit → fetch → merge → push with the branch's remote; the token for github.com only, through the process environment; Git's errors sorted into outcomes (offline, denied, conflicts…); Finish sync and Cancel |
+| `git/conflicts.ts` | Git's conflict markers split into shared and conflicting parts and joined back from the choices; a file kept whole from one side |
+| `auth/github.ts`, `store.ts`, `account.ts` | GitHub's device flow (the public client ID, no secret), the account file with the token encrypted, the account service (signed out / signing in / signed in) |
+| `ipc/*.ts` | One file per area (app, project, file, images, git, auth): the handlers behind the preload's allowlist; `windows.ts` sends to every window |
 
 ## Bridge (`src/preload/`)
 
 | Module | Does |
 | --- | --- |
 | `contract.ts` | Channel names and the data they carry; both sides import it |
-| `index.ts` | Exposes `window.coleaf` (project, file, dialog, app, images, git): the allowlist, nothing more |
+| `index.ts` | Exposes `window.coleaf` (project, file, dialog, app, images, git, account): the allowlist, nothing more |
 
 ## Window (`src/renderer/`, React)
 
 | Folder / module | Does |
 | --- | --- |
 | `main.tsx`, `styles/` | Entry point; `tokens.css` holds every color, font, size and spacing, `app.css` the shell |
-| `app/App.tsx`, `IconBar.tsx`, `ProjectView.tsx` | The frame: icon bar (Explorer, Sync with its badge), one sidebar view at a time, tabs, ribbon and editor; `ProjectView` also follows Ctrl+clicked links |
-| `app/useProject.ts`, `useGit.ts`, `settings.ts`, `ShortcutsDialog.tsx` | The open project and its Git status mirrored from the background; small window preferences; Help › Keyboard Shortcuts |
+| `app/App.tsx`, `IconBar.tsx`, `ProjectView.tsx` | The frame: icon bar (Explorer, Sync with its badge, the account), one sidebar view at a time, tabs, ribbon and editor; `ProjectView` also follows Ctrl+clicked links and holds the conflict tab |
+| `app/useProject.ts`, `useGit.ts`, `useAccount.ts`, `settings.ts`, `ShortcutsDialog.tsx` | The open project, its Git status and the GitHub account mirrored from the background; small window preferences; Help › Keyboard Shortcuts |
+| `app/Account.tsx` | The account button and its card: Sign in with GitHub, the code to enter, the picture and Sign out |
 | `sidebar/Explorer.tsx`, `ProjectSection.tsx`, `useProjectTree.ts` | The Explorer with the branch in its header: the lazy folder tree, its rows and the "Only .md" tick |
-| `sidebar/SyncView.tsx`, `IdentityForm.tsx` | The Sync view: changed files with ticks (unsaved documents listed too), the required message, Sync; name and email asked once |
-| `tabs/useTabs.ts` | One TipTap editor per open file, the unsaved dot, save all before a Sync, and the save rule (`saveRule.ts`: an untouched document is never written) |
+| `sidebar/SyncView.tsx`, `IdentityForm.tsx`, `HowSyncDialog.tsx` | The Sync view: changed files with ticks (unsaved documents listed too), the required message, Sync and how it went; conflicted files, Finish sync, Cancel; name and email asked once; "How Sync works" |
+| `conflict/ConflictTab.tsx` | A conflicted Markdown file as Mine and Theirs pages (read-only segments), Mine / Theirs / Both per highlighted part, Done |
+| `tabs/useTabs.ts`, `TabBar.tsx` | One TipTap editor per open file, the unsaved dot, save all before a Sync, reload after one, and the save rule (`saveRule.ts`: an untouched document is never written); the tab bar also shows the conflict tab |
 | `ribbon/Ribbon.tsx` | The five groups of buttons above the document and the Styles menu |
 | `editor/extensions.ts` | The schema: TipTap's extensions tuned to the spec (shortcuts, attributes) plus CoLeaf's own nodes and marks |
 | `editor/nodes.ts` | CoLeaf's nodes and marks: HTML block, inline and mark, front matter, footnotes, raw block, inline and mark, emoji, inline math, soft break; `hrefOfMark` |
@@ -63,7 +68,8 @@ One line per folder and module, then how data flows through them. [architecture.
 | `markdown/` | The bridge, escaping, the viewers, inline HTML, footnotes and references |
 | `editor/` | Links and paths, the shortcut list, code highlighting |
 | `files/`, `realfiles/`, `tabs/` | Background file work on temporary folders; the repo's own docs; the save rule |
-| `git/` | Status, commit, identity and the tracker on temporary repositories, with Git's configuration isolated (`temp-repo.ts`) |
+| `git/` | Status, commit, identity, the tracker, Sync with a bare repository and a teammate's clone, conflicts; all on temporary repositories with Git's configuration isolated (`temp-repo.ts`) |
+| `auth/` | The device flow against a fake GitHub server, the account file with a fake cipher, the account service |
 | `tokens.test.ts`, `compliance/` | The palette lives only in `tokens.css`; the license checker |
 
 ## How data flows
@@ -74,4 +80,6 @@ One line per folder and module, then how data flows through them. [architecture.
 4. **Pictures:** paste, drop or Insert › Picture → `images.save` → a file under `images/` → an image node with a relative path, shown through `coleaf-image://`.
 5. **Links:** Ctrl+click → `hrefOfMark` (Markdown link, inline HTML `<a>`, reference link or bare URL) → `ProjectView.followLink` → `resolveLink` → a tab (with a jump to the heading) or the browser.
 6. **Git status:** any change on disk (a save, a commit, another program) → the watcher → `GitTracker.touch` → `git status` through `git/run.ts` → `git:changed` when it differs → `useGitStatus` → the badge, the branch in the headers, the Sync view's list.
-7. **Sync (local for now):** the Sync button → `useTabs.saveAll` → a fresh `git:status` → `git:commit` with the ticked files → `git/repo.ts` adds and commits those paths only → the tracker reports the cleared status. Without a name and email in Git's config, the Sync view asks once and saves them with `git:set-identity`.
+7. **Sync:** the Sync button → `useTabs.saveAll` → a fresh `git:status` → `git:sync` with the ticked files → `git/remote.ts`: commit those paths only, fetch, merge the remote branch, push (a github.com remote gets the signed-in token through the Git process's environment, nothing else does) → an outcome the Sync view puts into words → open documents without edits reload when others' changes came in. Without a name and email in Git's config, the Sync view asks once and saves them with `git:set-identity`.
+8. **Conflicts:** the merge stops → the status says `merging` and marks the files → a Markdown file: `git:conflict-read` → `git/conflicts.ts` splits the markers → `ConflictTab` shows Mine and Theirs with the parts highlighted → Done → `git:conflict-resolve` writes the choices and stages the file; any other file: Keep mine / Keep theirs → `git:conflict-file` → Finish sync → `git:sync-finish` commits the merge and pushes; Cancel sync → `git:sync-cancel` aborts the merge.
+9. **Sign-in:** the account button → `account:sign-in` → `auth/github.ts` asks GitHub for a code → `account:changed` shows it in the card → the user enters it on GitHub → the poll gets the token → `GET /user` → the token and account are kept encrypted (`auth/store.ts`, Electron's safeStorage) → the picture in the icon bar.
