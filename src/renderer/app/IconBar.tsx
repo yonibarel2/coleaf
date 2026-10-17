@@ -1,5 +1,7 @@
-import { Files, RefreshCw, Settings, User } from 'lucide-react'
+import { Files, RefreshCw, Settings } from 'lucide-react'
 import type { JSX, ReactNode } from 'react'
+import type { AccountState } from '../../preload/contract'
+import { Account } from './Account'
 
 export type SidebarView = 'explorer' | 'sync'
 
@@ -10,11 +12,18 @@ interface IconBarProps {
   hasProject: boolean
   /** Files changed since the last Sync: the badge on the Sync icon. */
   changeCount: number
+  account: AccountState
   onSelect: (view: SidebarView) => void
 }
 
 /** The left icon bar: one view at a time at the top, account and settings at the bottom. */
-export function IconBar({ view, hasProject, changeCount, onSelect }: IconBarProps): JSX.Element {
+export function IconBar({
+  view,
+  hasProject,
+  changeCount,
+  account,
+  onSelect
+}: IconBarProps): JSX.Element {
   return (
     <nav className="icon-bar" aria-label="Views">
       <ViewButton name="explorer" title="Explorer" view={view} onSelect={onSelect}>
@@ -31,9 +40,7 @@ export function IconBar({ view, hasProject, changeCount, onSelect }: IconBarProp
         </ViewButton>
       )}
       <div className="icon-bar__spacer" />
-      <button type="button" className="icon-button" title="Account (coming soon)" disabled>
-        <User />
-      </button>
+      <Account state={account} />
       <button type="button" className="icon-button" title="Settings (coming soon)" disabled>
         <Settings />
       </button>

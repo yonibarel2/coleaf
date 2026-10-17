@@ -1,6 +1,6 @@
 import type { Editor } from '@tiptap/core'
 import type { LinkDraft } from './LinkPanel'
-import { resolveRepoPath } from './paths'
+import { isMarkdownPath, resolveRepoPath } from './paths'
 
 /** What the link panel starts with: the selected text, and the link under the cursor if any. */
 export function linkDraftFor(editor: Editor): LinkDraft {
@@ -41,7 +41,7 @@ export function resolveLink(documentPath: string, href: string): LinkTarget | nu
   const fragment = hash >= 0 ? decode(url.slice(hash + 1)) : ''
   const file = hash >= 0 ? url.slice(0, hash) : url
   const path = file === '' ? documentPath : resolveRepoPath(documentPath, file)
-  if (!path || !/\.(md|markdown)$/i.test(path)) return null
+  if (!path || !isMarkdownPath(path)) return null
   return { kind: 'file', path, fragment: fragment || null }
 }
 

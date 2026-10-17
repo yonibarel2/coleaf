@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState, type JSX } from 'react'
-import type { ChangeKind, ChangedFile, GitStatus } from '../../preload/contract'
+import type { ChangeKind, ChangedFile, GitStatus, SyncOutcome } from '../../preload/contract'
 import { messageOf } from '../app/useGit'
+import { isMarkdownPath } from '../editor/paths'
+import { HowSyncDialog } from './HowSyncDialog'
 import { IdentityForm } from './IdentityForm'
 import './sidebar.css'
 
@@ -9,11 +11,22 @@ interface SyncViewProps {
   /** Open documents with unsaved edits: listed too, and saved first when Sync is pressed. */
   unsavedPaths: string[]
   onBeforeSync: () => Promise<void>
+  /** A Sync ended (or a conflict was settled): others' changes may be on disk now. */
+  onSynced: (outcome: SyncOutcome) => void
+  /** A conflicted Markdown file: the app opens it as Mine / Theirs pages. */
+  onOpenConflict: (path: string) => void
 }
 
 interface Row {
   path: string
   kind: ChangeKind | 'unsaved'
+}
+
+interface Outcome {
+  ok: boolean
+  text: string
+  /** The message offers "Sign in with GitHub". */
+  signIn?: boolean
 }
 
 // What the row says on the right; an edited file needs no word.
@@ -28,16 +41,25 @@ const kindLabels: Record<Row['kind'], string> = {
 
 /**
  * The Sync view: the files changed since the last Sync, each with a tick, a required message
- * and the Sync button. See docs/ui/sync-and-conflict.png. Mounted once per project.
+ * and the Sync button; while a Sync waits on conflicts, the choices per file and Finish sync.
+ * See docs/ui/sync-and-conflict.png. Mounted once per project.
  */
-export function SyncView({ status, unsavedPaths, onBeforeSync }: SyncViewProps): JSX.Element {
+export function SyncView({
+  status,
+  unsavedPaths,
+  onBeforeSync,
+  onSynced,
+  onOpenConflict
+}: SyncViewProps): JSX.Element {
   const [unticked, setUnticked] = useState<ReadonlySet<string>>(() => new Set())
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
-  const [outcome, setOutcome] = useState<{ ok: boolean; text: string } | null>(null)
+  const [outcome, setOutcome] = useState<Outcome | null>(null)
+  const [helpOpen, setHelpOpen] = useState(false)
   // Whether Git knows who saves the versions; null until looked up.
   const [hasIdentity, setHasIdentity] = useState<boolean | null>(null)
   const repo = status?.repo ?? false
+  const merging = status?.merging ?? false
 
   useEffect(() => {
     if (!repo) return
@@ -54,8 +76,10 @@ export function SyncView({ status, unsavedPaths, onBeforeSync }: SyncViewProps):
   }, [repo])
 
   const rows = useMemo(() => listRows(status?.changes ?? [], unsavedPaths), [status, unsavedPaths])
+  const conflicts = rows.filter((row) => row.kind === 'conflict')
   const tickedCount = rows.filter((row) => !unticked.has(row.path)).length
-  const canSync = !busy && repo && hasIdentity === true && tickedCount > 0 && message.trim() !== ''
+  const canSync =
+    !busy && repo && hasIdentity === true && (tickedCount === 0 || message.trim() !== '')
 
   function toggle(path: string, ticked: boolean): void {
     setUnticked((current) => {
@@ -66,24 +90,42 @@ export function SyncView({ status, unsavedPaths, onBeforeSync }: SyncViewProps):
     })
   }
 
-  // Saves the open documents first, then a version with the ticked files as they are on disk.
-  async function sync(): Promise<void> {
+  // Runs one of the Sync steps in the background and shows how it went.
+  async function run(step: () => Promise<SyncOutcome>): Promise<void> {
     setBusy(true)
     setOutcome(null)
     try {
+      const result = await step()
+      setOutcome(describe(result))
+      if (result.kind === 'synced' || result.kind === 'saved') setMessage('')
+      onSynced(result)
+    } catch (error) {
+      setOutcome({ ok: false, text: messageOf(error) })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // Saves the open documents first, then syncs with the ticked files as they are on disk.
+  function sync(): Promise<void> {
+    return run(async () => {
       await onBeforeSync()
       const fresh = await window.coleaf.git.status()
       const chosen = fresh.changes.filter((change) => !unticked.has(change.path))
       const paths = chosen.flatMap((change) =>
         change.from ? [change.from, change.path] : [change.path]
       )
-      await window.coleaf.git.commit(paths, message.trim())
-      setMessage('')
-      setOutcome({ ok: true, text: 'Version saved.' })
+      return window.coleaf.git.sync(paths, message.trim())
+    })
+  }
+
+  async function settleFile(path: string, side: 'mine' | 'theirs'): Promise<void> {
+    setOutcome(null)
+    try {
+      await window.coleaf.git.resolveFile(path, side)
+      onSynced({ kind: 'conflicts', pulled: true })
     } catch (error) {
       setOutcome({ ok: false, text: messageOf(error) })
-    } finally {
-      setBusy(false)
     }
   }
 
@@ -99,6 +141,12 @@ export function SyncView({ status, unsavedPaths, onBeforeSync }: SyncViewProps):
         </p>
       ) : (
         <div className="sync">
+          {merging && (
+            <p className="sync__note sync__note--attention">
+              Others changed the same parts as you. Choose a version for each file marked Conflict,
+              then press Finish sync.
+            </p>
+          )}
           <div className="sync__label">Changed files</div>
           {rows.length === 0 ? (
             <p className="sync__note">No changes since the last Sync.</p>
@@ -106,14 +154,23 @@ export function SyncView({ status, unsavedPaths, onBeforeSync }: SyncViewProps):
             <ul className="sync__files">
               {rows.map((row) => (
                 <li key={row.path} className="sync__file">
-                  <label className="sync__tick" title={row.path}>
-                    <input
-                      type="checkbox"
-                      checked={!unticked.has(row.path)}
-                      onChange={(event) => toggle(row.path, event.target.checked)}
+                  {row.kind === 'conflict' ? (
+                    <ConflictRow
+                      path={row.path}
+                      onOpen={() => onOpenConflict(row.path)}
+                      onSettle={(side) => void settleFile(row.path, side)}
                     />
-                    <span className="sync__path">{row.path}</span>
-                  </label>
+                  ) : (
+                    <label className="sync__tick" title={row.path}>
+                      <input
+                        type="checkbox"
+                        checked={!unticked.has(row.path)}
+                        disabled={merging}
+                        onChange={(event) => toggle(row.path, event.target.checked)}
+                      />
+                      <span className="sync__path">{row.path}</span>
+                    </label>
+                  )}
                   {kindLabels[row.kind] && (
                     <span className={`sync__kind sync__kind--${row.kind}`}>
                       {kindLabels[row.kind]}
@@ -125,10 +182,40 @@ export function SyncView({ status, unsavedPaths, onBeforeSync }: SyncViewProps):
           )}
           {hasIdentity === false ? (
             <IdentityForm onSaved={() => setHasIdentity(true)} />
+          ) : merging ? (
+            <>
+              <button
+                type="button"
+                className="button button--primary sync__button"
+                disabled={busy || conflicts.length > 0}
+                onClick={() => void run(() => window.coleaf.git.finishSync())}
+              >
+                {busy ? 'Syncing…' : 'Finish sync'}
+              </button>
+              <button
+                type="button"
+                className="button sync__button"
+                disabled={busy}
+                onClick={() =>
+                  void run(async () => {
+                    await window.coleaf.git.cancelSync()
+                    return { kind: 'error', pulled: true, message: 'Sync cancelled.' }
+                  })
+                }
+              >
+                Cancel sync
+              </button>
+              <p className="sync__caption">
+                {conflicts.length > 0
+                  ? `${conflicts.length} ${conflicts.length === 1 ? 'file needs' : 'files need'} a choice. `
+                  : 'Every conflict has its choice. '}
+                <LearnMore onOpen={() => setHelpOpen(true)} />
+              </p>
+            </>
           ) : (
             <>
               <label className="sync__label" htmlFor="sync-message">
-                What did you change? (required)
+                What did you change? {tickedCount > 0 && '(required)'}
               </label>
               <textarea
                 id="sync-message"
@@ -147,18 +234,119 @@ export function SyncView({ status, unsavedPaths, onBeforeSync }: SyncViewProps):
               >
                 {busy ? 'Syncing…' : 'Sync'}
               </button>
-              <p className="sync__caption">Saves a version with the ticked files.</p>
+              <p className="sync__caption">
+                {tickedCount > 0
+                  ? "Saves a version, gets others' changes, then sends yours. "
+                  : "Gets others' latest changes. "}
+                <LearnMore onOpen={() => setHelpOpen(true)} />
+              </p>
             </>
           )}
           {outcome && (
             <p className={`sync__outcome${outcome.ok ? '' : ' sync__outcome--error'}`}>
               {outcome.text}
+              {outcome.signIn && (
+                <>
+                  {' '}
+                  <button
+                    type="button"
+                    className="link-button"
+                    onClick={() => void window.coleaf.account.signIn()}
+                  >
+                    Sign in with GitHub
+                  </button>
+                </>
+              )}
             </p>
           )}
         </div>
       )}
+      {helpOpen && <HowSyncDialog onClose={() => setHelpOpen(false)} />}
     </aside>
   )
+}
+
+interface ConflictRowProps {
+  path: string
+  onOpen: () => void
+  onSettle: (side: 'mine' | 'theirs') => void
+}
+
+// A conflicted file: a Markdown one opens as Mine / Theirs pages; any other is kept whole.
+function ConflictRow({ path, onOpen, onSettle }: ConflictRowProps): JSX.Element {
+  if (isMarkdownPath(path)) {
+    return (
+      <button type="button" className="sync__conflict" title={`Choose: ${path}`} onClick={onOpen}>
+        <span className="sync__path">{path}</span>
+      </button>
+    )
+  }
+  return (
+    <span className="sync__conflict" title={path}>
+      <span className="sync__path">{path}</span>
+      <span className="sync__sides">
+        <button type="button" className="link-button" onClick={() => onSettle('mine')}>
+          Keep mine
+        </button>
+        <button type="button" className="link-button" onClick={() => onSettle('theirs')}>
+          Keep theirs
+        </button>
+      </span>
+    </span>
+  )
+}
+
+function LearnMore({ onOpen }: { onOpen: () => void }): JSX.Element {
+  return (
+    <button type="button" className="link-button" onClick={onOpen}>
+      Learn more
+    </button>
+  )
+}
+
+// How a Sync ended, in the Sync view's words.
+function describe(outcome: SyncOutcome): Outcome {
+  const latest = outcome.pulled ? " Others' changes were brought in." : ''
+  switch (outcome.kind) {
+    case 'synced':
+      return {
+        ok: true,
+        text: outcome.pushed
+          ? `Synced.${latest}`
+          : outcome.pulled
+            ? 'You have the latest.'
+            : 'Up to date.'
+      }
+    case 'saved':
+      return {
+        ok: true,
+        text: 'Version saved on this computer. This project has no online copy yet.'
+      }
+    case 'sign-in':
+      return { ok: true, text: 'Version saved on this computer. To share it:', signIn: true }
+    case 'ssh':
+      return {
+        ok: false,
+        text: "Version saved on this computer. Its online copy is reached over SSH, which CoLeaf can't use yet."
+      }
+    case 'denied':
+      return {
+        ok: false,
+        text: 'Version saved on this computer. GitHub did not allow the sharing: check that you can write to this repository and that the CoLeaf app is installed on it.'
+      }
+    case 'offline':
+      return {
+        ok: false,
+        text: "Version saved on this computer. Couldn't reach GitHub; Sync again when you're online."
+      }
+    case 'conflicts':
+      return {
+        ok: false,
+        text: `${outcome.files?.length ?? 0} ${outcome.files?.length === 1 ? 'file needs' : 'files need'} a choice.`
+      }
+    default:
+      return { ok: false, text: outcome.message ?? 'Sync failed.' }
+  }
 }
 
 // The changed files on disk, plus open documents whose edits are not saved yet.

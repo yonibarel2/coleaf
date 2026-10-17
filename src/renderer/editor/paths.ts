@@ -1,6 +1,11 @@
 // Paths inside the project, as links and pictures in a document name them: relative to the
 // document's folder, or from the project root when they start with `/`, like on GitHub.
 
+/** Whether a tree path names a file CoLeaf edits (`.md`, `.markdown`). */
+export function isMarkdownPath(path: string): boolean {
+  return /\.(md|markdown)$/i.test(path)
+}
+
 /**
  * The tree path a link or picture target points at, or null when it leaves the project. A
  * query or fragment is dropped and percent-escapes are decoded.

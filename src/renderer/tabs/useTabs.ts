@@ -31,6 +31,8 @@ export interface Tabs {
   saveActive: () => Promise<void>
   /** Saves every document with unsaved changes (before a Sync). */
   saveAll: () => Promise<void>
+  /** Re-reads every document without unsaved changes (after a Sync brought others' changes). */
+  reloadClean: () => Promise<void>
 }
 
 export interface TabsOptions {
@@ -159,6 +161,26 @@ export function useTabs(options: TabsOptions): Tabs {
     for (const tab of tabsRef.current.filter((t) => t.dirty)) await save(tab)
   }, [save])
 
+  // A changed file replaces the document in place, outside the undo history.
+  const reloadClean = useCallback(async () => {
+    for (const tab of tabsRef.current.filter((t) => !t.dirty && !t.readOnly)) {
+      const { text, readOnly, ...format } = await window.coleaf.file.read(tab.path).catch(() => ({
+        text: null,
+        readOnly: true,
+        ...tab.format
+      }))
+      if (text === null || readOnly) continue // gone or unreadable: left as shown
+      const fresh = markdownToDoc(text, schema)
+      const { state } = tab.editor
+      if (!needsSave(state.doc, fresh)) continue
+      const transaction = state.tr
+        .replaceWith(0, state.doc.content.size, fresh.content)
+        .setMeta('addToHistory', false)
+      tab.editor.view.dispatch(transaction)
+      patch(tab.path, { savedDoc: tab.editor.state.doc, dirty: false, format })
+    }
+  }, [patch])
+
   // The background asks before the window closes or the project changes.
   useEffect(
     () =>
@@ -188,6 +210,7 @@ export function useTabs(options: TabsOptions): Tabs {
     activate: setActivePath,
     close,
     saveActive,
-    saveAll
+    saveAll,
+    reloadClean
   }
 }

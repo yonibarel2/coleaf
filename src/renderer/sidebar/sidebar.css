@@ -197,6 +197,40 @@
   color: var(--color-danger);
 }
 
+/* A conflicted file: a Markdown one opens its Mine / Theirs pages; any other offers both sides. */
+.sync__conflict {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-1) 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  color: var(--color-ink);
+}
+
+button.sync__conflict {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--color-attention);
+}
+
+.sync__sides {
+  display: flex;
+  gap: var(--space-3);
+  font-size: var(--text-label);
+}
+
+.sync__note--attention {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--color-attention-tint);
+  color: var(--color-ink);
+}
+
 .sync__message,
 .sync__input {
   width: 100%;

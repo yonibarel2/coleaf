@@ -51,6 +51,17 @@ button {
   filter: brightness(0.94);
 }
 
+/* A button that reads as a link, inside a sentence ("Learn more", "Keep mine"). */
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-accent);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 /* Dialogs: a card in the middle of the window over a dimmed backdrop. */
 .dialog-backdrop {
   position: fixed;
@@ -124,4 +135,9 @@ button {
   background: var(--color-ground);
   font: inherit;
   font-size: var(--text-label);
+}
+
+/* "How Sync works" (HowSyncDialog.tsx). */
+.how-sync p {
+  margin: 0 0 var(--space-3);
 }

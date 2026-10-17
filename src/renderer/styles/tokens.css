@@ -20,6 +20,8 @@
   --color-toolbar: #eaeae6; /* the ribbon: a little darker than the ground */
   --color-backdrop: rgba(23, 23, 23, 0.3); /* ink, behind a dialog */
   --color-danger: #cf222e; /* something went wrong: error text, a conflict */
+  --color-attention: #d97706; /* needs a choice: the conflict icon */
+  --color-attention-tint: #fdf1e5; /* the conflict banner and highlighted parts */
 
   /* GitHub alerts: the edge and label of a [!NOTE], [!TIP], [!IMPORTANT], [!WARNING], [!CAUTION] quote */
   --color-note: #0969da;
