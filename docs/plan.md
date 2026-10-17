@@ -53,7 +53,7 @@ Always visible, with or without a project open.
 | Account (bottom-left, above the gear) | Signed out: "Sign in with GitHub". Signed in: your GitHub picture; click for Sign out | Same |
 | Settings (gear, bottom-left) | Light theme (dark comes in Stage 4) | Same |
 | Window controls (top-right) | Minimize, maximize, close | Same; closing with unsaved changes asks "Save?", like Word |
-| App icon | Simple placeholder (window, taskbar, installer); final logo in Stage 4 | Same |
+| App icon | Simple placeholder (window, taskbar, installer); final logo in Release 1 | Same |
 | Left icon bar | Explorer icon at the top; account and gear at the bottom | Explorer and Sync icons at the top, each opening its own sidebar view; Sync shows a badge with the number of changed files. Account and gear at the bottom |
 | Search (top bar, center) | Hidden | Search box across all .md files in the project. Inside a document: Find / Replace (Ctrl+F) in the ribbon |
 
@@ -161,6 +161,8 @@ Ship Stage 1 to testers and the public as a signed app that updates itself.
 2. **Auto-update:** new versions install themselves.
 3. **Crash reports:** errors reach us so we can fix them.
 4. **Minified build:** the window's code ships minified (the build currently leaves it unminified, about 2.3 MB).
+5. **New name and logo (must):** "CoLeaf" is too close to Overleaf, so the product gets a new name and logo before any public release.
+6. **Bundled Git outside the archive:** the installer must unpack `node_modules/dugite/git/**` from asar (`asarUnpack` in electron-builder); dugite looks for its Git there and cannot run it from inside the archive.
 
 ### Work plan
 
@@ -223,8 +225,8 @@ A full-window, Word-like workspace with modern styling, working side by side wit
 
 ### Requirements
 
-1. **Final logo:** replaces the Stage 1 placeholder icon.
-2. **Final name:** confirm the product name before launch.
+1. **Final logo:** moved to Release 1 (new name and logo).
+2. **Final name:** moved to Release 1 (new name and logo).
 3. **Dark theme:** a dark version of the whole app, switched in Settings.
 4. **Viewers:** map (GeoJSON/TopoJSON), 3D model (STL) and PlantUML blocks rendered like GitHub and GitLab do; libraries to approve first.
 5. **Custom title bar:** one row with the app icon, the menus, the search box and the window controls, as in the mockups, replacing the system title bar plus a separate menu row.
