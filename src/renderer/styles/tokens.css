@@ -83,7 +83,7 @@
   --control-height: 32px;
   --control-height-small: 28px;
   --icon-button-size: 36px;
-  --icon-size-xs: 10px; /* next to label-sized text, as in the bottom bar */
+  --icon-size-sm: 14px; /* next to label-sized text, as in the bottom bar (VS Code uses 14) */
   --icon-size: 16px;
   --icon-size-lg: 20px;
   --tree-row-height: 26px;
