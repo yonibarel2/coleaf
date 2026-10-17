@@ -138,13 +138,15 @@ export function SyncView({
         </p>
       ) : (
         <div className="sync">
+          <div className="section__header section__header--static">
+            <span className="section__title">Changed files</span>
+          </div>
           {merging && (
             <p className="sync__note sync__note--attention">
               Others changed the same parts as you. Choose a version for each file marked Conflict,
               then press Finish sync.
             </p>
           )}
-          <div className="sync__label">Changed files</div>
           {rows.length === 0 ? (
             <p className="sync__note">No changes since the last Sync.</p>
           ) : (

@@ -51,15 +51,17 @@ button {
   filter: brightness(0.94);
 }
 
-/* The tooltip (Tooltip.tsx): a small ink bubble under (or above) the element with a data-tip. */
+/* The tooltip (Tooltip.tsx): a small light card under (or above) the element with a data-tip. */
 .tooltip {
   position: fixed;
   z-index: 20;
   max-width: calc(var(--sidebar-width) + var(--space-8));
   padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-line);
   border-radius: var(--radius-small);
-  background: var(--color-ink);
-  color: var(--color-sheet);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-pop);
+  color: var(--color-ink);
   font-size: var(--text-label);
   line-height: var(--line-height-ui);
   white-space: pre-line;

@@ -54,6 +54,11 @@
   flex: 1;
 }
 
+/* A section that does not fold (the Sync view's list). */
+.section__header--static {
+  cursor: default;
+}
+
 .section__option {
   display: flex;
   align-items: center;
@@ -124,6 +129,12 @@
   flex-direction: column;
   gap: var(--space-2);
   padding: 0 var(--space-4) var(--space-4);
+}
+
+/* The section line runs the sidebar's full width, like the Explorer's. */
+.sync > .section__header {
+  margin: 0 calc(-1 * var(--space-4)) var(--space-1);
+  padding-left: var(--space-4);
 }
 
 .sync__label {

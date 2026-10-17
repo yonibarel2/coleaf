@@ -27,15 +27,15 @@ export function StatusBar({ project, status, words }: StatusBarProps): JSX.Eleme
   )
 }
 
-// A branch drawn for small sizes: a line with a node at each end and one branching off to the
-// right. Thin strokes stay crisp at 14 px, where a general-purpose icon turns into a blot.
+// The branch sign as code editors draw it at 16 px: a line with a ring at each end, and a
+// rounded branch from a third ring on the right. Drawn with 1 px strokes on a 16-unit grid.
 function BranchIcon(): JSX.Element {
   return (
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" aria-hidden="true">
-      <circle cx="4.5" cy="3" r="1.8" />
-      <circle cx="4.5" cy="13" r="1.8" />
-      <circle cx="11.5" cy="5" r="1.8" />
-      <path d="M4.5 4.8v6.4M11.5 6.8c0 2.4-2.2 3.4-4.8 3.8" />
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1" aria-hidden="true">
+      <circle cx="4.5" cy="2.5" r="2" />
+      <circle cx="4.5" cy="13.5" r="2" />
+      <circle cx="11.5" cy="5.5" r="2" />
+      <path d="M4.5 4.5v7M11.5 7.5a2 2 0 0 1-2 2h-3a2 2 0 0 0-2 2" />
     </svg>
   )
 }
