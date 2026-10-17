@@ -4,9 +4,9 @@ import { createExtensions } from '../../src/renderer/editor/extensions'
 import { keysLabel, shortcuts } from '../../src/renderer/editor/shortcuts'
 
 // The editor's shortcuts, from the one list the ribbon and the Help dialog also read; the File
-// and View groups (save, new file, open project, zoom) belong to the application menu.
+// group (save, new file, open project) belongs to the application menu.
 const specShortcuts = shortcuts
-  .filter((shortcut) => shortcut.group !== 'File' && shortcut.group !== 'View')
+  .filter((shortcut) => shortcut.group !== 'File')
   .map((shortcut) => shortcut.keys)
 
 // Plain editing keys TipTap binds for lists and code blocks: not formatting shortcuts.
@@ -82,8 +82,6 @@ describe('editor keyboard shortcuts', () => {
     expect(keysLabel('Mod-Alt-1', false)).toBe('Ctrl+Alt+1')
     expect(keysLabel('Shift-Enter', false)).toBe('Shift+Enter')
     expect(keysLabel('Tab', false)).toBe('Tab')
-    expect(keysLabel('Mod-=', false)).toBe('Ctrl+=')
-    expect(keysLabel('Mod-Minus', false)).toBe('Ctrl+-')
     expect(keysLabel('Mod-Shift-n', true)).toBe('⌘⇧N')
   })
 })

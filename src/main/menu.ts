@@ -69,23 +69,12 @@ export function applyMenu(session: ProjectSession): void {
     }
   ]
   if (process.platform === 'darwin') template.unshift({ role: 'appMenu' })
-  // View: zoom like a browser (Electron keeps the level between sessions); dev tools in development.
-  const view: MenuItemConstructorOptions[] = [
-    { role: 'zoomIn', accelerator: 'CmdOrCtrl+=' },
-    { role: 'zoomIn', accelerator: 'CmdOrCtrl+numadd', visible: false },
-    { role: 'zoomOut', accelerator: 'CmdOrCtrl+-' },
-    { role: 'zoomOut', accelerator: 'CmdOrCtrl+numsub', visible: false },
-    { role: 'resetZoom', accelerator: 'CmdOrCtrl+0' }
-  ]
   if (is.dev) {
-    view.push(
-      { type: 'separator' },
-      { role: 'reload' },
-      { role: 'forceReload' },
-      { role: 'toggleDevTools' }
-    )
+    template.splice(template.length - 1, 0, {
+      label: 'View',
+      submenu: [{ role: 'reload' }, { role: 'forceReload' }, { role: 'toggleDevTools' }]
+    })
   }
-  template.splice(template.length - 1, 0, { label: 'View', submenu: view })
   Menu.setApplicationMenu(Menu.buildFromTemplate(template))
 }
 
