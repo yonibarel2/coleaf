@@ -58,8 +58,25 @@ export function SyncView({
   const [helpOpen, setHelpOpen] = useState(false)
   // Whether Git knows who saves the versions; null until looked up.
   const [hasIdentity, setHasIdentity] = useState<boolean | null>(null)
+  // Pictures under md-images/ no document uses: offered for removal with the next Sync.
+  const [unused, setUnused] = useState<string[]>([])
+  const [removeUnused, setRemoveUnused] = useState(true)
   const repo = status?.repo ?? false
   const merging = status?.merging ?? false
+
+  useEffect(() => {
+    if (!repo) return
+    let live = true
+    void window.coleaf.images
+      .unused()
+      .then((paths) => {
+        if (live) setUnused(paths)
+      })
+      .catch(() => {})
+    return () => {
+      live = false
+    }
+  }, [status, repo])
 
   useEffect(() => {
     if (!repo) return
@@ -77,7 +94,8 @@ export function SyncView({
 
   const rows = useMemo(() => listRows(status?.changes ?? [], unsavedPaths), [status, unsavedPaths])
   const conflicts = rows.filter((row) => row.kind === 'conflict')
-  const tickedCount = rows.filter((row) => !unticked.has(row.path)).length
+  const cleaning = removeUnused && unused.length > 0 && !merging
+  const tickedCount = rows.filter((row) => !unticked.has(row.path)).length + (cleaning ? 1 : 0)
   const canSync =
     !busy && repo && hasIdentity === true && (tickedCount === 0 || message.trim() !== '')
 
@@ -106,10 +124,12 @@ export function SyncView({
     }
   }
 
-  // Saves the open documents first, then syncs with the ticked files as they are on disk.
+  // Saves the open documents first (and drops the unused pictures, if ticked), then syncs with
+  // the ticked files as they are on disk.
   function sync(): Promise<void> {
     return run(async () => {
       await onBeforeSync()
+      if (cleaning) await window.coleaf.images.remove(await window.coleaf.images.unused())
       const fresh = await window.coleaf.git.status()
       const chosen = fresh.changes.filter((change) => !unticked.has(change.path))
       const paths = chosen.flatMap((change) =>
@@ -178,6 +198,18 @@ export function SyncView({
                 </li>
               ))}
             </ul>
+          )}
+          {unused.length > 0 && !merging && (
+            <label className="sync__tick sync__cleanup" data-tip={unused.join('\n')}>
+              <input
+                type="checkbox"
+                checked={removeUnused}
+                onChange={(event) => setRemoveUnused(event.target.checked)}
+              />
+              <span className="sync__path">
+                Also remove {unused.length} unused {unused.length === 1 ? 'picture' : 'pictures'}
+              </span>
+            </label>
           )}
           {hasIdentity === false ? (
             <IdentityForm onSaved={() => setHasIdentity(true)} />

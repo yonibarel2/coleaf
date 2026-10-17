@@ -8,8 +8,10 @@ import {
   imageTypeOf,
   importImage,
   readImage,
+  removeImages,
   safeImageName,
-  storeImage
+  storeImage,
+  unusedImages
 } from '../../src/main/files/images'
 
 const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
@@ -53,8 +55,8 @@ describe('images', () => {
   })
 
   it('names pictures safely', () => {
-    expect(imageFolderOf('docs/plan.md')).toBe('images/docs/plan')
-    expect(imageFolderOf('README.markdown')).toBe('images/README')
+    expect(imageFolderOf('docs/plan.md')).toBe('md-images/docs/plan')
+    expect(imageFolderOf('README.markdown')).toBe('md-images/README')
     expect(safeImageName('My Shot (1).PNG')).toBe('My-Shot-1.PNG')
     expect(safeImageName('C:\\Users\\x\\..\\evil.png')).toBe('evil.png')
     expect(safeImageName('image.png')).toBe('picture.png')
@@ -65,18 +67,18 @@ describe('images', () => {
   it('stores pictures beside the document, never replacing one', async () => {
     await writeFile(join(root, 'docs', 'plan.md'), '# Plan\n')
     expect(await storeImage(root, 'docs/plan.md', 'image.png', png)).toBe(
-      'images/docs/plan/picture-1.png'
+      'md-images/docs/plan/picture-1.png'
     )
     expect(await storeImage(root, 'docs/plan.md', 'image.png', png)).toBe(
-      'images/docs/plan/picture-2.png'
+      'md-images/docs/plan/picture-2.png'
     )
     expect(await storeImage(root, 'docs/plan.md', 'diagram.png', png)).toBe(
-      'images/docs/plan/diagram.png'
+      'md-images/docs/plan/diagram.png'
     )
     expect(await storeImage(root, 'docs/plan.md', 'diagram.png', png)).toBe(
-      'images/docs/plan/diagram-2.png'
+      'md-images/docs/plan/diagram-2.png'
     )
-    expect([...(await readFile(join(root, 'images', 'docs', 'plan', 'diagram.png')))]).toEqual([
+    expect([...(await readFile(join(root, 'md-images', 'docs', 'plan', 'diagram.png')))]).toEqual([
       ...png
     ])
     await expect(storeImage(root, 'docs/plan.md', 'notes.txt', png)).rejects.toThrow(/Not an image/)
@@ -85,6 +87,77 @@ describe('images', () => {
 
   it('copies a picked file beside the document', async () => {
     const source = join(root, 'docs', 'images', 'my pic.PNG')
-    expect(await importImage(root, 'docs/plan.md', source)).toBe('images/docs/plan/my-pic.PNG')
+    expect(await importImage(root, 'docs/plan.md', source)).toBe('md-images/docs/plan/my-pic.PNG')
+  })
+})
+
+describe('unused pictures', () => {
+  let root: string
+
+  beforeAll(async () => {
+    root = await mkdtemp(join(tmpdir(), 'coleaf-unused-'))
+    const put = async (path: string, text: string | Uint8Array): Promise<void> => {
+      await mkdir(join(root, ...path.split('/').slice(0, -1)), { recursive: true })
+      await writeFile(join(root, ...path.split('/')), text)
+    }
+    await put('md-images/docs/plan/shown.png', png)
+    await put('md-images/docs/plan/Linked.PNG', png)
+    await put('md-images/docs/plan/in html.png', png)
+    await put('md-images/docs/plan/by reference.png', png)
+    await put('md-images/docs/plan/from root.png', png)
+    await put('md-images/docs/plan/from elsewhere.png', png)
+    await put('md-images/docs/plan/unused.png', png)
+    await put('md-images/notes/unused too.png', png)
+    await put('md-images/notes/notes.txt', 'not a picture')
+    await put('docs/elsewhere.png', png) // outside md-images: never touched
+    await put(
+      'docs/plan.md',
+      [
+        '![a](../md-images/docs/plan/shown.png)',
+        '[b](../md-images/docs/plan/linked.png)',
+        '<img src="../md-images/docs/plan/in%20html.png">',
+        '![c][ref]',
+        '',
+        '[ref]: <../md-images/docs/plan/by reference.png>',
+        '![d](/md-images/docs/plan/from%20root.png)',
+        '![e](https://example.com/md-images/docs/plan/unused.png)',
+        ''
+      ].join('\n')
+    )
+    // A target with a space needs <…> or %20 to be a link at all, on GitHub as here.
+    await put('README.md', '![f](<md-images/docs/plan/from elsewhere.png>)\n')
+    await put('node_modules/pkg/readme.md', '![g](../../md-images/docs/plan/unused.png)\n')
+  })
+
+  afterAll(() => rm(root, { recursive: true, force: true }))
+
+  it('finds the pictures no Markdown file points at, whatever the link style or case', async () => {
+    expect(await unusedImages(root)).toEqual([
+      'md-images/docs/plan/unused.png',
+      'md-images/notes/unused too.png'
+    ])
+  })
+
+  it('removes them with their empty folders, and nothing outside md-images', async () => {
+    await expect(removeImages(root, ['docs/elsewhere.png'])).rejects.toThrow(/Not a picture of/)
+    await expect(removeImages(root, ['md-images/notes/notes.txt'])).rejects.toThrow(/Not a picture/)
+    await removeImages(root, ['md-images/notes/unused too.png', 'md-images/docs/plan/unused.png'])
+    expect(await unusedImages(root)).toEqual([])
+    await expect(
+      readFile(join(root, 'md-images', 'docs', 'plan', 'shown.png'))
+    ).resolves.toBeDefined()
+    await expect(readFile(join(root, 'md-images', 'notes', 'notes.txt'), 'utf8')).resolves.toBe(
+      'not a picture'
+    )
+    await expect(readFile(join(root, 'docs', 'elsewhere.png'))).resolves.toBeDefined()
+  })
+
+  it('removes the folders a deleted picture leaves empty', async () => {
+    const dir = join(root, 'md-images', 'empty', 'deep')
+    await mkdir(dir, { recursive: true })
+    await writeFile(join(dir, 'last.png'), png)
+    await removeImages(root, ['md-images/empty/deep/last.png'])
+    await expect(readFile(join(root, 'md-images', 'empty', 'deep', 'last.png'))).rejects.toThrow()
+    await expect(mkdir(join(root, 'md-images', 'empty'))).resolves.toBeUndefined() // was gone
   })
 })

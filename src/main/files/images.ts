@@ -1,7 +1,10 @@
 import { existsSync } from 'node:fs'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
-import { basename, extname, join, resolve } from 'node:path'
-import { resolveInside } from './project'
+import { mkdir, readdir, readFile, rm, rmdir, writeFile } from 'node:fs/promises'
+import { basename, dirname, extname, join, resolve } from 'node:path'
+import { isHiddenName, isMarkdownName, resolveInside } from './project'
+
+/** The folder CoLeaf owns for pictures; only files under it are ever cleaned up. */
+export const imagesFolder = 'md-images'
 
 // Pictures a document may show from the repo, by extension, and the type they are served as.
 const imageTypes = new Map([
@@ -38,9 +41,9 @@ export async function readImage(
   return { bytes: await readFile(await resolveInside(root, path)), type }
 }
 
-/** Where a document's pictures go: `images/` plus the document's path without its extension. */
+/** Where a document's pictures go: `md-images/` plus the document's path without its extension. */
 export function imageFolderOf(documentPath: string): string {
-  return `images/${documentPath.replace(/\.(md|markdown)$/i, '')}`
+  return `${imagesFolder}/${documentPath.replace(/\.(md|markdown)$/i, '')}`
 }
 
 /**
@@ -98,4 +101,104 @@ export async function importImage(
   source: string
 ): Promise<string> {
   return storeImage(root, documentPath, basename(source), await readFile(source))
+}
+
+/**
+ * Pictures under `md-images/` that no Markdown file of the project shows or links to. Every
+ * `.md` is read (Git's folder, system clutter and `node_modules` skipped); targets resolve the
+ * way the window resolves them: relative to the document, or from the root after a `/`. Letter
+ * case is ignored, so a link GitHub would break still keeps its picture.
+ */
+export async function unusedImages(root: string): Promise<string[]> {
+  const pictures = await listFiles(root, imagesFolder, (name) => imageTypeOf(name) !== undefined)
+  if (pictures.length === 0) return []
+  const used = new Set<string>()
+  for (const document of await listFiles(root, '', isMarkdownName)) {
+    const text = await readFile(join(root, ...document.split('/')), 'utf8').catch(() => '')
+    for (const target of targetsIn(text)) {
+      const path = resolveTarget(document, target)
+      if (path) used.add(path.toLowerCase())
+    }
+  }
+  return pictures.filter((picture) => !used.has(picture.toLowerCase()))
+}
+
+/** Deletes pictures under `md-images/` (nowhere else), and the folders left empty. */
+export async function removeImages(root: string, paths: string[]): Promise<void> {
+  for (const path of paths) {
+    if (!path.startsWith(`${imagesFolder}/`) || !imageTypeOf(path)) {
+      throw new Error(`Not a picture of ${imagesFolder}: ${path}`)
+    }
+    const file = await resolveInside(root, path)
+    await rm(file, { force: true })
+    for (let dir = dirname(file); dir.length > root.length; dir = dirname(dir)) {
+      try {
+        await rmdir(dir) // only an empty folder goes
+      } catch {
+        break
+      }
+    }
+  }
+}
+
+// Tree paths of the files under a folder that pass the filter, at any depth.
+async function listFiles(
+  root: string,
+  dir: string,
+  keep: (name: string) => boolean
+): Promise<string[]> {
+  const files: string[] = []
+  let dirents
+  try {
+    dirents = await readdir(join(root, ...dir.split('/').filter(Boolean)), { withFileTypes: true })
+  } catch {
+    return files
+  }
+  for (const dirent of dirents) {
+    if (isHiddenName(dirent.name) || dirent.name === 'node_modules') continue
+    const path = dir ? `${dir}/${dirent.name}` : dirent.name
+    if (dirent.isDirectory()) files.push(...(await listFiles(root, path, keep)))
+    else if (dirent.isFile() && keep(dirent.name)) files.push(path)
+  }
+  return files.sort()
+}
+
+// Everything a Markdown text may point a picture at: image and link targets, reference
+// definitions, and `src` or `href` in HTML. Over-matching is fine: it only keeps a picture.
+function targetsIn(text: string): string[] {
+  const targets: string[] = []
+  for (const match of text.matchAll(/!?\[[^\]]*\]\(\s*(?:<([^>]*)>|([^\s)]+))/g)) {
+    targets.push(match[1] ?? match[2])
+  }
+  for (const match of text.matchAll(/^ {0,3}\[[^\]]+\]:\s*(?:<([^>]*)>|(\S+))/gm)) {
+    targets.push(match[1] ?? match[2])
+  }
+  for (const match of text.matchAll(/\b(?:src|href)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi)) {
+    targets.push(match[1] ?? match[2] ?? match[3])
+  }
+  return targets
+}
+
+// The tree path a target names, by the window's rule (editor/paths.ts): null for a web address
+// or a path that leaves the project.
+function resolveTarget(documentPath: string, target: string): string | null {
+  if (/^[a-z][a-z0-9+.-]*:/i.test(target)) return null
+  let path = target.split(/[?#]/, 1)[0]
+  try {
+    path = decodeURIComponent(path)
+  } catch {
+    return null
+  }
+  if (path === '') return null
+  const segments = path.startsWith('/') ? [] : documentPath.split('/').slice(0, -1)
+  for (const part of path.split('/')) {
+    if (part === '' || part === '.') continue
+    if (part === '..') {
+      if (segments.length === 0) return null
+      segments.pop()
+      continue
+    }
+    segments.push(part)
+  }
+  return segments.length > 0 ? segments.join('/') : null
 }

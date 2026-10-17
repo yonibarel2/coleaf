@@ -302,7 +302,7 @@ export interface EditorOptions {
   onFind: () => void
   /** Ctrl+click on a link: the app follows it. */
   onActivateLink: (href: string) => void
-  /** A pasted or dropped picture: stored under `images/`, its tree path returned. */
+  /** A pasted or dropped picture: stored under `md-images/`, its tree path returned. */
   savePicture: (name: string, bytes: Uint8Array) => Promise<string>
   /** Tree path of the document, which pictures and links resolve against. */
   documentPath: string

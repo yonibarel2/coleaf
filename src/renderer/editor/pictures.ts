@@ -4,14 +4,14 @@ import type { EditorView } from '@tiptap/pm/view'
 import { relativePath } from './paths'
 
 export interface PicturesOptions {
-  /** Tree path of the document, whose `images/` folder receives the pictures. */
+  /** Tree path of the document, whose `md-images/` folder receives the pictures. */
   documentPath: string
-  /** Stores a picture's bytes under `images/` and returns its tree path (the background does it). */
+  /** Stores a picture's bytes under `md-images/` and returns its tree path (the background does it). */
   savePicture: (name: string, bytes: Uint8Array) => Promise<string>
 }
 
 /**
- * Pasted or dropped pictures are stored under `images/` by the background (one folder per
+ * Pasted or dropped pictures are stored under `md-images/` by the background (one folder per
  * document, see main/files/images.ts) and inserted where they landed, linked relative to the
  * document. Pictures picked with Insert › Picture arrive through insertPictures.
  */
@@ -66,7 +66,7 @@ async function storeAndInsert(
 }
 
 /**
- * Puts pictures (tree paths under `images/`) into the document at a position, or over the
+ * Puts pictures (tree paths under `md-images/`) into the document at a position, or over the
  * selection, each linked relative to the document. Nothing happens inside a code block.
  */
 export function insertPictures(

@@ -19,6 +19,8 @@ export const channels = {
   appShowShortcuts: 'app:show-shortcuts',
   imagePick: 'image:pick',
   imageSave: 'image:save',
+  imageUnused: 'image:unused',
+  imageRemove: 'image:remove',
   gitStatus: 'git:status',
   gitChanged: 'git:changed',
   gitCommit: 'git:commit',

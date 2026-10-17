@@ -58,7 +58,7 @@ Pictures open the system file picker; HTML blocks and inline HTML get an "Edit c
 | Stage 1 | Stage 1a | Link to a heading | `[Goals](#goals)` or `[Goals](plan.md#goals)` | Insert › Link, type `#heading`; Ctrl+click jumps | Ctrl+K |
 | Kept as-is | Stage 1b | Reference link | `[text][label]`, `[label][]` or `[label]`, using a definition elsewhere | Its text stays editable |  |
 | Stage 1 | Stage 1a | Autolink | `<https://example.com>` or `<name@example.com>` | Automatic when typing or pasting a URL |  |
-| Stage 1 | Stage 1a | Image | `![alt text](images/pic.png "Title")` | Insert › Picture, or paste / drag (saved to `images/`); shown from the repo (inside the project only) or `https`, like GitHub |  |
+| Stage 1 | Stage 1a | Image | `![alt text](md-images/pic.png "Title")` | Insert › Picture, or paste / drag (saved to `md-images/`); shown from the repo (inside the project only) or `https`, like GitHub |  |
 | Kept as-is | Stage 1b | Reference image | `![alt text][label]` |  |  |
 | Stage 1 | Stage 1a | Hard line break | Two spaces or a backslash `\` at the end of a line | Typing | Shift+Enter |
 | Kept as-is | Stage 1a | Soft line break | A plain line break inside a paragraph (shown as a space) |  |  |

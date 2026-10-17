@@ -183,6 +183,12 @@
   overflow-wrap: anywhere;
 }
 
+/* "Also remove N unused pictures": a row of its own under the list. */
+.sync__cleanup {
+  min-height: var(--tree-row-height);
+  color: var(--color-muted);
+}
+
 .sync__kind {
   flex: none;
   font-size: var(--text-label);

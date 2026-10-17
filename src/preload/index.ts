@@ -46,12 +46,16 @@ const api = {
     askSave: (name: string): Promise<SaveChoice> => ipcRenderer.invoke(channels.dialogAskSave, name)
   },
   images: {
-    /** Insert › Picture: the user picks files; copies land under `images/`. Returns their tree paths. */
+    /** Insert › Picture: the user picks files; copies land under `md-images/`. Returns their tree paths. */
     pick: (documentPath: string): Promise<string[]> =>
       ipcRenderer.invoke(channels.imagePick, documentPath),
-    /** A pasted or dropped picture, stored under `images/`. Returns its tree path. */
+    /** A pasted or dropped picture, stored under `md-images/`. Returns its tree path. */
     save: (documentPath: string, name: string, bytes: Uint8Array): Promise<string> =>
-      ipcRenderer.invoke(channels.imageSave, documentPath, name, bytes)
+      ipcRenderer.invoke(channels.imageSave, documentPath, name, bytes),
+    /** Pictures under `md-images/` that no Markdown file of the project uses. */
+    unused: (): Promise<string[]> => ipcRenderer.invoke(channels.imageUnused),
+    /** Deletes pictures under `md-images/`; nothing outside it. */
+    remove: (paths: string[]): Promise<void> => ipcRenderer.invoke(channels.imageRemove, paths)
   },
   git: {
     /** The branch and the changed files of the open project, looked up now. */

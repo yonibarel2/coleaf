@@ -16,7 +16,7 @@ One line per folder and module, then how data flows through them. [architecture.
 | `files/markdown-index.ts` | Which folders hold Markdown at any depth, built in the background and kept current |
 | `files/watch.ts` | One recursive watcher on the project root; changes reported per folder |
 | `files/document.ts` | Reads and writes `.md` files, keeping BOM, line endings and final newline |
-| `files/images.ts` | Pictures under `images/` (one folder per document) and the image scheme's lookup |
+| `files/images.ts` | Pictures under `md-images/` (one folder per document), the image scheme's lookup, and which pictures no `.md` file uses |
 | `git/run.ts` | Runs the bundled Git (dugite): no prompts, no credential helpers, no optional locks; Git's wording as the error |
 | `git/repo.ts` | Status (porcelain v2 → branch and changed files), commit of the ticked files only, the identity in Git's config |
 | `git/tracker.ts` | The project's status, refreshed after every change on disk (debounced, one run at a time), reported when it differs; every Git action goes through it |
@@ -77,7 +77,7 @@ One line per folder and module, then how data flows through them. [architecture.
 1. **Open:** a click in the Explorer → `useTabs.open` → `window.coleaf.file.read` → background `files/document.ts` → `markdownToDoc`: remark (GFM, math) parses, `keepRawBlocks` keeps what is not edited yet as exact text, `pairInlineHtml` pairs tags, the bridge handlers build the ProseMirror document → a TipTap editor with the schema from `extensions.ts`. Node views draw the rest on demand: Mermaid, KaTeX and yaml load the first time they are needed; HTML passes through DOMPurify.
 2. **Edit:** ProseMirror transactions; after each, `needsSave` compares with the document last read or written and sets the unsaved dot.
 3. **Save:** Ctrl+S → menu → `app:save` → `docToMarkdown`: the bridge turns the document into mdast, remark writes it with minimal escaping, and the full-escaping form is used when the two would read differently → `window.coleaf.file.write` → `files/document.ts` keeps the file's line endings and BOM. An untouched document is never written.
-4. **Pictures:** paste, drop or Insert › Picture → `images.save` → a file under `images/` → an image node with a relative path, shown through `coleaf-image://`.
+4. **Pictures:** paste, drop or Insert › Picture → `images.save` → a file under `md-images/` → an image node with a relative path, shown through `coleaf-image://`.
 5. **Links:** Ctrl+click → `hrefOfMark` (Markdown link, inline HTML `<a>`, reference link or bare URL) → `ProjectView.followLink` → `resolveLink` → a tab (with a jump to the heading) or the browser.
 6. **Git status:** any change on disk (a save, a commit, another program) → the watcher → `GitTracker.touch` → `git status` through `git/run.ts` → `git:changed` when it differs → `useGitStatus` → the badge, the branch in the headers, the Sync view's list.
 7. **Sync:** the Sync button → `useTabs.saveAll` → a fresh `git:status` → `git:sync` with the ticked files → `git/remote.ts`: commit those paths only, fetch, merge the remote branch, push (a github.com remote gets the signed-in token through the Git process's environment, nothing else does) → an outcome the Sync view puts into words → open documents without edits reload when others' changes came in. Without a name and email in Git's config, the Sync view asks once and saves them with `git:set-identity`.

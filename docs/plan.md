@@ -98,7 +98,7 @@ Shown after opening a project or a single file.
 | Side by side | Up to 3 documents next to each other; drag to set their widths. No top/bottom split. History follows the focused document |
 | Outside changes | Rare: another program on this computer (e.g. VS Code) changed an open file. No auto-reload; CoLeaf asks: Keep mine (my version wins on next save) or Reload (load the new version; my unsaved edits are lost) |
 | Non-.md files and folders | Files that aren't `.md` (can't be opened), and folders with no `.md` file at any depth, are shown greyed in the Project section; `node_modules` and git-ignored folders are never scanned and always greyed. The "Only .md" tick in the section header hides them all. .git and system files are always hidden |
-| Pictures | Pasted or dragged pictures are saved under the root images/ folder, in a subfolder mirroring the doc's path (images/docs/plan/diagram-1.png). Created only when a doc gets its first picture. Moving or renaming a doc renames its image folder and updates its links automatically |
+| Pictures | Pasted or dragged pictures are saved under the root md-images/ folder (CoLeaf's own; decided Oct 17, 2026, was images/), in a subfolder mirroring the doc's path (md-images/docs/plan/diagram-1.png). Created only when a doc gets its first picture. Moving or renaming a doc renames its image folder and updates its links automatically. A picture removed from the text stays on disk until the next Sync (see Sync view) |
 | Restore a version | Right-click a version in History → Restore. If the current version isn't committed yet, a short message explains it will be lost, with three buttons: Override (restore, lose current), Commit and restore (current version kept in History first), Cancel. The restored file is a normal change, committed on the next Sync. Nothing in History is deleted |
 | Page layout | A soft off-white sheet (`#FCFCFB`, about A4 width, \~800 px) centered on the grey background, below a slightly darker toolbar. On a narrow window or split pane the sheet shrinks and text re-wraps (no sideways scrolling). No page breaks; CoLeaf never adds line breaks to the file |
 | Editing like Word | Blinking cursor; select with mouse or Shift+arrows (highlighted in the accent tint); Ctrl+C/X/V, Ctrl+A, Ctrl+Z/Y; double-click selects a word, triple-click a paragraph. Pasting from Word or the web keeps what Markdown supports (bold, lists, links, tables) and drops the rest (fonts, colors) |
@@ -111,6 +111,7 @@ Its own sidebar view (Sync icon in the left icon bar) for sharing work through G
 | Part | What it does |
 | --- | --- |
 | Changed files | Files changed since the last Sync, each with a checkbox to include it |
+| Unused pictures | Pictures under md-images/ that no .md file of the project uses: one ticked row, "Also remove N unused pictures", listing them on hover; untick to keep them. Only md-images/ is ever cleaned |
 | Message | A short note on what changed; required when there are changes |
 | Sync button | With changes: commit → pull → push. No changes: pull only (get the latest) |
 | Help | Messages such as "Sync your changes first" link to the User Guide with "Learn more" |
@@ -287,6 +288,7 @@ TODO
 - [x] Stage 1 Part A: formatting table + toolbar mockup
 - [x] Add `AGENTS.md` to the repo
 - [ ] Co-Work: find a way to store and enforce per-file ownership, permissions (edit / comment / view) and comments through GitHub. Foundation for Google Docs–style co-work + AI later
+- [ ] Repo permissions with CoLeaf (delicate): how CoLeaf sets and respects CODEOWNERS, branch protection and similar settings for the files it manages only (`.md`, `md-images/`), never for the rest of the repo
 - [x] Deep research before implementation: which AI tools, MCP servers, paid tools and skills to use for building CoLeaf
 - [ ] Export ("compiler"): design with the user how `.md` files compile to Word and PDF so the output always looks good (page size, page breaks, styles)
 - [x] Color palette: replace the current dark green with a livelier, natural green (same lightness and strength, new hue)

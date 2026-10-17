@@ -1,6 +1,6 @@
 import { BrowserWindow, dialog, ipcMain } from 'electron'
 import { channels } from '../../preload/contract'
-import { importImage, storeImage } from '../files/images'
+import { importImage, removeImages, storeImage, unusedImages } from '../files/images'
 import type { ProjectSession } from '../files/session'
 
 const pictureExtensions = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'avif']
@@ -39,4 +39,12 @@ export function registerImageIpc(session: ProjectSession): void {
       return storeImage(root(), documentPath, name, bytes)
     }
   )
+
+  ipcMain.handle(channels.imageUnused, () => unusedImages(root()))
+  ipcMain.handle(channels.imageRemove, (_event, paths: unknown) => {
+    if (!Array.isArray(paths) || !paths.every((path) => typeof path === 'string')) {
+      throw new Error('Expected picture paths')
+    }
+    return removeImages(root(), paths as string[])
+  })
 }

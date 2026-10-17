@@ -31,7 +31,7 @@ export function resolveRepoPath(documentPath: string, target: string): string | 
   return segments.length > 0 ? segments.join('/') : null
 }
 
-/** How a document links to another tree path: `docs/plan.md` → `images/docs/plan/a.png` is `../images/docs/plan/a.png`. */
+/** How a document links to another tree path: `docs/plan.md` → `md-images/docs/plan/a.png` is `../md-images/docs/plan/a.png`. */
 export function relativePath(documentPath: string, treePath: string): string {
   const from = documentPath.split('/').slice(0, -1)
   const to = treePath.split('/')
