@@ -1,4 +1,12 @@
-import type { GitIdentity, GitStatus } from '../../preload/contract'
+import type {
+  ConflictChoice,
+  ConflictPart,
+  GitIdentity,
+  GitStatus,
+  SyncOutcome
+} from '../../preload/contract'
+import { readConflict, resolveConflict, resolveFile } from './conflicts'
+import { cancelSync, finishSync, sync } from './remote'
 import { commit, identity, setIdentity, status } from './repo'
 
 // The project watcher reports a burst of changes folder by folder; one status run covers it.
@@ -67,12 +75,32 @@ export class GitTracker {
     return this.running
   }
 
-  async commit(paths: string[], message: string): Promise<void> {
-    try {
-      await commit(this.openRoot(), paths, message)
-    } finally {
-      this.touch()
-    }
+  commit(paths: string[], message: string): Promise<void> {
+    return this.change((root) => commit(root, paths, message))
+  }
+
+  sync(paths: string[], message: string, token: string | null): Promise<SyncOutcome> {
+    return this.change((root) => sync(root, { paths, message, token }))
+  }
+
+  finishSync(token: string | null): Promise<SyncOutcome> {
+    return this.change((root) => finishSync(root, token))
+  }
+
+  cancelSync(): Promise<void> {
+    return this.change((root) => cancelSync(root))
+  }
+
+  readConflict(path: string): Promise<ConflictPart[]> {
+    return readConflict(this.openRoot(), path)
+  }
+
+  resolveConflict(path: string, choices: ConflictChoice[]): Promise<void> {
+    return this.change((root) => resolveConflict(root, path, choices))
+  }
+
+  resolveFile(path: string, side: 'mine' | 'theirs'): Promise<void> {
+    return this.change((root) => resolveFile(root, path, side))
   }
 
   identity(): Promise<GitIdentity> {
@@ -81,6 +109,15 @@ export class GitTracker {
 
   setIdentity(value: GitIdentity): Promise<void> {
     return setIdentity(this.openRoot(), value)
+  }
+
+  // Something that changes the repository: the status is looked at again afterwards, either way.
+  private async change<T>(action: (root: string) => Promise<T>): Promise<T> {
+    try {
+      return await action(this.openRoot())
+    } finally {
+      this.touch()
+    }
   }
 
   private openRoot(): string {

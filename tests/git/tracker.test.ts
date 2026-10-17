@@ -29,7 +29,7 @@ describe('GitTracker', () => {
   it('reports the status soon after opening, and again only when it changes', async () => {
     tracker.open(root)
     await vi.waitFor(() => expect(reported).toHaveLength(1), { timeout: 5000 })
-    expect(reported[0]).toEqual({ repo: true, branch: 'main', changes: [] })
+    expect(reported[0]).toEqual({ repo: true, branch: 'main', changes: [], merging: false })
 
     tracker.touch()
     tracker.touch()
@@ -69,6 +69,6 @@ describe('GitTracker', () => {
     const plain = await tempDir('plain')
     tracker.open(plain)
     await vi.waitFor(() => expect(reported).toHaveLength(1), { timeout: 5000 })
-    expect(reported[0]).toEqual({ repo: false, branch: null, changes: [] })
+    expect(reported[0]).toEqual({ repo: false, branch: null, changes: [], merging: false })
   })
 })

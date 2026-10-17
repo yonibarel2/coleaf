@@ -1,12 +1,16 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import {
   channels,
+  type AccountState,
+  type ConflictChoice,
+  type ConflictPart,
   type DocumentFormat,
   type DocumentText,
   type GitIdentity,
   type GitStatus,
   type ProjectInfo,
   type SaveChoice,
+  type SyncOutcome,
   type TreeEntry
 } from './contract'
 
@@ -62,7 +66,33 @@ const api = {
     identity: (): Promise<GitIdentity> => ipcRenderer.invoke(channels.gitIdentity),
     /** Saves the name and email in the user's Git configuration, for every repository. */
     setIdentity: (identity: GitIdentity): Promise<void> =>
-      ipcRenderer.invoke(channels.gitSetIdentity, identity)
+      ipcRenderer.invoke(channels.gitSetIdentity, identity),
+    /** Sync: a version with these files (none: get the latest only), others' changes in, ours out. */
+    sync: (paths: string[], message: string): Promise<SyncOutcome> =>
+      ipcRenderer.invoke(channels.gitSync, paths, message),
+    /** After every conflict has its choice: saves the merged version and shares it. */
+    finishSync: (): Promise<SyncOutcome> => ipcRenderer.invoke(channels.gitSyncFinish),
+    /** Drops a Sync stopped on conflicts; the files go back to our version. */
+    cancelSync: (): Promise<void> => ipcRenderer.invoke(channels.gitSyncCancel),
+    /** The parts of a conflicted file: shared text and, per conflict, mine and theirs. */
+    readConflict: (path: string): Promise<ConflictPart[]> =>
+      ipcRenderer.invoke(channels.gitConflictRead, path),
+    /** Writes one choice per conflict into the file and settles it. */
+    resolveConflict: (path: string, choices: ConflictChoice[]): Promise<void> =>
+      ipcRenderer.invoke(channels.gitConflictResolve, path, choices),
+    /** Settles a conflicted file as a whole with one side's version. */
+    resolveFile: (path: string, side: 'mine' | 'theirs'): Promise<void> =>
+      ipcRenderer.invoke(channels.gitConflictFile, path, side)
+  },
+  account: {
+    /** Signed in, signing in, or signed out. */
+    getCurrent: (): Promise<AccountState> => ipcRenderer.invoke(channels.accountCurrent),
+    onChanged: (callback: (state: AccountState) => void): (() => void) =>
+      subscribe(channels.accountChanged, callback),
+    /** Starts the GitHub sign-in; the code to enter arrives through `onChanged`. */
+    signIn: (): Promise<void> => ipcRenderer.invoke(channels.accountSignIn),
+    cancelSignIn: (): Promise<void> => ipcRenderer.invoke(channels.accountCancelSignIn),
+    signOut: (): Promise<void> => ipcRenderer.invoke(channels.accountSignOut)
   },
   app: {
     /** How many open documents have unsaved changes. */

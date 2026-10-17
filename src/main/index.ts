@@ -4,6 +4,7 @@ import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { imagePathOf, imageScheme, readImage } from './files/images'
 import { ProjectSession } from './files/session'
 import { guardClose, registerAppIpc } from './ipc/app'
+import { createAccountService, registerAuthIpc } from './ipc/auth'
 import { registerFileIpc } from './ipc/file'
 import { registerGitIpc } from './ipc/git'
 import { registerImageIpc } from './ipc/images'
@@ -79,10 +80,13 @@ app.whenReady().then(() => {
   app.on('browser-window-created', (_, window) => optimizer.watchWindowShortcuts(window))
 
   const session = new ProjectSession()
+  const account = createAccountService()
+  void account.load()
   registerProjectIpc(session)
   registerFileIpc(session)
   registerImageIpc(session)
-  registerGitIpc(session)
+  registerGitIpc(session, () => account.token())
+  registerAuthIpc(account)
   registerAppIpc()
   applyMenu(session)
   session.onChange(() => applyMenu(session))

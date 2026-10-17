@@ -23,7 +23,12 @@ describe('status', () => {
   })
 
   it('reports a folder outside any repository as not a repo', async () => {
-    await expect(status(root)).resolves.toEqual({ repo: false, branch: null, changes: [] })
+    await expect(status(root)).resolves.toEqual({
+      repo: false,
+      branch: null,
+      changes: [],
+      merging: false
+    })
   })
 
   it('sees the branch and new files before the first commit', async () => {
@@ -32,7 +37,8 @@ describe('status', () => {
     await expect(status(root)).resolves.toEqual({
       repo: true,
       branch: 'main',
-      changes: [{ path: 'README.md', kind: 'new' }]
+      changes: [{ path: 'README.md', kind: 'new' }],
+      merging: false
     })
   })
 
@@ -85,7 +91,8 @@ describe('status', () => {
       changes: [
         { path: 'notes.md', kind: 'new' },
         { path: 'plan.md', kind: 'modified' }
-      ]
+      ],
+      merging: false
     })
   })
 })

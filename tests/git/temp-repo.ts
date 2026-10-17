@@ -1,6 +1,6 @@
 // Temporary repositories for the Git tests. The user's own Git configuration is never read or
 // written: every test file calls `isolateGitConfig` first, which points Git at a scratch file.
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { git } from '../../src/main/git/run'
@@ -23,8 +23,34 @@ export async function isolateGitConfig(): Promise<void> {
 /** A new repository on branch `main` with a local identity, so commits work right away. */
 export async function initRepo(dir: string): Promise<void> {
   await git(dir, ['init', '--quiet', '--initial-branch=main'])
+  await setTestIdentity(dir)
+}
+
+/** A bare repository standing in for GitHub, at a folder that does not exist yet. */
+export async function bareRepo(dir: string): Promise<void> {
+  await git(dirname(dir), ['init', '--quiet', '--bare', '--initial-branch=main', dir])
+}
+
+/** A clone of `from` at `to` (a folder that does not exist yet), with a local identity. */
+export async function clone(from: string, to: string): Promise<void> {
+  await git(dirname(to), ['clone', '--quiet', from, to])
+  await setTestIdentity(to)
+}
+
+async function setTestIdentity(dir: string): Promise<void> {
   await git(dir, ['config', 'user.name', 'Test User'])
   await git(dir, ['config', 'user.email', 'test@example.com'])
+}
+
+/** What a teammate does in their own clone: commits everything and pushes. */
+export async function pushAll(dir: string, message: string): Promise<void> {
+  await commitAll(dir, message)
+  await git(dir, ['push', '--quiet', 'origin', 'main'])
+}
+
+/** The text of a file, with `\n` line endings. */
+export async function read(dir: string, path: string): Promise<string> {
+  return (await readFile(join(dir, ...path.split('/')), 'utf8')).replaceAll('\r\n', '\n')
 }
 
 /** Writes a file (folders created as needed), path `/`-separated under the repository. */

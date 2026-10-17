@@ -2,7 +2,7 @@ import { relative, resolve } from 'node:path'
 import type { ChangedFile, ChangeKind, GitIdentity, GitStatus } from '../../preload/contract'
 import { git } from './run'
 
-const notARepo: GitStatus = { repo: false, branch: null, changes: [] }
+const notARepo: GitStatus = { repo: false, branch: null, changes: [], merging: false }
 
 // Windows and macOS file systems ignore letter case; Linux does not.
 const ignoresCase = process.platform === 'win32' || process.platform === 'darwin'
@@ -34,8 +34,15 @@ export async function status(root: string): Promise<GitStatus> {
         path: stripPrefix(change.path, prefix),
         ...(change.from ? { from: stripPrefix(change.from, prefix) } : {})
       }))
-      .sort((a, b) => a.path.localeCompare(b.path, undefined, { sensitivity: 'base' }))
+      .sort((a, b) => a.path.localeCompare(b.path, undefined, { sensitivity: 'base' })),
+    merging: await isMerging(root)
   }
+}
+
+/** Whether a merge (a Sync that hit conflicts) is in progress. */
+export async function isMerging(root: string): Promise<boolean> {
+  const head = await git(root, ['rev-parse', '--verify', '--quiet', 'MERGE_HEAD'], { ok: [1] })
+  return head.trim() !== ''
 }
 
 /** The root folder of the repository the folder is in, or `null` outside any repository. */

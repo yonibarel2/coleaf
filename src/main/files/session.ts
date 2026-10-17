@@ -1,7 +1,8 @@
 import { basename, join } from 'node:path'
-import { BrowserWindow, dialog, type BaseWindow } from 'electron'
+import { dialog, type BaseWindow } from 'electron'
 import { channels, type ProjectInfo, type TreeEntry } from '../../preload/contract'
 import { GitTracker } from '../git/tracker'
+import { broadcast } from '../ipc/windows'
 import { ProjectIgnore } from './ignore'
 import { MarkdownIndex } from './markdown-index'
 import { kindOf, listDirectory } from './project'
@@ -18,7 +19,7 @@ export class ProjectSession {
   private readonly listed = new Set<string>()
   private readonly watcher = new ProjectWatcher((dir, paths) => void this.handleChanges(dir, paths))
   /** The project's Git status, refreshed after every change on disk. */
-  readonly git = new GitTracker((status) => this.send(channels.gitChanged, status))
+  readonly git = new GitTracker((status) => broadcast(channels.gitChanged, status))
 
   get current(): ProjectInfo | null {
     return this.project
@@ -99,24 +100,18 @@ export class ProjectSession {
     if (this.index !== index) return
     // The folder itself changed; its ancestors may have changed their Markdown status.
     for (let current = dir; ; current = current.slice(0, current.lastIndexOf('/'))) {
-      if (this.listed.has(current)) this.send(channels.projectDirChanged, current)
+      if (this.listed.has(current)) broadcast(channels.projectDirChanged, current)
       if (current === '') break
       if (!current.includes('/')) current = '/' // one more round for the root
     }
   }
 
   private notifyListed(): void {
-    for (const path of this.listed) this.send(channels.projectDirChanged, path)
+    for (const path of this.listed) broadcast(channels.projectDirChanged, path)
   }
 
   private emitChange(): void {
     for (const listener of this.listeners) listener(this.project)
-    this.send(channels.projectChanged, this.project)
-  }
-
-  private send(channel: string, payload: unknown): void {
-    for (const window of BrowserWindow.getAllWindows()) {
-      if (!window.isDestroyed()) window.webContents.send(channel, payload)
-    }
+    broadcast(channels.projectChanged, this.project)
   }
 }

@@ -23,7 +23,18 @@ export const channels = {
   gitChanged: 'git:changed',
   gitCommit: 'git:commit',
   gitIdentity: 'git:identity',
-  gitSetIdentity: 'git:set-identity'
+  gitSetIdentity: 'git:set-identity',
+  gitSync: 'git:sync',
+  gitSyncFinish: 'git:sync-finish',
+  gitSyncCancel: 'git:sync-cancel',
+  gitConflictRead: 'git:conflict-read',
+  gitConflictResolve: 'git:conflict-resolve',
+  gitConflictFile: 'git:conflict-file',
+  accountCurrent: 'account:current',
+  accountChanged: 'account:changed',
+  accountSignIn: 'account:sign-in',
+  accountCancelSignIn: 'account:cancel-sign-in',
+  accountSignOut: 'account:sign-out'
 } as const
 
 /** The answer to "Save changes?" */
@@ -84,10 +95,55 @@ export interface GitStatus {
   /** The current branch, as Git names it; `null` without a repository. */
   branch: string | null
   changes: ChangedFile[]
+  /** A Sync stopped on conflicts and waits for the user's choices. */
+  merging: boolean
 }
 
 /** The name and email Git puts on each version. */
 export interface GitIdentity {
   name: string
   email: string
+}
+
+/** How a Sync ended. The version is saved on this computer in every case but `error`. */
+export type SyncKind =
+  | 'synced'
+  | 'saved' // no online copy (no remote)
+  | 'sign-in' // a GitHub remote needs the user signed in
+  | 'ssh' // the remote is reached over SSH, which CoLeaf does not do yet
+  | 'denied' // GitHub refused: no write access, or the app is not installed on the repository
+  | 'offline'
+  | 'conflicts'
+  | 'error'
+
+export interface SyncOutcome {
+  kind: SyncKind
+  /** Others' changes were brought in: files on disk changed, so open documents reload. */
+  pulled: boolean
+  /** `synced`: whether there was anything of ours to send. */
+  pushed?: boolean
+  /** `conflicts`: the files that need a choice. */
+  files?: string[]
+  /** `error`, `offline`, `denied`: what went wrong, in Git's or CoLeaf's words. */
+  message?: string
+}
+
+/** A piece of a conflicted file: text both sides agree on, or the two versions of a part. */
+export type ConflictPart =
+  { kind: 'same'; text: string } | { kind: 'conflict'; mine: string; theirs: string }
+
+/** What to keep for one conflicted part. */
+export type ConflictChoice = 'mine' | 'theirs' | 'both'
+
+/** The signed-in GitHub user. */
+export interface Account {
+  login: string
+  avatarUrl: string
+}
+
+/** Signed in, signing in (the code to enter on GitHub), or signed out, with the last error. */
+export interface AccountState {
+  account: Account | null
+  signIn: { userCode: string; verificationUri: string } | null
+  error: string | null
 }
