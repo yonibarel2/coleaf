@@ -131,10 +131,7 @@ export function SyncView({
 
   return (
     <aside className="sidebar">
-      <div className="sidebar__header">
-        Sync
-        {status?.branch && <span className="sidebar__branch">{status.branch}</span>}
-      </div>
+      <div className="sidebar__header">Sync</div>
       {status === null ? null : !status.repo ? (
         <p className="sync__note">
           This folder is not a Git repository, so there is nothing to sync yet.

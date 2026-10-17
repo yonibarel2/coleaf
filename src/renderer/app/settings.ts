@@ -19,3 +19,20 @@ export function writeFlag(name: string, value: boolean): void {
     // Storage may be unavailable; the flag then lasts for this window only.
   }
 }
+
+export function readNumber(name: string, fallback: number): number {
+  try {
+    const value = Number(localStorage.getItem(prefix + name))
+    return Number.isFinite(value) && value > 0 ? value : fallback
+  } catch {
+    return fallback
+  }
+}
+
+export function writeNumber(name: string, value: number): void {
+  try {
+    localStorage.setItem(prefix + name, String(value))
+  } catch {
+    // Storage may be unavailable; the value then lasts for this window only.
+  }
+}

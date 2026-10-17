@@ -5,21 +5,16 @@ import './sidebar.css'
 
 interface ExplorerProps {
   project: ProjectInfo | null
-  /** The Git branch, shown in grey next to the title; null without a repository. */
-  branch: string | null
   /** The file shown in the active tab, highlighted in the tree. */
   activePath: string | null
   onOpenFile: (path: string) => void
 }
 
 /** The Explorer sidebar: the Project tree, later also History. */
-export function Explorer({ project, branch, activePath, onOpenFile }: ExplorerProps): JSX.Element {
+export function Explorer({ project, activePath, onOpenFile }: ExplorerProps): JSX.Element {
   return (
     <aside className="sidebar">
-      <div className="sidebar__header">
-        Explorer
-        {branch && <span className="sidebar__branch">{branch}</span>}
-      </div>
+      <div className="sidebar__header">Explorer</div>
       {project ? (
         <ProjectSection key={project.root} activePath={activePath} onOpenFile={onOpenFile} />
       ) : (

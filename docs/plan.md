@@ -16,6 +16,8 @@ How it is built (software, structure, decisions): [architecture.md](architecture
 
 **For:** All the power of a repo. None of the nerd. For you, or your whole team. (Architects, senior engineers, PMs, designers, writers, legal, researchers.)
 
+**UI principle:** simplicity. One clear way to do each thing, not a million ways to do the same thing.
+
 **Competition (Oct 2026):** OpenKnowledge (free, GPL desktop editor + Git + AI) is the closest; also Mintlify editor (web, docs sites), Nimbalyst (developers), Graft (Git-stored comments, experimental), GitBook. **Our edge:** truly for non-developers (Word-like ribbon), Word-style comments with permissions and review, readable diffs on the formatted page (not raw text), friendly Sync and conflicts, Word/PDF export.
 
 ## Stage 1 – Core editor + basic Git
@@ -48,11 +50,12 @@ Always visible, with or without a project open.
 | Part | No project open | Project open |
 | --- | --- | --- |
 | Menu bar | File, Help | File, Help |
-| Left sidebar | "No project open" with Open project and Clone from GitHub buttons | One view at a time, picked from the left icon bar, like VS Code. **Explorer view:** header "Explorer" + grey branch name; sections Project (folder structure) and History (commits of the focused file, this branch only). **Sync view:** see Sync view below. Clicking the active icon hides the sidebar |
+| Left sidebar | "No project open" with Open project and Clone from GitHub buttons | One view at a time, picked from the left icon bar, like VS Code. **Explorer view:** header "Explorer"; sections Project (folder structure) and History (commits of the focused file, this branch only). **Sync view:** see Sync view below. Clicking the active icon hides the sidebar; dragging its right edge changes its width |
 | Tab bar | Welcome tab (the opening screen) | One tab per open `.md` file |
 | Account (bottom-left, above the gear) | Signed out: "Sign in with GitHub". Signed in: your GitHub picture; click for Sign out | Same |
 | Settings (gear, bottom-left) | Light theme (dark comes in Stage 4) | Same |
 | Window controls (top-right) | Minimize, maximize, close | Same; closing with unsaved changes asks "Save?", like Word |
+| Bottom bar | Empty | A slim bar along the bottom, as in VS Code or Word: the branch name (decided Oct 17, 2026; it was in the Explorer header) |
 | App icon | Simple placeholder (window, taskbar, installer); final logo in Release 1 | Same |
 | Left icon bar | Explorer icon at the top; account and gear at the bottom | Explorer and Sync icons at the top, each opening its own sidebar view; Sync shows a badge with the number of changed files. Account and gear at the bottom |
 | Search (top bar, center) | Hidden | Search box across all .md files in the project. Inside a document: Find / Replace (Ctrl+F) in the ribbon |
@@ -163,6 +166,7 @@ Ship Stage 1 to testers and the public as a signed app that updates itself.
 4. **Minified build:** the window's code ships minified (the build currently leaves it unminified, about 2.3 MB).
 5. **New name and logo (must):** "CoLeaf" is too close to Overleaf, so the product gets a new name and logo before any public release.
 6. **Bundled Git outside the archive:** the installer must unpack `node_modules/dugite/git/**` from asar (`asarUnpack` in electron-builder); dugite looks for its Git there and cannot run it from inside the archive.
+7. **No developer menu items:** Reload, Force Reload and Toggle Developer Tools show in dev builds only.
 
 ### Work plan
 
@@ -232,6 +236,7 @@ A full-window, Word-like workspace with modern styling, working side by side wit
 5. **Custom title bar:** one row with the app icon, the menus, the search box and the window controls, as in the mockups, replacing the system title bar plus a separate menu row.
 6. **Scrollbars:** thin overlay scrollbars on the sidebar and the page (the mockups draw none).
 7. **Authoring format:** a policy for what CoLeaf lets people add, so files stay easy for both humans and AI to read: GFM first; diagrams only as Mermaid text with `accTitle`/`accDescr`; images with alt text and no base64; a small HTML allowlist (`details`, `sub`/`sup`, `kbd`, `br`); optional front matter (title, owner, status, one-line summary); scripts, iframes, styles, forms, colors and merged cells never created. Existing HTML is kept as-is. Written as `docs/authoring-policy.md` plus an AGENTS.md rule.
+8. **Bottom bar:** branch and word count on the left, a zoom slider on the right. Zoom also works the standard ways: Ctrl+= / Ctrl+- / Ctrl+0 and Ctrl + mouse wheel, as in Word. The branch then leaves the sidebar headers, so it shows in one place only.
 
 ### Design
 

@@ -1,12 +1,56 @@
 /* The window frame: icon bar | sidebar | workspace. Every value comes from tokens.css. */
 .frame {
+  position: relative;
   display: grid;
   grid-template-columns: var(--icon-bar-width) var(--sidebar-width) 1fr;
+  grid-template-rows: 1fr var(--status-bar-height);
   height: 100%;
 }
 
 .frame--no-sidebar {
   grid-template-columns: var(--icon-bar-width) 1fr;
+}
+
+/* The bar along the bottom (StatusBar.tsx), under every column. */
+.status-bar {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 0 var(--space-3);
+  border-top: 1px solid var(--color-line);
+  background: var(--color-ground);
+  font-size: var(--text-label);
+  color: var(--color-muted);
+  user-select: none;
+}
+
+.status-bar__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.status-bar__item svg {
+  width: var(--text-label);
+  height: var(--text-label);
+}
+
+/* Drag the sidebar's right edge (SidebarResizer.tsx) to change its width. */
+.frame__resizer {
+  position: absolute;
+  top: 0;
+  bottom: var(--status-bar-height);
+  left: calc(var(--icon-bar-width) + var(--sidebar-width) - var(--resizer-width) / 2);
+  z-index: 5;
+  width: var(--resizer-width);
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.frame__resizer:hover,
+.frame__resizer:active {
+  background: var(--color-accent-tint);
 }
 
 .icon-bar {
@@ -28,6 +72,7 @@
   place-items: center;
   width: var(--icon-button-size);
   height: var(--icon-button-size);
+  padding: 0; /* the browser's button padding would push a wide picture off-center */
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
@@ -79,6 +124,7 @@
 
 /* The GitHub picture fills the button but for a small margin all round. */
 .account__picture {
+  display: block; /* no inline baseline gap: the circle sits in the middle of the button */
   width: calc(var(--icon-button-size) - 2 * var(--space-1));
   height: calc(var(--icon-button-size) - 2 * var(--space-1));
   border-radius: 50%;

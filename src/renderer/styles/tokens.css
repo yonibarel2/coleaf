@@ -75,7 +75,11 @@
 
   /* Layout */
   --icon-bar-width: 48px;
-  --sidebar-width: 260px;
+  --sidebar-width: 260px; /* the default; dragging its edge sets the user's own */
+  --sidebar-width-min: 180px;
+  --sidebar-width-max: 600px;
+  --resizer-width: 6px; /* the strip to drag at the sidebar's edge */
+  --status-bar-height: 24px;
   --control-height: 32px;
   --control-height-small: 28px;
   --icon-button-size: 36px;

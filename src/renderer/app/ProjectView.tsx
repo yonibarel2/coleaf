@@ -114,7 +114,6 @@ export function ProjectView({ project, view, status }: ProjectViewProps): JSX.El
       {view === 'explorer' && (
         <Explorer
           project={project}
-          branch={status?.branch ?? null}
           activePath={active?.path ?? null}
           onOpenFile={(path) => {
             setConflictShown(false)
