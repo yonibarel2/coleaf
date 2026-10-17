@@ -141,3 +141,12 @@ button {
 .how-sync p {
   margin: 0 0 var(--space-3);
 }
+
+/* The icon-bar buttons the text points at, drawn inline. */
+.how-sync__icon {
+  width: var(--icon-size);
+  height: var(--icon-size);
+  margin: 0 var(--space-1);
+  vertical-align: text-bottom;
+  color: var(--color-muted);
+}

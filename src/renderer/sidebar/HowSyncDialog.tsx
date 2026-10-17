@@ -1,3 +1,4 @@
+import { RefreshCw, User } from 'lucide-react'
 import type { JSX } from 'react'
 
 interface HowSyncDialogProps {
@@ -23,7 +24,8 @@ export function HowSyncDialog({ onClose }: HowSyncDialogProps): JSX.Element {
         <div className="dialog__body how-sync">
           <p>
             Your project lives in two places: on this computer, and in an online copy on GitHub that
-            your whole team shares. Sync keeps the two the same.
+            your whole team shares. Sync (<RefreshCw className="how-sync__icon" /> in the bar on the
+            left) keeps the two the same.
           </p>
           <p>
             <strong>A version.</strong> Each Sync first saves a version of the ticked files, with
@@ -40,9 +42,9 @@ export function HowSyncDialog({ onClose }: HowSyncDialogProps): JSX.Element {
             press Done, then Finish sync. Nothing is sent until you have chosen.
           </p>
           <p>
-            <strong>Signing in.</strong> Sharing on GitHub needs your GitHub account: the button at
-            the bottom left signs you in with a short code. Your version is always saved on this
-            computer first, signed in or not.
+            <strong>Signing in.</strong> Sharing on GitHub needs your GitHub account: the{' '}
+            <User className="how-sync__icon" /> button at the bottom left signs you in with a short
+            code. Your version is always saved on this computer first, signed in or not.
           </p>
         </div>
         <div className="dialog__actions">
