@@ -327,7 +327,7 @@ function Button(props: ButtonProps): JSX.Element {
     <button
       type="button"
       className={classes.join(' ')}
-      title={keys ? `${label} (${keysLabel(keys)})` : label}
+      data-tip={keys ? `${label} (${keysLabel(keys)})` : label}
       aria-label={label}
       aria-pressed={active}
       disabled={disabled}
@@ -395,7 +395,7 @@ function StylesMenu({ editor, heading, disabled }: StylesMenuProps): JSX.Element
       <button
         type="button"
         className="ribbon__button ribbon__button--tall"
-        title="All styles"
+        data-tip="All styles"
         aria-label="All styles"
         aria-haspopup="menu"
         aria-expanded={open}

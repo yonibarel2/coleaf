@@ -6,6 +6,7 @@ import { readNumber, writeNumber } from './settings'
 import { ShortcutsDialog } from './ShortcutsDialog'
 import { SidebarResizer } from './SidebarResizer'
 import { StatusBar } from './StatusBar'
+import { Tooltip } from './Tooltip'
 import { useAccount } from './useAccount'
 import { useGitStatus } from './useGit'
 import { useProject } from './useProject'
@@ -18,6 +19,7 @@ export function App(): JSX.Element {
   const [view, setView] = useState<SidebarView | null>('explorer')
   // 0 means the width from tokens.css; the user's own width is kept between sessions.
   const [sidebarWidth, setSidebarWidth] = useState(() => readNumber('sidebarWidth', 0))
+  const [words, setWords] = useState<number | null>(null)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
 
   // Help › Keyboard Shortcuts, with or without a project open.
@@ -39,7 +41,13 @@ export function App(): JSX.Element {
           onSelect={(next) => setView((current) => (current === next ? null : next))}
         />
         {project ? (
-          <ProjectView key={project.root} project={project} view={shown} status={status} />
+          <ProjectView
+            key={project.root}
+            project={project}
+            view={shown}
+            status={status}
+            onWords={setWords}
+          />
         ) : (
           <>
             {shown && <Explorer project={null} activePath={null} onOpenFile={() => {}} />}
@@ -52,9 +60,10 @@ export function App(): JSX.Element {
             onDone={(width) => writeNumber('sidebarWidth', width)}
           />
         )}
-        <StatusBar project={project} status={status} />
+        <StatusBar project={project} status={status} words={project ? words : null} />
       </div>
       {shortcutsOpen && <ShortcutsDialog onClose={() => setShortcutsOpen(false)} />}
+      <Tooltip />
     </>
   )
 }

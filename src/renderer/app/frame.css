@@ -36,6 +36,13 @@
   height: var(--text-label);
 }
 
+/* A count in a small rounded pill, as Word shows it. */
+.status-bar__pill {
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-control);
+  background: var(--color-ground-hover);
+}
+
 /* Drag the sidebar's right edge (SidebarResizer.tsx) to change its width. */
 .frame__resizer {
   position: absolute;
@@ -48,8 +55,18 @@
   touch-action: none;
 }
 
-.frame__resizer:hover,
-.frame__resizer:active {
+/* While hovered or dragged, a thin line down the middle of the strip. */
+.frame__resizer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--resizer-width) / 4);
+  width: calc(var(--resizer-width) / 2);
+}
+
+.frame__resizer:hover::after,
+.frame__resizer:active::after {
   background: var(--color-accent-tint);
 }
 

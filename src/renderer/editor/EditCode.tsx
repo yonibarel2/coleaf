@@ -15,7 +15,8 @@ export function EditCodeButton({ onClick }: EditCodeButtonProps): JSX.Element {
       type="button"
       className="code-block__edit"
       contentEditable={false}
-      title="Edit code"
+      data-tip="Edit code"
+      aria-label="Edit code"
       onMouseDown={(event) => event.preventDefault()}
       onClick={onClick}
     >
@@ -40,7 +41,8 @@ export function CodeEditor({ value, label, onChange, onDone }: CodeEditorProps):
       <button
         type="button"
         className="code-block__edit"
-        title="Done"
+        data-tip="Done"
+        aria-label="Done"
         onMouseDown={(event) => event.preventDefault()}
         onClick={onDone}
       >

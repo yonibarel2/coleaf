@@ -32,7 +32,8 @@ export function Account({ state }: AccountProps): JSX.Element {
       <button
         type="button"
         className={`icon-button${shown ? ' icon-button--active' : ''}`}
-        title={account ? `Signed in to GitHub as ${account.login}` : 'Sign in with GitHub'}
+        data-tip={account ? `Signed in to GitHub as ${account.login}` : 'Sign in with GitHub'}
+        aria-label={account ? `Signed in to GitHub as ${account.login}` : 'Sign in with GitHub'}
         aria-haspopup="dialog"
         aria-expanded={shown}
         onClick={() => setOpen((value) => !value)}

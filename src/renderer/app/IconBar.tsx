@@ -41,7 +41,13 @@ export function IconBar({
       )}
       <div className="icon-bar__spacer" />
       <Account state={account} />
-      <button type="button" className="icon-button" title="Settings (coming soon)" disabled>
+      <button
+        type="button"
+        className="icon-button"
+        data-tip="Settings (coming soon)"
+        aria-label="Settings (coming soon)"
+        disabled
+      >
         <Settings />
       </button>
     </nav>
@@ -63,7 +69,8 @@ function ViewButton({ name, title, view, onSelect, children }: ViewButtonProps):
     <button
       type="button"
       className={`icon-button${active ? ' icon-button--active' : ''}`}
-      title={title}
+      data-tip={title}
+      aria-label={title}
       aria-pressed={active}
       onClick={() => onSelect(name)}
     >

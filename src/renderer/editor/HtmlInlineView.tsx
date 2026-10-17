@@ -40,7 +40,7 @@ export function HtmlInlineView(props: ReactNodeViewProps<HtmlInlineOptions>): JS
       <NodeViewWrapper
         as="span"
         className={`html-inline html-inline--chip${kind === 'comment' ? ' html-inline--comment' : ''}`}
-        title={html}
+        data-tip={html}
       >
         {html}
       </NodeViewWrapper>
@@ -51,7 +51,7 @@ export function HtmlInlineView(props: ReactNodeViewProps<HtmlInlineOptions>): JS
     <NodeViewWrapper
       as="span"
       className="html-inline"
-      title={html}
+      data-tip={html}
       dangerouslySetInnerHTML={{ __html: rendered }}
     />
   )

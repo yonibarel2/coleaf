@@ -56,7 +56,7 @@ export function FindPanel({ editor, replaceFocus, onClose }: FindPanelProps): JS
       <button
         type="button"
         className="button"
-        title="Previous (Shift+Enter)"
+        data-tip="Previous (Shift+Enter)"
         aria-label="Previous match"
         disabled={none}
         onClick={() => searchCommands.previous(editor)}
@@ -66,7 +66,7 @@ export function FindPanel({ editor, replaceFocus, onClose }: FindPanelProps): JS
       <button
         type="button"
         className="button"
-        title="Next (Enter)"
+        data-tip="Next (Enter)"
         aria-label="Next match"
         disabled={none}
         onClick={() => searchCommands.next(editor)}
@@ -101,7 +101,7 @@ export function FindPanel({ editor, replaceFocus, onClose }: FindPanelProps): JS
         type="button"
         className="button"
         aria-label="Close"
-        title="Close (Esc)"
+        data-tip="Close (Esc)"
         onClick={close}
       >
         <X />

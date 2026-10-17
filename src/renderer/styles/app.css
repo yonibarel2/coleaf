@@ -51,6 +51,27 @@ button {
   filter: brightness(0.94);
 }
 
+/* The tooltip (Tooltip.tsx): a small ink bubble under (or above) the element with a data-tip. */
+.tooltip {
+  position: fixed;
+  z-index: 20;
+  max-width: calc(var(--sidebar-width) + var(--space-8));
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-small);
+  background: var(--color-ink);
+  color: var(--color-sheet);
+  font-size: var(--text-label);
+  line-height: var(--line-height-ui);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.tooltip--above {
+  transform: translate(-50%, -100%);
+}
+
 /* A button that reads as a link, inside a sentence ("Learn more", "Keep mine"). */
 .link-button {
   padding: 0;

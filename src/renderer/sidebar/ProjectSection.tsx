@@ -97,7 +97,7 @@ function TreeRow({ entry, depth, context }: TreeRowProps): JSX.Element {
       <li
         className={classes.join(' ')}
         style={{ '--depth': depth } as CSSProperties}
-        title={entry.path}
+        data-tip={entry.path}
         onClick={onClick}
       >
         <span className="tree__chevron">{isDir && <Chevron open={expanded} />}</span>

@@ -158,7 +158,7 @@ export function SyncView({
                       onSettle={(side) => void settleFile(row.path, side)}
                     />
                   ) : (
-                    <label className="sync__tick" title={row.path}>
+                    <label className="sync__tick" data-tip={row.path}>
                       <input
                         type="checkbox"
                         checked={!unticked.has(row.path)}
@@ -273,13 +273,19 @@ interface ConflictRowProps {
 function ConflictRow({ path, onOpen, onSettle }: ConflictRowProps): JSX.Element {
   if (isMarkdownPath(path)) {
     return (
-      <button type="button" className="sync__conflict" title={`Choose: ${path}`} onClick={onOpen}>
+      <button
+        type="button"
+        className="sync__conflict"
+        data-tip={`Choose: ${path}`}
+        aria-label={`Choose: ${path}`}
+        onClick={onOpen}
+      >
         <span className="sync__path">{path}</span>
       </button>
     )
   }
   return (
-    <span className="sync__conflict" title={path}>
+    <span className="sync__conflict" data-tip={path}>
       <span className="sync__path">{path}</span>
       <span className="sync__sides">
         <button type="button" className="link-button" onClick={() => onSettle('mine')}>

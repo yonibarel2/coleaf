@@ -13,11 +13,14 @@ import { useTabs } from '../tabs/useTabs'
 import type { SidebarView } from './IconBar'
 import { readFlag, writeFlag } from './settings'
 import { messageOf } from './useGit'
+import { countWords } from './words'
 
 interface ProjectViewProps {
   project: ProjectInfo
   view: SidebarView | null
   status: GitStatus | null
+  /** The active document's word count, for the bottom bar; null without a document. */
+  onWords: (count: number | null) => void
 }
 
 /** A conflicted file open as Mine / Theirs pages; its tab sits after the documents. */
@@ -29,7 +32,7 @@ interface Conflict {
 const conflictKey = (path: string): string => `conflict:${path}`
 
 /** Everything that belongs to one open project: the sidebar and the tabs. Keyed on the root. */
-export function ProjectView({ project, view, status }: ProjectViewProps): JSX.Element {
+export function ProjectView({ project, view, status, onWords }: ProjectViewProps): JSX.Element {
   // The panels belong to the document they were opened on: shown only while it is the active tab.
   const [linkDraft, setLinkDraft] = useState<{ path: string; draft: LinkDraft } | null>(null)
   const [find, setFind] = useState<{ path: string; replace: boolean } | null>(null)
@@ -108,6 +111,24 @@ export function ProjectView({ project, view, status }: ProjectViewProps): JSX.El
   // File › Save (Ctrl+S) and File › New File arrive from the menu, wherever the focus is.
   useEffect(() => window.coleaf.app.onSave(() => void saveActive()), [saveActive])
   useEffect(() => window.coleaf.app.onOpenFile((path) => void open(path)), [open])
+
+  // The word count follows the active document as it is typed in.
+  useEffect(() => {
+    if (!active) {
+      onWords(null)
+      return
+    }
+    const { editor } = active
+    const report = (): void => {
+      const { doc } = editor.state
+      onWords(countWords(doc.textBetween(0, doc.content.size, ' ', ' ')))
+    }
+    report()
+    editor.on('update', report)
+    return () => {
+      editor.off('update', report)
+    }
+  }, [active, onWords])
 
   return (
     <>

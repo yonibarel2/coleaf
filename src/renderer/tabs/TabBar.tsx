@@ -31,14 +31,14 @@ export function TabBar({ items, activeKey, onActivate, onClose }: TabBarProps): 
             role="tab"
             aria-selected={active}
             className={`tab${active ? ' tab--active' : ''}${tab.conflict ? ' tab--conflict' : ''}`}
-            title={tab.title}
+            data-tip={tab.title}
             onClick={() => onActivate(tab.key)}
           >
             <span className="tab__name">{tab.name}</span>
             <button
               type="button"
               className={`tab__close${tab.dirty ? ' tab__close--dirty' : ''}`}
-              title={tab.dirty ? 'Unsaved changes. Close' : 'Close'}
+              data-tip={tab.dirty ? 'Unsaved changes. Close' : 'Close'}
               aria-label={`Close ${tab.name}`}
               onClick={(event) => {
                 event.stopPropagation()

@@ -48,7 +48,7 @@ export function CodeBlockView(props: ReactNodeViewProps): JSX.Element {
           contentEditable={false}
           value={language}
           disabled={!editor.isEditable}
-          title="Sets the code colors"
+          data-tip="Sets the code colors"
           aria-label="Language"
           onMouseDown={(event) => event.stopPropagation()}
           onChange={(event) => updateAttributes({ language: event.target.value || null })}
@@ -65,7 +65,8 @@ export function CodeBlockView(props: ReactNodeViewProps): JSX.Element {
           type="button"
           className="code-block__edit"
           contentEditable={false}
-          title="Edit code"
+          data-tip="Edit code"
+          aria-label="Edit code"
           onMouseDown={(event) => event.preventDefault()}
           onClick={editCode}
         >
