@@ -1,35 +1,8 @@
-# CoLeaf – The human layer for your repo
+# CoLeaf – Plan
 
 Oct 15, 2026 · @Yehonatan
 
-## Project description
-
-CoLeaf is a desktop text editor for the `.md` files in your repo, nothing more. One repo holds both code and docs: use your code editor (e.g. VS Code) for code, and open the same repo folder in CoLeaf when you work on Markdown.
-
-- **Same folder:** both apps read and write the same files on disk.
-- **Git built in:** CoLeaf pulls, commits and pushes, so changes sync with GitHub like any other tool.
-- **AI context from the repo:** agent instructions and context files live in the repo, so any AI agent in CoLeaf sees the same context as the agents in your code editor.
-
-How it is built (software, structure, decisions): [architecture.md](architecture.md)
-
-**Pitch:** Word-style teamwork on docs, with the Git repo as the database, and AI working in the same repo as the team.
-
-**For:** All the power of a repo. None of the nerd. For you, or your whole team. (Architects, senior engineers, PMs, designers, writers, legal, researchers.)
-
-**UI principle:** simplicity. One clear way to do each thing, not a million ways to do the same thing.
-
-**Competition (Oct 2026):** OpenKnowledge (free, GPL desktop editor + Git + AI) is the closest; also Mintlify editor (web, docs sites), Nimbalyst (developers), Graft (Git-stored comments, experimental), GitBook. **Our edge:** truly for non-developers (Word-like ribbon), Word-style comments with permissions and review, readable diffs on the formatted page (not raw text), friendly Sync and conflicts, Word/PDF export.
-
-## Why us
-
-The main question. Our bet: many people struggle to work on a repo's Markdown files together, as a team, side by side with AI. If there's no strong answer, we stop here.
-
-- [ ] First target group: PMs, architects, technical writers, or another?
-- [ ] One-sentence promise, tested with real users
-- [ ] The "only we" list: teamwork + AI + plain Markdown in Git; what else?
-- [ ] Competitors: also Word and Claude Docs; what each does well and where it falls short
-- [ ] Final tagline ("All the power of a repo. None of the nerd." is temporary)
-- [ ] The full feature list, each feature traced back to this section
+How and when we build CoLeaf. What it is and why: [product.md](product.md).
 
 ## Status
 
@@ -63,6 +36,8 @@ Build a human-friendly Markdown view in the CoLeaf desktop app that people edit 
 12. **No typed Markdown shortcuts:** typing `# ` or `- ` stays plain text (saved as `\#`, `\-`). Formatting only via the ribbon and keyboard shortcuts (Ctrl+B etc.).
 
 ### Design
+
+**UI principle:** simplicity. One clear way to do each thing, not a million ways to do the same thing.
 
 #### Frame
 
@@ -292,15 +267,6 @@ TODO
 
 - [ ] Compliance check, last (with ScanCode when the stage is complete)
 
-## Ideas for later stages
-
-- **Diagram creator:** drag-and-drop diagram editing for non-developers, saved as text inside the `.md` (Mermaid) so Git shows changes and AI can read and edit it. A key differentiator.
-- **View-only preview of images and PDFs** from the sidebar (architects' drawings), without leaving CoLeaf.
-- **Richer tables:** Markdown tables can't merge cells but are easy for AI agents; consider HTML tables or another approach for merged cells.
-- **Slash menu:** type `/` to insert Heading, Table, Image, Quote, Code block or Diagram, with a small live preview (seen in a Claude Docs–style editor).
-- **Live cursors:** show teammates and the AI as named cursors while they edit (with Co-Work and AI stages).
-- Optional Settings toggle for typed Markdown shortcuts (`# ` → heading), if power users ask
-
 ## TODOs
 
 - [x] Decide the best platform: desktop app (Electron/Tauri) vs VS Code extension vs hybrid → Electron
@@ -322,21 +288,6 @@ TODO
 ## Open decisions
 
 Tick a decision when it's made and note the answer next to it.
-
-### Features
-
-- [ ] Rule for adding a feature: which user, which job, what we remove or hide to keep it simple
-- [ ] Must-have features per target group (e.g. diagrams for architects, review for PMs)
-- [ ] Order of the "Later" rows in [editor/markdown.md](editor/markdown.md)
-- [ ] Plugin and skills marketplace: when, and what it may change
-- [ ] Word/PDF export: priority and quality bar
-
-### UI
-
-- [ ] Design bar: which products we match (Word, Notion, Linear?)
-- [ ] Real designer and Figma for Stage 4, or keep designing with Claude
-- [ ] Accessibility level: keyboard-only use, screen readers, contrast
-- [ ] First-run experience: what a new user sees in the first 60 seconds
 
 ### Code
 
@@ -360,28 +311,7 @@ GitHub App "CoLeaf Desktop" (registered Oct 16, 2026; App ID 5345375, public Cli
 - [ ] Permissions roadmap: Pull requests and Issues for Stage 2 (users re-approve)
 - [ ] Sign-out and more than one GitHub account
 - [ ] GitHub Enterprise, GitLab, Bitbucket: later or never?
-
-### Legal
-
-- [ ] Before publishing: a lawyer reviews the privacy policy, terms of use, licenses, IP and liability (who, cost, when)
-- [ ] Our own license: closed source, open source, or dual
-- [ ] Privacy policy (what CoLeaf stores and where), terms of use, end-user license agreement
-- [ ] Trademark check for the final name
-- [ ] Anthropic's terms for using Claude in the product (Stage 3)
-
-### Marketing and business
-
-- [ ] Path: own product, acquisition target, or open source
-- [ ] Pricing: free, freemium, per seat, team plans
-- [ ] Launch channels, website and demo video
-- [ ] Positioning against OpenKnowledge, GitBook and Obsidian
-
-### Users and feedback
-
-- [ ] 5–10 real PMs and architects to interview (who?)
-- [ ] Beta group: when, how many, how they send feedback
-- [ ] Opt-in usage data: what we measure, and the tool
-- [ ] Our own team uses CoLeaf daily for its docs
+- [ ] Permissions and repo safety: should CoLeaf edit only `.md` files (and `md-images/`)? How do we make sure it never harms the rest of the repo? Is editing an existing `.md` different from creating a new one? How do we keep others from changing our docs?
 
 ### Quality and trust
 
@@ -389,18 +319,3 @@ GitHub App "CoLeaf Desktop" (registered Oct 16, 2026; App ID 5345375, public Cli
 - [ ] How fast we fix crash reports
 - [ ] Release checklist: tests, real-repo check, manual smoke test
 - [ ] Limits we promise for big repos and big files
-
-### AI
-
-- [ ] Which AI features first: edit with review, chat on a selection, generate a new doc?
-- [ ] Access: the user's own API key, our paid proxy, or log in with Claude
-- [ ] Cost and privacy: who pays, what leaves the computer, consent
-- [ ] Claude only, or other AI tools later
-
-### Distribution and support
-
-- [ ] Platforms at launch: Windows only, or Windows + macOS
-- [ ] Windows signing route (Azure isn't available in Israel; an OV certificate?)
-- [ ] Updates and downloads: GitHub Releases or our website
-- [ ] User Guide content, including "How Publish works"
-- [ ] How users report bugs: in-app button, email, or GitHub issues

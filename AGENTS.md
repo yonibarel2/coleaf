@@ -15,6 +15,7 @@ Instructions for any AI coding agent working in this repo (Claude Code, Codex, C
 
 CoLeaf: Word-style editing of a repo's `.md` files, with simple Git and (later) AI, for people who'd rather not touch code.
 
+- What CoLeaf is and why: [docs/product.md](docs/product.md)
 - What we build, by stage: [docs/plan.md](docs/plan.md)
 - How it's built: [docs/architecture.md](docs/architecture.md)
 - Where things are: [docs/codemap.md](docs/codemap.md), one line per module plus the data flow; update it at the end of every slice
