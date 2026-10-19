@@ -2,10 +2,13 @@
 // but only when the working tree has code or config changes. On failure, exit 2 with the output
 // on stderr so Claude keeps working instead of stopping. Claude Code caps consecutive blocks.
 import { spawnSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { existsSync, realpathSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
-const root = resolve(process.env.CLAUDE_PROJECT_DIR ?? process.cwd())
+// The canonical path: with a lowercase drive letter (c:\…, as VS Code passes it) Node loads
+// vitest twice, since c:\… and C:\… are different module URLs, and every test file fails with
+// "Vitest failed to find the runner".
+const root = realpathSync.native(resolve(process.env.CLAUDE_PROJECT_DIR ?? process.cwd()))
 process.stdin.resume()
 
 if (!existsSync(join(root, 'node_modules'))) process.exit(0)
