@@ -20,6 +20,27 @@ How it is built (software, structure, decisions): [architecture.md](architecture
 
 **Competition (Oct 2026):** OpenKnowledge (free, GPL desktop editor + Git + AI) is the closest; also Mintlify editor (web, docs sites), Nimbalyst (developers), Graft (Git-stored comments, experimental), GitBook. **Our edge:** truly for non-developers (Word-like ribbon), Word-style comments with permissions and review, readable diffs on the formatted page (not raw text), friendly Sync and conflicts, Word/PDF export.
 
+## Why us
+
+The main question. Our bet: many people struggle to work on a repo's Markdown files together, as a team, side by side with AI. If there's no strong answer, we stop here.
+
+- [ ] First target group: PMs, architects, technical writers, or another?
+- [ ] One-sentence promise, tested with real users
+- [ ] The "only we" list: teamwork + AI + plain Markdown in Git; what else?
+- [ ] Competitors: also Word and Claude Docs; what each does well and where it falls short
+- [ ] Final tagline ("All the power of a repo. None of the nerd." is temporary)
+- [ ] The full feature list, each feature traced back to this section
+
+## Status
+
+Oct 19, 2026
+
+- Stage 1a done. Stage 1b Part B: ribbon, viewers, Git local and Git remote done; first real sign-in and Sync to GitHub worked on Oct 17 (test repo `yonibarel2/coleaf-test`).
+- Next, in order: History and Restore → Frame → Outline, side by side, search → test on real repos → compliance.
+- Then: rebuild this plan top-down (Why → What → How → Run) and a deep code review, starting with `src/renderer/editor/`.
+- Working rule: move fast (80%), except the save rule and security (100%).
+- Decided: no built-in terminal.
+
 ## Stage 1 – Core editor + basic Git
 
 ### Goal
@@ -120,7 +141,7 @@ Its own sidebar view (Sync icon in the left icon bar) for sharing work through G
 
 **Stage 1a – Prove the core**
 
-Build this first and see it work; then review and detail 1b. Stage 1 rows of [markdown-spec.md](markdown-spec.md) are editable (no ribbon); everything else is shown as a raw block and saved unchanged.
+Build this first and see it work; then review and detail 1b. Stage 1 rows of [editor/markdown.md](editor/markdown.md) are editable (no ribbon); everything else is shown as a raw block and saved unchanged.
 
 - [x] Set up the desktop app project
 - [x] Open a repo folder and show a file tree of `.md` files
@@ -134,7 +155,7 @@ Build this first and see it work; then review and detail 1b. Stage 1 rows of [ma
 
 **Part A – Formatting spec**
 
-- [x] Map every supported Markdown syntax in one table → [markdown-spec.md](markdown-spec.md)
+- [x] Map every supported Markdown syntax in one table → [editor/markdown.md](editor/markdown.md)
 - [x] Decide which items get a toolbar button and which get a default shortcut → the How and Shortcut columns of the spec
 - [ ] Define custom shortcuts: users bind their own keys to any syntax → Later (decided Oct 16, 2026); Help › Keyboard Shortcuts lists the keys for now
 - [x] Toolbar design: a mockup of the layout and button groups → [ribbon.png](ui/ribbon.png), [ribbon-panels.png](ui/ribbon-panels.png)
@@ -168,6 +189,7 @@ Ship Stage 1 to testers and the public as a signed app that updates itself.
 5. **New name and logo (must):** "CoLeaf" is too close to Overleaf, so the product gets a new name and logo before any public release.
 6. **Bundled Git outside the archive:** the installer must unpack `node_modules/dugite/git/**` from asar (`asarUnpack` in electron-builder); dugite looks for its Git there and cannot run it from inside the archive.
 7. **No developer menu items:** Reload, Force Reload and Toggle Developer Tools show in dev builds only.
+8. **Start time:** the dev build starts in about 20 s; measure the packaged app and keep it fast.
 
 ### Work plan
 
@@ -242,7 +264,7 @@ A full-window, Word-like workspace with modern styling, working side by side wit
 ### Design
 
 - [ ] If the redesign needs a real designer, design it in Figma and connect the Figma MCP so Claude builds from those designs.
-- [ ] Decide the full editing table and ribbon UI for all "Later" rows in [markdown-spec.md](markdown-spec.md).
+- [ ] Decide the full editing table and ribbon UI for all "Later" rows in [editor/markdown.md](editor/markdown.md).
 
 ### Work plan
 
@@ -293,7 +315,92 @@ TODO
 - [ ] Export ("compiler"): design with the user how `.md` files compile to Word and PDF so the output always looks good (page size, page breaks, styles)
 - [x] Color palette: replace the current dark green with a livelier, natural green (same lightness and strength, new hue)
 - [ ] Part A: check that every Markdown syntax is reachable from the ribbon, and list the blocks that show a preview plus a small "edit code" button (Mermaid, code blocks, math, raw HTML, front matter...)
-- [ ] Think of a better tagline than "All the power of a repo. None of the nerd."
 - [ ] Approve the libraries for GitHub-style rendering before building it: for Stage 1b, KaTeX (math) and a safe HTML sanitizer (e.g. DOMPurify); for Stage 4, a map viewer for GeoJSON/TopoJSON (e.g. Leaflet), a 3D viewer for STL (e.g. three.js) and a PlantUML renderer
 - [ ] Spell check broken on Windows since Electron 41 (issue 54729, closed by a bot, no fix). Before Release 1: own checker, or re-test the newest Electron.
 - [ ] Before Release 1: check every UI asset is ours or properly licensed (icons, logo, illustrations, diagrams, fonts, mockups, feature and screen names); nothing copied from other products' designs or branding; record each asset's license in `compliance/`.
+
+## Open decisions
+
+Tick a decision when it's made and note the answer next to it.
+
+### Features
+
+- [ ] Rule for adding a feature: which user, which job, what we remove or hide to keep it simple
+- [ ] Must-have features per target group (e.g. diagrams for architects, review for PMs)
+- [ ] Order of the "Later" rows in [editor/markdown.md](editor/markdown.md)
+- [ ] Plugin and skills marketplace: when, and what it may change
+- [ ] Word/PDF export: priority and quality bar
+
+### UI
+
+- [ ] Design bar: which products we match (Word, Notion, Linear?)
+- [ ] Real designer and Figma for Stage 4, or keep designing with Claude
+- [ ] Accessibility level: keyboard-only use, screen readers, contrast
+- [ ] First-run experience: what a new user sees in the first 60 seconds
+
+### Code
+
+- [ ] Explain the engine (WYSIWYG ⇄ Markdown: the bridge, the save rule, the round-trip) so anyone on the team understands it
+- [ ] When to do Stage 5: before or with Stage 2
+- [ ] Target for the README report: from 32% byte-identical after an edit to what %?
+- [ ] The 3 known gaps (HTML entities, `\$`, indented admonitions): fix or accept
+- [ ] Rule for new syntax: no spec row and golden test, no support
+- [ ] Security: a professional review of the whole codebase before publishing (who, cost, when); token storage, IPC allowlist and HTML sanitizer audit; dependency alerts (Dependabot or similar)
+- [ ] Performance targets: a 5 MB file, a 10,000-file repo, typing lag; app size and memory budget
+- [ ] Test coverage goal; end-to-end tests on Windows and macOS in CI; who or what reviews each slice
+- [ ] Refactor budget: when to clean up before adding more
+
+### GitHub
+
+GitHub App "CoLeaf Desktop" (registered Oct 16, 2026; App ID 5345375, public Client ID `Iv23li38PJ5AaF2yJOPH`): Contents read/write only, device flow, token expiration opted out (refresh needs a client secret a desktop app can't keep; GitHub Desktop does the same), webhook off. Private key kept offline by the owner, never in the repo or the app.
+
+- [ ] Review this setup and how CoLeaf stores the tokens
+- [ ] Install flow: CoLeaf guides users to the install page at first sign-in; organization repos need an admin's approval
+- [ ] Install scope: switch "only this account" to "any account" before release
+- [ ] Permissions roadmap: Pull requests and Issues for Stage 2 (users re-approve)
+- [ ] Sign-out and more than one GitHub account
+- [ ] GitHub Enterprise, GitLab, Bitbucket: later or never?
+
+### Legal
+
+- [ ] Before publishing: a lawyer reviews the privacy policy, terms of use, licenses, IP and liability (who, cost, when)
+- [ ] Our own license: closed source, open source, or dual
+- [ ] Privacy policy (what CoLeaf stores and where), terms of use, end-user license agreement
+- [ ] Trademark check for the final name
+- [ ] Anthropic's terms for using Claude in the product (Stage 3)
+
+### Marketing and business
+
+- [ ] Path: own product, acquisition target, or open source
+- [ ] Pricing: free, freemium, per seat, team plans
+- [ ] Launch channels, website and demo video
+- [ ] Positioning against OpenKnowledge, GitBook and Obsidian
+
+### Users and feedback
+
+- [ ] 5–10 real PMs and architects to interview (who?)
+- [ ] Beta group: when, how many, how they send feedback
+- [ ] Opt-in usage data: what we measure, and the tool
+- [ ] Our own team uses CoLeaf daily for its docs
+
+### Quality and trust
+
+- [ ] Crash safety: autosave or a recovery file for unsaved edits?
+- [ ] How fast we fix crash reports
+- [ ] Release checklist: tests, real-repo check, manual smoke test
+- [ ] Limits we promise for big repos and big files
+
+### AI
+
+- [ ] Which AI features first: edit with review, chat on a selection, generate a new doc?
+- [ ] Access: the user's own API key, our paid proxy, or log in with Claude
+- [ ] Cost and privacy: who pays, what leaves the computer, consent
+- [ ] Claude only, or other AI tools later
+
+### Distribution and support
+
+- [ ] Platforms at launch: Windows only, or Windows + macOS
+- [ ] Windows signing route (Azure isn't available in Israel; an OV certificate?)
+- [ ] Updates and downloads: GitHub Releases or our website
+- [ ] User Guide content, including "How Publish works"
+- [ ] How users report bugs: in-app button, email, or GitHub issues

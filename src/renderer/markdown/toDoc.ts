@@ -42,7 +42,7 @@ export function markdownToDoc(text: string, schema: Schema): PmNode {
   return file.result as PmNode
 }
 
-// Blocks the editor does not edit yet (docs/markdown-spec.md: Kept as-is).
+// Blocks the editor does not edit yet (docs/editor/markdown.md: Kept as-is).
 function isRawBlock(node: RootContent): boolean {
   return node.type === 'definition'
 }

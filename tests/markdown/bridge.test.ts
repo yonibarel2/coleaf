@@ -9,7 +9,7 @@ import { docToMarkdown } from '../../src/renderer/markdown/toMarkdown'
 
 const roundTrip = (markdown: string): string => docToMarkdown(markdownToDoc(markdown, schema))
 
-// Every Stage 1 row of docs/markdown-spec.md, in CoLeaf's own style.
+// Every Stage 1 row of docs/editor/markdown.md, in CoLeaf's own style.
 const stage1 = `# Title
 
 A paragraph with **bold**, _italic_, \`code\`, a [link](https://example.com "Title"), an

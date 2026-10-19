@@ -85,7 +85,7 @@ Full planned tree: [docs/architecture.md](docs/architecture.md#repo-layout).
 
 ## Testing
 
-- Any change to Markdown reading or saving must pass the round-trip tests: golden `.md` files in `tests/roundtrip/<section>/`, one per row of `docs/markdown-spec.md`, where open + save must be byte-identical (Stage 1 rows must also be what Prettier writes). Alternate spellings live in `tests/roundtrip/normalize/` as `.in.md` → `.out.md`; `properties.test.ts` saves random documents and random edits.
+- Any change to Markdown reading or saving must pass the round-trip tests: golden `.md` files in `tests/roundtrip/<section>/`, one per row of `docs/editor/markdown.md`, where open + save must be byte-identical (Stage 1 rows must also be what Prettier writes). Alternate spellings live in `tests/roundtrip/normalize/` as `.in.md` → `.out.md`; `properties.test.ts` saves random documents and random edits.
 - Every Markdown bug fixed gets a new golden file. Known gaps are listed in `roundtrip.test.ts`, never silently skipped.
 - Git features are tested against temporary repos, never the real one.
 - `npm run check` must pass before a change is finished. Claude Code runs it automatically through the hooks in `.claude/settings.json` (Prettier after every edit, `npm run check` when a turn ends); other agents run it themselves.

@@ -3,7 +3,7 @@ import type { Node as PmNode } from 'prosemirror-model'
 
 /**
  * A list item with a GFM task box (`- [ ]`, `- [x]`) shows a checkbox in place of its bullet;
- * the tick is the one thing editable about task lists for now (docs/markdown-spec.md). Any
+ * the tick is the one thing editable about task lists for now (docs/editor/markdown.md). Any
  * other item is a plain `li`.
  */
 export const listItemView: NodeViewRenderer = ({ node, editor, getPos }) => {

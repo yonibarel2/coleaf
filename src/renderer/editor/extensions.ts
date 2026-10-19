@@ -40,7 +40,7 @@ import { CoLeafPictures } from './pictures'
 import { CoLeafSearch } from './search'
 import { listItemView } from './taskItem'
 
-// Keyboard shortcuts follow docs/markdown-spec.md exactly. The TipTap defaults that are not in
+// Keyboard shortcuts follow docs/editor/markdown.md exactly. The TipTap defaults that are not in
 // the spec are removed here; tests/editor/shortcuts.test.ts checks the full list.
 
 const shortcutHeadingLevels: Level[] = [1, 2, 3]
@@ -118,7 +118,7 @@ const CoLeafListItem = ListItem.extend({
   addNodeView: () => listItemView
 })
 
-/** `~~text~~`: shown struck through; no button or key yet (docs/markdown-spec.md: Later). */
+/** `~~text~~`: shown struck through; no button or key yet (docs/editor/markdown.md: Later). */
 const Strike = Mark.create({
   name: 'strike',
   parseHTML: () => [{ tag: 's' }, { tag: 'del' }, { tag: 'strike' }],

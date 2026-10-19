@@ -1,6 +1,6 @@
 # CoLeaf – Markdown formatting spec
 
-Oct 16, 2026 · Source: CoLeaf – Markdown formatting spec (online doc); this file is now the source of truth.
+Oct 16, 2026
 
 Every Markdown syntax CoLeaf may meet in a repo. **CoLeaf shows all of it formatted, like GitHub: most of it from Stage 1, maps, 3D models and PlantUML from Stage 4.** The first column says from which stage each item is editable, the second from which stage it looks like GitHub; Shortcut is decided with the Stage 1 ribbon (Part A).
 
@@ -17,9 +17,9 @@ Coverage: the full CommonMark 0.31.2 spec, the GitHub Flavored Markdown (GFM) sp
 
 The ribbon holds only the Stage 1 features from the two CommonMark sections, in the five groups of the UI mockup.
 
-![Stage 1 ribbon](ui/ribbon.png)
+![Stage 1 ribbon](../ui/ribbon.png)
 
-![Panels that open from the ribbon](ui/ribbon-panels.png)
+![Panels that open from the ribbon](../ui/ribbon-panels.png)
 
 Pictures open the system file picker; HTML blocks and inline HTML get an "Edit code" button on the block itself, not in the ribbon.
 

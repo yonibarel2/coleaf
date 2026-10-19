@@ -6,7 +6,7 @@ import { schema } from '../../src/renderer/editor/extensions'
 import { markdownToDoc } from '../../src/renderer/markdown/toDoc'
 import { docToMarkdown } from '../../src/renderer/markdown/toMarkdown'
 
-// Golden files: one per row of docs/markdown-spec.md, in the form CoLeaf saves. Opening and
+// Golden files: one per row of docs/editor/markdown.md, in the form CoLeaf saves. Opening and
 // saving one must not change a byte. Alternate spellings live in normalize/ as .in.md → .out.md.
 
 const root = resolve('tests', 'roundtrip')

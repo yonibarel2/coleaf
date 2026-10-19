@@ -40,7 +40,7 @@ export function parseTag(html: string): Tag {
   return { kind: voidTags.has(name) || html.endsWith('/>') ? 'void' : 'open', name }
 }
 
-// GitHub's tag filter: these tags are shown as text, never as elements (docs/markdown-spec.md).
+// GitHub's tag filter: these tags are shown as text, never as elements (docs/editor/markdown.md).
 const disallowed =
   /<(\/?)(script|style|iframe|textarea|title|xmp|noembed|noframes|plaintext)(?=[\s>/])/gi
 

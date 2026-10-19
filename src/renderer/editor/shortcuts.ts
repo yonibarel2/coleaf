@@ -1,6 +1,6 @@
 // Every keyboard shortcut, in ProseMirror's key notation (Mod is Ctrl, or Cmd on a Mac). The
 // editor's keymap, the ribbon tooltips and Help › Keyboard Shortcuts all read this one list;
-// docs/markdown-spec.md is the source. tests/editor/shortcuts.test.ts checks the keymap agrees.
+// docs/editor/markdown.md is the source. tests/editor/shortcuts.test.ts checks the keymap agrees.
 
 export type ShortcutGroup = 'Edit' | 'Styles' | 'Text' | 'Paragraph' | 'Insert' | 'File'
 
