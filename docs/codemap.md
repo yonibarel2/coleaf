@@ -1,6 +1,6 @@
 # CoLeaf – Code map
 
-Oct 17, 2026 · Updated at the end of every slice.
+Oct 19, 2026 · Updated at the end of every slice.
 
 One line per folder and module, then how data flows through them. [architecture.md](architecture.md) says why it is built this way; this file says where things are.
 
@@ -9,7 +9,7 @@ One line per folder and module, then how data flows through them. [architecture.
 | Module | Does |
 | --- | --- |
 | `index.ts` | App start: the window (no Node access, sandboxed), the right-click menu with spelling suggestions, the `coleaf-image://` scheme for repo pictures, `COLEAF_PROJECT` in development |
-| `menu.ts` | The application menu (File, Help), rebuilt whenever the session changes |
+| `menu.ts` | The application menu (File, Help), rebuilt whenever the session changes; its labels and drop-downs for the title bar |
 | `files/session.ts` | The one open project; the window and the menu mirror it |
 | `files/project.ts` | Lists a folder for the tree: folders first, Git internals and system clutter hidden |
 | `files/ignore.ts` | Folders never scanned for Markdown: `node_modules` and `.gitignore` rules |
@@ -37,10 +37,10 @@ One line per folder and module, then how data flows through them. [architecture.
 | Folder / module | Does |
 | --- | --- |
 | `main.tsx`, `styles/` | Entry point; `tokens.css` holds every color, font, size and spacing, `app.css` the shell |
-| `app/App.tsx`, `IconBar.tsx`, `ProjectView.tsx` | The frame: icon bar (Explorer, Sync with its badge, the account), one sidebar view at a time, tabs, ribbon and editor; `ProjectView` also follows Ctrl+clicked links and holds the conflict tab |
+| `app/App.tsx`, `TitleBar.tsx`, `IconBar.tsx`, `ProjectView.tsx` | The frame: title bar (the app icon, the native menus dropped down from their labels, the system's window controls colored from the tokens), icon bar (Explorer, Sync with its badge, the account), one sidebar view at a time, tabs, ribbon and editor; `ProjectView` also follows Ctrl+clicked links and holds the conflict tab |
 | `app/useProject.ts`, `useGit.ts`, `useAccount.ts`, `settings.ts`, `ShortcutsDialog.tsx` | The open project, its Git status and the GitHub account mirrored from the background; small window preferences; Help › Keyboard Shortcuts |
 | `app/Account.tsx` | The account button and its card: Sign in with GitHub, the code to enter, the picture and Sign out |
-| `sidebar/Explorer.tsx`, `ProjectSection.tsx`, `useProjectTree.ts` | The Explorer with the branch in its header: the lazy folder tree, its rows and the "Only .md" tick |
+| `sidebar/Explorer.tsx`, `ProjectSection.tsx`, `useProjectTree.ts` | The Explorer: the fixed header with the "Only .md" tick (remembered), then the project section headed with the folder's name, the lazy folder tree and its rows |
 | `sidebar/SyncView.tsx`, `IdentityForm.tsx`, `HowSyncDialog.tsx` | The Sync view: changed files with ticks (unsaved documents listed too), the required message, Sync and how it went; conflicted files, Finish sync, Cancel; name and email asked once; "How Sync works" |
 | `conflict/ConflictTab.tsx` | A conflicted Markdown file as Mine and Theirs pages (read-only segments), Mine / Theirs / Both per highlighted part, Done |
 | `tabs/useTabs.ts`, `TabBar.tsx` | One TipTap editor per open file, the unsaved dot, save all before a Sync, reload after one, and the save rule (`saveRule.ts`: an untouched document is never written); the tab bar also shows the conflict tab |

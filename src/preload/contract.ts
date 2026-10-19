@@ -17,6 +17,9 @@ export const channels = {
   appSave: 'app:save',
   appOpenFile: 'app:open-file',
   appShowShortcuts: 'app:show-shortcuts',
+  appMenus: 'app:menus',
+  appOpenMenu: 'app:open-menu',
+  appTitleBar: 'app:title-bar',
   imagePick: 'image:pick',
   imageSave: 'image:save',
   imageUnused: 'image:unused',
@@ -41,6 +44,14 @@ export const channels = {
 
 /** The answer to "Save changes?" */
 export type SaveChoice = 'save' | 'discard' | 'cancel'
+
+/** The window controls the system draws over the title bar, colored and sized from the tokens. */
+export interface TitleBarOverlay {
+  /** `#rrggbb` or `#rrggbbaa` */
+  color: string
+  symbolColor: string
+  height: number
+}
 
 /** How a file is stored on disk; kept so that saving changes nothing but the text. */
 export interface DocumentFormat {

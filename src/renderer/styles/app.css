@@ -21,6 +21,32 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/*
+ * Scrollbars: thin, without arrows, everywhere (the sidebar, the page, the panels). Chromium's
+ * own pseudo-elements, because the standard `scrollbar-width: thin` keeps the arrows on Windows.
+ */
+::-webkit-scrollbar {
+  width: var(--scrollbar-width);
+  height: var(--scrollbar-width);
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+}
+
+/* The thumb shows slimmer than the strip it is dragged in: a clear gap on each side. */
+::-webkit-scrollbar-thumb {
+  border: var(--scrollbar-gap) solid transparent;
+  border-radius: calc(var(--scrollbar-width) / 2);
+  background: var(--color-scrollbar);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 button {
   font: inherit;
   color: inherit;

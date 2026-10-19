@@ -1,20 +1,28 @@
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useState, type CSSProperties, type JSX } from 'react'
-import type { TreeEntry } from '../../preload/contract'
+import type { ProjectInfo, TreeEntry } from '../../preload/contract'
 import { useProjectTree, type ProjectTree } from './useProjectTree'
 
 interface ProjectSectionProps {
+  project: ProjectInfo
+  /** The Explorer's "Only .md" tick: hide what is not Markdown. */
+  onlyMarkdown: boolean
   activePath: string | null
   onOpenFile: (path: string) => void
 }
 
 /**
- * The Project section: a collapsible header with the "Only .md" tick, and the folder tree.
- * Mounted once per project (keyed on the root by the Explorer), so its state starts fresh.
+ * The project's section, headed with the folder's name as VS Code does: a collapsible header
+ * and the folder tree. Mounted once per project (keyed on the root by the Explorer), so its
+ * state starts fresh.
  */
-export function ProjectSection({ activePath, onOpenFile }: ProjectSectionProps): JSX.Element {
+export function ProjectSection({
+  project,
+  onlyMarkdown,
+  activePath,
+  onOpenFile
+}: ProjectSectionProps): JSX.Element {
   const [open, setOpen] = useState(true)
-  const [onlyMarkdown, setOnlyMarkdown] = useState(false)
   const tree = useProjectTree()
   const rows: RowsContext = { tree, onlyMarkdown, activePath, onOpenFile }
 
@@ -27,15 +35,9 @@ export function ProjectSection({ activePath, onOpenFile }: ProjectSectionProps):
         onClick={() => setOpen((value) => !value)}
       >
         <Chevron open={open} />
-        <span className="section__title">Project</span>
-        <label className="section__option" onClick={(event) => event.stopPropagation()}>
-          <input
-            type="checkbox"
-            checked={onlyMarkdown}
-            onChange={(event) => setOnlyMarkdown(event.target.checked)}
-          />
-          Only .md
-        </label>
+        <span className="section__title" data-tip={project.root}>
+          {project.name}
+        </span>
       </div>
       {open && (
         <ul className="tree">

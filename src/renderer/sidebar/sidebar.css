@@ -3,10 +3,17 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  overflow: auto;
+  overflow: hidden;
   border-right: 1px solid var(--color-line);
   background: var(--color-ground);
   user-select: none;
+}
+
+/* Under the header, the part that scrolls: the header itself stays put, as in VS Code. */
+.sidebar__body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
 }
 
 .sidebar__header,
@@ -18,7 +25,27 @@
 }
 
 .sidebar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: var(--space-4) var(--space-4) var(--space-3);
+}
+
+/* The Explorer's "Only .md" tick, at the header's right end. */
+.sidebar__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-weight: var(--weight-regular);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-muted);
+  cursor: pointer;
+}
+
+.sidebar__option input {
+  margin: 0;
+  accent-color: var(--color-accent);
 }
 
 .sidebar__empty {
@@ -57,22 +84,6 @@
 /* A section that does not fold (the Sync view's list). */
 .section__header--static {
   cursor: default;
-}
-
-.section__option {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  font-weight: var(--weight-regular);
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--color-muted);
-  cursor: pointer;
-}
-
-.section__option input {
-  margin: 0;
-  accent-color: var(--color-accent);
 }
 
 .tree {

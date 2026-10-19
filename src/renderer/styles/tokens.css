@@ -19,7 +19,14 @@
   --color-ground-hover: #e9e9e6;
   --color-toolbar: #eaeae6; /* the ribbon: a little darker than the ground */
   --color-backdrop: rgba(23, 23, 23, 0.3); /* ink, behind a dialog */
+  --color-window-controls: #00000000; /* behind the system's window controls: see-through, so a dialog's backdrop dims them too */
   --shadow-pop: 0 2px 8px rgba(23, 23, 23, 0.12); /* a tooltip or card floating over the page */
+  --color-scrollbar: rgba(
+    23,
+    23,
+    23,
+    0.25
+  ); /* the thumb of the thin scrollbars: ink over any ground */
   --color-danger: #cf222e; /* something went wrong: error text, a conflict */
   --color-attention: #d97706; /* needs a choice: the conflict icon */
   --color-attention-tint: #fdf1e5; /* the conflict banner and highlighted parts */
@@ -81,6 +88,9 @@
   --sidebar-width-max: 600px;
   --resizer-width: 6px; /* the strip to drag at the sidebar's edge */
   --status-bar-height: 26px;
+  --title-bar-height: 36px; /* the app icon, the menus and the window controls; sent to the system too */
+  --scrollbar-width: 10px; /* the strip to drag, without arrows; the system's is 17 px */
+  --scrollbar-gap: 1.5px; /* each side of the thumb, so it shows 7 px wide in the strip, as macOS draws it */
   --control-height: 32px;
   --control-height-small: 28px;
   --icon-button-size: 36px;

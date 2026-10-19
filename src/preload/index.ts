@@ -11,6 +11,7 @@ import {
   type ProjectInfo,
   type SaveChoice,
   type SyncOutcome,
+  type TitleBarOverlay,
   type TreeEntry
 } from './contract'
 
@@ -118,7 +119,15 @@ const api = {
       subscribe(channels.appOpenFile, callback),
     /** Help › Keyboard Shortcuts. */
     onShowShortcuts: (callback: () => void): (() => void) =>
-      subscribe<undefined>(channels.appShowShortcuts, callback)
+      subscribe<undefined>(channels.appShowShortcuts, callback),
+    /** The title bar's menus (File, Help), in order. */
+    menus: (): Promise<string[]> => ipcRenderer.invoke(channels.appMenus),
+    /** Opens one as a native menu at a point of the window; settles when it closes. */
+    openMenu: (label: string, x: number, y: number): Promise<void> =>
+      ipcRenderer.invoke(channels.appOpenMenu, label, x, y),
+    /** Colors and sizes the system's window controls like the title bar. */
+    setTitleBarOverlay: (overlay: TitleBarOverlay): void =>
+      ipcRenderer.send(channels.appTitleBar, overlay)
   }
 }
 

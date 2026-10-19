@@ -1,5 +1,6 @@
-import type { JSX } from 'react'
+import { useState, type JSX } from 'react'
 import type { ProjectInfo } from '../../preload/contract'
+import { readFlag, writeFlag } from '../app/settings'
 import { ProjectSection } from './ProjectSection'
 import './sidebar.css'
 
@@ -12,14 +13,40 @@ interface ExplorerProps {
 
 /** The Explorer sidebar: the Project tree, later also History. */
 export function Explorer({ project, activePath, onOpenFile }: ExplorerProps): JSX.Element {
+  // "Only .md" is one decision for every folder of every project: by the header, and kept.
+  const [onlyMarkdown, setOnlyMarkdown] = useState(() => readFlag('onlyMarkdown'))
+
   return (
     <aside className="sidebar">
-      <div className="sidebar__header">Explorer</div>
-      {project ? (
-        <ProjectSection key={project.root} activePath={activePath} onOpenFile={onOpenFile} />
-      ) : (
-        <NoProject />
-      )}
+      <div className="sidebar__header">
+        Explorer
+        {project && (
+          <label className="sidebar__option">
+            <input
+              type="checkbox"
+              checked={onlyMarkdown}
+              onChange={(event) => {
+                writeFlag('onlyMarkdown', event.target.checked)
+                setOnlyMarkdown(event.target.checked)
+              }}
+            />
+            Only .md
+          </label>
+        )}
+      </div>
+      <div className="sidebar__body">
+        {project ? (
+          <ProjectSection
+            key={project.root}
+            project={project}
+            onlyMarkdown={onlyMarkdown}
+            activePath={activePath}
+            onOpenFile={onOpenFile}
+          />
+        ) : (
+          <NoProject />
+        )}
+      </div>
     </aside>
   )
 }

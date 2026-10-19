@@ -9,7 +9,7 @@ import { registerFileIpc } from './ipc/file'
 import { registerGitIpc } from './ipc/git'
 import { registerImageIpc } from './ipc/images'
 import { registerProjectIpc } from './ipc/project'
-import { applyMenu } from './menu'
+import { applyMenu, registerMenuIpc } from './menu'
 import icon from '../../build/icon.png?asset'
 
 // Pictures in documents load through this scheme, served from inside the project only.
@@ -26,6 +26,10 @@ function createWindow(): void {
     title: 'CoLeaf',
     icon, // placeholder leaf (window and taskbar); the final logo comes in Stage 4
     show: false,
+    // One row for the app icon, the menus and the window controls (TitleBar.tsx): the system
+    // draws the controls over the page; the window colors and sizes them from its tokens.
+    titleBarStyle: 'hidden',
+    titleBarOverlay: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       // The window never gets Node access: all disk and Git work goes through the preload's allowlist.
@@ -88,6 +92,7 @@ app.whenReady().then(() => {
   registerGitIpc(session, () => account.token())
   registerAuthIpc(account)
   registerAppIpc()
+  registerMenuIpc()
   applyMenu(session)
   session.onChange(() => applyMenu(session))
   app.on('will-quit', () => session.close())

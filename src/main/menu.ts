@@ -3,6 +3,7 @@ import {
   app,
   BrowserWindow,
   dialog,
+  ipcMain,
   Menu,
   type BaseWindow,
   type MenuItemConstructorOptions
@@ -76,6 +77,26 @@ export function applyMenu(session: ProjectSession): void {
     })
   }
   Menu.setApplicationMenu(Menu.buildFromTemplate(template))
+}
+
+/**
+ * Wires the title bar's menu messages of the preload allowlist: the labels of the top-level
+ * menus, and one of them dropped down from its label as a native menu.
+ */
+export function registerMenuIpc(): void {
+  ipcMain.handle(channels.appMenus, () =>
+    (Menu.getApplicationMenu()?.items ?? [])
+      .filter((item) => item.visible)
+      .map((item) => item.label)
+  )
+  ipcMain.handle(channels.appOpenMenu, (event, label: unknown, x: unknown, y: unknown) => {
+    const window = BrowserWindow.fromWebContents(event.sender)
+    const menu = Menu.getApplicationMenu()?.items.find((item) => item.label === label)?.submenu
+    if (!window || !menu || typeof x !== 'number' || typeof y !== 'number') return Promise.resolve()
+    return new Promise<void>((resolve) =>
+      menu.popup({ window, x: Math.round(x), y: Math.round(y), callback: resolve })
+    )
+  })
 }
 
 // The window the menu item was chosen in, or the main window when none has focus.

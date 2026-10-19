@@ -1,14 +1,60 @@
-/* The window frame: icon bar | sidebar | workspace. Every value comes from tokens.css. */
+/*
+ * The window frame: the title bar over icon bar | sidebar | workspace, the status bar under.
+ * Every value comes from tokens.css.
+ */
 .frame {
   position: relative;
   display: grid;
   grid-template-columns: var(--icon-bar-width) var(--sidebar-width) 1fr;
-  grid-template-rows: 1fr var(--status-bar-height);
+  grid-template-rows: var(--title-bar-height) 1fr var(--status-bar-height);
   height: 100%;
 }
 
 .frame--no-sidebar {
   grid-template-columns: var(--icon-bar-width) 1fr;
+}
+
+/*
+ * The row along the top (TitleBar.tsx): the window's drag handle. The system draws the window
+ * controls over its right end and tells the page the area left of them (the env() values).
+ */
+.title-bar {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  padding-left: env(titlebar-area-x, 0px);
+  padding-right: calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw));
+  background: var(--color-ground);
+  user-select: none;
+  -webkit-app-region: drag;
+}
+
+/* The app icon sits in the icon bar's column, over the Explorer icon. */
+.title-bar__logo {
+  display: block;
+  width: var(--icon-size-lg);
+  height: var(--icon-size-lg);
+  margin: 0 calc((var(--icon-bar-width) - var(--icon-size-lg)) / 2);
+}
+
+.title-bar__menus {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.title-bar__menu {
+  height: var(--control-height-small);
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-small);
+  background: transparent;
+  cursor: default;
+  -webkit-app-region: no-drag;
+}
+
+.title-bar__menu:hover,
+.title-bar__menu--open {
+  background: var(--color-ground-hover);
 }
 
 /* The bar along the bottom (StatusBar.tsx), under every column. */
@@ -39,7 +85,7 @@
 /* Drag the sidebar's right edge (SidebarResizer.tsx) to change its width. */
 .frame__resizer {
   position: absolute;
-  top: 0;
+  top: var(--title-bar-height);
   bottom: var(--status-bar-height);
   left: calc(var(--icon-bar-width) + var(--sidebar-width) - var(--resizer-width) / 2);
   z-index: 5;

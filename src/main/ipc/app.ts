@@ -1,5 +1,5 @@
-import { app, ipcMain, type BrowserWindow } from 'electron'
-import { channels } from '../../preload/contract'
+import { app, BrowserWindow, ipcMain } from 'electron'
+import { channels, type TitleBarOverlay } from '../../preload/contract'
 
 // The window reports how many documents have unsaved changes. Before the window closes or the
 // project changes, it gets to save or discard them (asking the user, like Word); the user may
@@ -21,6 +21,22 @@ export function registerAppIpc(): void {
     unsaved = 0
     pending = null
   })
+  // The window controls the system draws over the title bar: the window sends the tokens' values.
+  ipcMain.on(channels.appTitleBar, (event, overlay: unknown) => {
+    const window = BrowserWindow.fromWebContents(event.sender)
+    if (!window || process.platform === 'darwin' || !isOverlay(overlay)) return
+    window.setTitleBarOverlay(overlay)
+  })
+}
+
+// `#rrggbb` or `#rrggbbaa`: the overlay accepts transparency.
+const isColor = (value: unknown): value is string =>
+  typeof value === 'string' && /^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(value)
+
+function isOverlay(value: unknown): value is TitleBarOverlay {
+  if (typeof value !== 'object' || value === null) return false
+  const { color, symbolColor, height } = value as Record<string, unknown>
+  return isColor(color) && isColor(symbolColor) && Number.isInteger(height) && Number(height) > 0
 }
 
 /** Lets the window deal with unsaved changes first. Resolves `false` when the user cancels. */

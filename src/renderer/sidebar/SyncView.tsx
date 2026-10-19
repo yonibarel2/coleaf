@@ -152,146 +152,148 @@ export function SyncView({
   return (
     <aside className="sidebar">
       <div className="sidebar__header">Sync</div>
-      {status === null ? null : !status.repo ? (
-        <p className="sync__note">
-          This folder is not a Git repository, so there is nothing to sync yet.
-        </p>
-      ) : (
-        <div className="sync">
-          <div className="section__header section__header--static">
-            <span className="section__title">Changed files</span>
-          </div>
-          {merging && (
-            <p className="sync__note sync__note--attention">
-              Others changed the same parts as you. Choose a version for each file marked Conflict,
-              then press Finish sync.
-            </p>
-          )}
-          {rows.length === 0 ? (
-            <p className="sync__note">No changes since the last Sync.</p>
-          ) : (
-            <ul className="sync__files">
-              {rows.map((row) => (
-                <li key={row.path} className="sync__file">
-                  {row.kind === 'conflict' ? (
-                    <ConflictRow
-                      path={row.path}
-                      onOpen={() => onOpenConflict(row.path)}
-                      onSettle={(side) => void settleFile(row.path, side)}
-                    />
-                  ) : (
-                    <label className="sync__tick" data-tip={row.path}>
-                      <input
-                        type="checkbox"
-                        checked={!unticked.has(row.path)}
-                        disabled={merging}
-                        onChange={(event) => toggle(row.path, event.target.checked)}
+      <div className="sidebar__body">
+        {status === null ? null : !status.repo ? (
+          <p className="sync__note">
+            This folder is not a Git repository, so there is nothing to sync yet.
+          </p>
+        ) : (
+          <div className="sync">
+            <div className="section__header section__header--static">
+              <span className="section__title">Changed files</span>
+            </div>
+            {merging && (
+              <p className="sync__note sync__note--attention">
+                Others changed the same parts as you. Choose a version for each file marked
+                Conflict, then press Finish sync.
+              </p>
+            )}
+            {rows.length === 0 ? (
+              <p className="sync__note">No changes since the last Sync.</p>
+            ) : (
+              <ul className="sync__files">
+                {rows.map((row) => (
+                  <li key={row.path} className="sync__file">
+                    {row.kind === 'conflict' ? (
+                      <ConflictRow
+                        path={row.path}
+                        onOpen={() => onOpenConflict(row.path)}
+                        onSettle={(side) => void settleFile(row.path, side)}
                       />
-                      <span className="sync__path">{row.path}</span>
-                    </label>
-                  )}
-                  {kindLabels[row.kind] && (
-                    <span className={`sync__kind sync__kind--${row.kind}`}>
-                      {kindLabels[row.kind]}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-          {unused.length > 0 && !merging && (
-            <label className="sync__tick sync__cleanup" data-tip={unused.join('\n')}>
-              <input
-                type="checkbox"
-                checked={removeUnused}
-                onChange={(event) => setRemoveUnused(event.target.checked)}
-              />
-              <span className="sync__path">
-                Also remove {unused.length} unused {unused.length === 1 ? 'picture' : 'pictures'}
-              </span>
-            </label>
-          )}
-          {hasIdentity === false ? (
-            <IdentityForm onSaved={() => setHasIdentity(true)} />
-          ) : merging ? (
-            <>
-              <button
-                type="button"
-                className="button button--primary sync__button"
-                disabled={busy || conflicts.length > 0}
-                onClick={() => void run(() => window.coleaf.git.finishSync())}
-              >
-                {busy ? 'Syncing…' : 'Finish sync'}
-              </button>
-              <button
-                type="button"
-                className="button sync__button"
-                disabled={busy}
-                onClick={() =>
-                  void run(async () => {
-                    await window.coleaf.git.cancelSync()
-                    return { kind: 'error', pulled: true, message: 'Sync cancelled.' }
-                  })
-                }
-              >
-                Cancel sync
-              </button>
-              <p className="sync__caption">
-                {conflicts.length > 0
-                  ? `${conflicts.length} ${conflicts.length === 1 ? 'file needs' : 'files need'} a choice. `
-                  : 'Every conflict has its choice. '}
-                <LearnMore onOpen={() => setHelpOpen(true)} />
-              </p>
-            </>
-          ) : (
-            <>
-              <label className="sync__label" htmlFor="sync-message">
-                What did you change? {tickedCount > 0 && '(required)'}
+                    ) : (
+                      <label className="sync__tick" data-tip={row.path}>
+                        <input
+                          type="checkbox"
+                          checked={!unticked.has(row.path)}
+                          disabled={merging}
+                          onChange={(event) => toggle(row.path, event.target.checked)}
+                        />
+                        <span className="sync__path">{row.path}</span>
+                      </label>
+                    )}
+                    {kindLabels[row.kind] && (
+                      <span className={`sync__kind sync__kind--${row.kind}`}>
+                        {kindLabels[row.kind]}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {unused.length > 0 && !merging && (
+              <label className="sync__tick sync__cleanup" data-tip={unused.join('\n')}>
+                <input
+                  type="checkbox"
+                  checked={removeUnused}
+                  onChange={(event) => setRemoveUnused(event.target.checked)}
+                />
+                <span className="sync__path">
+                  Also remove {unused.length} unused {unused.length === 1 ? 'picture' : 'pictures'}
+                </span>
               </label>
-              <textarea
-                id="sync-message"
-                className="sync__message"
-                rows={3}
-                placeholder="e.g. Added the Stage 1 design"
-                value={message}
-                disabled={busy}
-                onChange={(event) => setMessage(event.target.value)}
-              />
-              <button
-                type="button"
-                className="button button--primary sync__button"
-                disabled={!canSync}
-                onClick={() => void sync()}
-              >
-                {busy ? 'Syncing…' : 'Sync'}
-              </button>
-              <p className="sync__caption">
-                {tickedCount > 0
-                  ? "Saves a version, gets others' changes, then sends yours. "
-                  : "Gets others' latest changes. "}
-                <LearnMore onOpen={() => setHelpOpen(true)} />
+            )}
+            {hasIdentity === false ? (
+              <IdentityForm onSaved={() => setHasIdentity(true)} />
+            ) : merging ? (
+              <>
+                <button
+                  type="button"
+                  className="button button--primary sync__button"
+                  disabled={busy || conflicts.length > 0}
+                  onClick={() => void run(() => window.coleaf.git.finishSync())}
+                >
+                  {busy ? 'Syncing…' : 'Finish sync'}
+                </button>
+                <button
+                  type="button"
+                  className="button sync__button"
+                  disabled={busy}
+                  onClick={() =>
+                    void run(async () => {
+                      await window.coleaf.git.cancelSync()
+                      return { kind: 'error', pulled: true, message: 'Sync cancelled.' }
+                    })
+                  }
+                >
+                  Cancel sync
+                </button>
+                <p className="sync__caption">
+                  {conflicts.length > 0
+                    ? `${conflicts.length} ${conflicts.length === 1 ? 'file needs' : 'files need'} a choice. `
+                    : 'Every conflict has its choice. '}
+                  <LearnMore onOpen={() => setHelpOpen(true)} />
+                </p>
+              </>
+            ) : (
+              <>
+                <label className="sync__label" htmlFor="sync-message">
+                  What did you change? {tickedCount > 0 && '(required)'}
+                </label>
+                <textarea
+                  id="sync-message"
+                  className="sync__message"
+                  rows={3}
+                  placeholder="e.g. Added the Stage 1 design"
+                  value={message}
+                  disabled={busy}
+                  onChange={(event) => setMessage(event.target.value)}
+                />
+                <button
+                  type="button"
+                  className="button button--primary sync__button"
+                  disabled={!canSync}
+                  onClick={() => void sync()}
+                >
+                  {busy ? 'Syncing…' : 'Sync'}
+                </button>
+                <p className="sync__caption">
+                  {tickedCount > 0
+                    ? "Saves a version, gets others' changes, then sends yours. "
+                    : "Gets others' latest changes. "}
+                  <LearnMore onOpen={() => setHelpOpen(true)} />
+                </p>
+              </>
+            )}
+            {outcome && (
+              <p className={`sync__outcome${outcome.ok ? '' : ' sync__outcome--error'}`}>
+                {outcome.text}
+                {outcome.signIn && (
+                  <>
+                    {' '}
+                    <button
+                      type="button"
+                      className="link-button"
+                      onClick={() => void window.coleaf.account.signIn()}
+                    >
+                      Sign in with GitHub
+                    </button>
+                  </>
+                )}
               </p>
-            </>
-          )}
-          {outcome && (
-            <p className={`sync__outcome${outcome.ok ? '' : ' sync__outcome--error'}`}>
-              {outcome.text}
-              {outcome.signIn && (
-                <>
-                  {' '}
-                  <button
-                    type="button"
-                    className="link-button"
-                    onClick={() => void window.coleaf.account.signIn()}
-                  >
-                    Sign in with GitHub
-                  </button>
-                </>
-              )}
-            </p>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )}
+      </div>
       {helpOpen && <HowSyncDialog onClose={() => setHelpOpen(false)} />}
     </aside>
   )

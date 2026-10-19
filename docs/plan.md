@@ -70,8 +70,8 @@ Always visible, with or without a project open.
 
 | Part | No project open | Project open |
 | --- | --- | --- |
-| Menu bar | File, Help | File, Help |
-| Left sidebar | "No project open" with Open project and Clone from GitHub buttons | One view at a time, picked from the left icon bar, like VS Code. **Explorer view:** header "Explorer"; sections Project (folder structure) and History (commits of the focused file, this branch only). **Sync view:** see Sync view below. Clicking the active icon hides the sidebar; dragging its right edge changes its width |
+| Title bar | One row, as in VS Code: the app icon, the menus (File, Help) and the window controls; no title text (decided Oct 19, 2026; it was the system's title bar plus a menu row) | Same |
+| Left sidebar | "No project open" with Open project and Clone from GitHub buttons | One view at a time, picked from the left icon bar, like VS Code. **Explorer view:** header "Explorer"; sections: the project folder, headed with its name (folder structure; decided Oct 19, 2026, it was "Project"), and History (commits of the focused file, this branch only). **Sync view:** see Sync view below. Clicking the active icon hides the sidebar; dragging its right edge changes its width |
 | Tab bar | Welcome tab (the opening screen) | One tab per open `.md` file |
 | Account (bottom-left, above the gear) | Signed out: "Sign in with GitHub". Signed in: your GitHub picture; click for Sign out | Same |
 | Settings (gear, bottom-left) | Light theme (dark comes in Stage 4) | Same |
@@ -118,7 +118,7 @@ Shown after opening a project or a single file.
 | Unsaved dot (●) | Shows on the tab when there are changes not yet saved (Ctrl+S) |
 | Side by side | Up to 3 documents next to each other; drag to set their widths. No top/bottom split. History follows the focused document |
 | Outside changes | Rare: another program on this computer (e.g. VS Code) changed an open file. No auto-reload; CoLeaf asks: Keep mine (my version wins on next save) or Reload (load the new version; my unsaved edits are lost) |
-| Non-.md files and folders | Files that aren't `.md` (can't be opened), and folders with no `.md` file at any depth, are shown greyed in the Project section; `node_modules` and git-ignored folders are never scanned and always greyed. The "Only .md" tick in the section header hides them all. .git and system files are always hidden |
+| Non-.md files and folders | Files that aren't `.md` (can't be opened), and folders with no `.md` file at any depth, are shown greyed in the Project section; `node_modules` and git-ignored folders are never scanned and always greyed. The "Only .md" tick in the Explorer header hides them all and is remembered (moved from the section header Oct 19, 2026: one decision for every folder). .git and system files are always hidden |
 | Pictures | Pasted or dragged pictures are saved under the root md-images/ folder (CoLeaf's own; decided Oct 17, 2026, was images/), in a subfolder mirroring the doc's path (md-images/docs/plan/diagram-1.png). Created only when a doc gets its first picture. Moving or renaming a doc renames its image folder and updates its links automatically. A picture removed from the text stays on disk until the next Sync (see Sync view) |
 | Restore a version | Right-click a version in History → Restore. If the current version isn't committed yet, a short message explains it will be lost, with three buttons: Override (restore, lose current), Commit and restore (current version kept in History first), Cancel. The restored file is a normal change, committed on the next Sync. Nothing in History is deleted |
 | Page layout | A soft off-white sheet (`#FCFCFB`, about A4 width, \~800 px) centered on the grey background, below a slightly darker toolbar. On a narrow window or split pane the sheet shrinks and text re-wraps (no sideways scrolling). No page breaks; CoLeaf never adds line breaks to the file |
@@ -256,8 +256,8 @@ A full-window, Word-like workspace with modern styling, working side by side wit
 2. **Final name:** moved to Release 1 (new name and logo).
 3. **Dark theme:** a dark version of the whole app, switched in Settings.
 4. **Viewers:** map (GeoJSON/TopoJSON), 3D model (STL) and PlantUML blocks rendered like GitHub and GitLab do; libraries to approve first.
-5. **Custom title bar:** one row with the app icon, the menus, the search box and the window controls, as in the mockups, replacing the system title bar plus a separate menu row.
-6. **Scrollbars:** thin overlay scrollbars on the sidebar and the page (the mockups draw none).
+5. **Custom title bar:** done early, in Stage 1a (Oct 19, 2026); the search box comes with the search slice of Stage 1b.
+6. **Scrollbars:** thin, without arrows, everywhere: done early (Oct 19, 2026). Overlay scrollbars (fading, taking no room, as the mockups draw none) are still to decide.
 7. **Authoring format:** a policy for what CoLeaf lets people add, so files stay easy for both humans and AI to read: GFM first; diagrams only as Mermaid text with `accTitle`/`accDescr`; images with alt text and no base64; a small HTML allowlist (`details`, `sub`/`sup`, `kbd`, `br`); optional front matter (title, owner, status, one-line summary); scripts, iframes, styles, forms, colors and merged cells never created. Existing HTML is kept as-is. Written as `docs/authoring-policy.md` plus an AGENTS.md rule.
 8. **Bottom bar:** branch and word count on the left, a zoom slider on the right. Zoom also works the standard ways: Ctrl+= / Ctrl+- / Ctrl+0 and Ctrl + mouse wheel, as in Word. The branch then leaves the sidebar headers, so it shows in one place only.
 

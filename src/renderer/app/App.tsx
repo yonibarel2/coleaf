@@ -6,6 +6,7 @@ import { readNumber, writeNumber } from './settings'
 import { ShortcutsDialog } from './ShortcutsDialog'
 import { SidebarResizer } from './SidebarResizer'
 import { StatusBar } from './StatusBar'
+import { TitleBar } from './TitleBar'
 import { Tooltip } from './Tooltip'
 import { useAccount } from './useAccount'
 import { useGitStatus } from './useGit'
@@ -33,6 +34,7 @@ export function App(): JSX.Element {
   return (
     <>
       <div className={`frame${shown ? '' : ' frame--no-sidebar'}`} style={frameStyle}>
+        <TitleBar />
         <IconBar
           view={shown}
           hasProject={project !== null}
